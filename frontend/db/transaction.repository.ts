@@ -23,18 +23,15 @@ export const TransactionRepository = {
   async create(transaction: Transaction) {
     const db = await getDatabase();
     await db.runAsync(
-      `INSERT INTO transactions (id, user_id, category_id, amount, description, date, type, is_synced)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        transaction.id,
-        transaction.user_id,
-        transaction.category_id,
-        transaction.amount,
-        transaction.description,
-        transaction.date,
-        transaction.type,
-        0 // Always start unsynced
-      ]
+      `INSERT INTO transactions (id, user_id, category_id, amount, description, date, type, is_synced) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      transaction.id,
+      transaction.user_id,
+      transaction.category_id,
+      transaction.amount,
+      transaction.description !== null ? transaction.description : "",
+      transaction.date,
+      transaction.type,
+      transaction.is_synced || 0
     );
     return transaction;
   },
@@ -48,7 +45,9 @@ export const TransactionRepository = {
     const db = await getDatabase();
     return await db.getAllAsync<Transaction>(
       "SELECT * FROM transactions WHERE user_id = ? ORDER BY date DESC LIMIT ? OFFSET ?",
-      [userId, limit, offset]
+      userId, 
+      limit, 
+      offset
     );
   },
 
@@ -71,7 +70,7 @@ export const TransactionRepository = {
     const placeholders = ids.map(() => "?").join(",");
     await db.runAsync(
       `UPDATE transactions SET is_synced = 1 WHERE id IN (${placeholders})`,
-      ids
+      ...ids
     );
   }
 };

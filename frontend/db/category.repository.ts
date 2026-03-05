@@ -22,7 +22,12 @@ export const CategoryRepository = {
       await db.runAsync(
         `INSERT OR REPLACE INTO categories (id, name, icon, color, type, is_default)
          VALUES (?, ?, ?, ?, ?, ?)`,
-        [cat.id, cat.name, cat.icon, cat.color, cat.type, cat.is_default]
+        cat.id,
+        cat.name,
+        cat.icon !== null ? cat.icon : "",
+        cat.color !== null ? cat.color : "",
+        cat.type,
+        cat.is_default
       );
     }
   },
@@ -42,7 +47,7 @@ export const CategoryRepository = {
     const db = await getDatabase();
     return await db.getAllAsync<Category>(
       "SELECT * FROM categories WHERE type = ? ORDER BY name ASC",
-      [type]
+      type
     );
   }
 };

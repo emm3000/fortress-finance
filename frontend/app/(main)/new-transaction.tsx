@@ -76,11 +76,23 @@ export default function NewTransactionScreen() {
         user_id: user.id,
         category_id: data.categoryId,
         amount: Number(data.amount),
-        description: data.description || null,
+        description: data.description || "",
         date: new Date().toISOString(),
         type: data.type,
         is_synced: 0,
       };
+
+      console.log("Submitting transaction:", newTransaction);
+      console.log("Values array would be:", [
+        newTransaction.id,
+        newTransaction.user_id,
+        newTransaction.category_id,
+        newTransaction.amount,
+        newTransaction.description,
+        newTransaction.date,
+        newTransaction.type,
+        0
+      ]);
 
       await TransactionRepository.create(newTransaction);
       
