@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { router } from "expo-router";
 import {
   View,
   Text,
@@ -161,6 +162,14 @@ export default function Dashboard() {
           <Text className="ml-2 text-red-800 font-medium text-sm">Cerrar Sesión</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Floating Action Button */}
+      <TouchableOpacity
+        onPress={() => router.push("/(main)/new-transaction" as any)}
+        className="absolute bottom-10 right-6 w-16 h-16 bg-primary rounded-full items-center justify-center shadow-lg shadow-primary/50 border-4 border-background"
+      >
+        <TrendingDown size={32} color="#0F0F0F" />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
