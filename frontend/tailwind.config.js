@@ -6,13 +6,12 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        // Premium Dark/Gold Theme
         primary: {
           DEFAULT: "#FFD700", // Gold
           dark: "#B8860B",
           light: "#FFFACD",
         },
-        background: "#0F0F0F", // Deep Dark
+        background: "#0F0F0F",
         surface: "#1A1A1A",
         border: "#2A2A2A",
       },
