@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { SyncService } from "../services/sync.service";
 import { useAuthStore } from "../store/auth.store";
 
@@ -10,7 +10,7 @@ export const useSync = () => {
   const [lastSyncError, setLastSyncError] = useState<string | null>(null);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
-  const performSync = async () => {
+  const performSync = useCallback(async () => {
     if (!isAuthenticated || isSyncing) return;
 
     setIsSyncing(true);
@@ -30,7 +30,7 @@ export const useSync = () => {
     } finally {
       setIsSyncing(false);
     }
-  };
+  }, [isAuthenticated, isSyncing]);
 
   return {
     performSync,

@@ -8,7 +8,7 @@ export default function Index() {
 
   useEffect(() => {
     initializeAuth();
-  }, []);
+  }, [initializeAuth]);
 
   useEffect(() => {
     if (!isLoading) {
