@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
-  TouchableOpacity,
+  Pressable,
   SafeAreaView,
   RefreshControl,
   ActivityIndicator,
@@ -53,9 +53,9 @@ export default function HistoryScreen() {
     <SafeAreaView className="flex-1 bg-background">
       {/* Header */}
       <View className="px-6 py-4 flex-row items-center border-b border-border">
-        <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2">
+        <Pressable onPress={() => router.back()} className="p-2 -ml-2">
           <ArrowLeft size={24} color="#FFD700" />
-        </TouchableOpacity>
+        </Pressable>
         <Text className="text-text text-xl font-bold ml-2">Crónicas de Guerra</Text>
       </View>
 

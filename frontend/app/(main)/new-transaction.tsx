@@ -3,7 +3,7 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
@@ -113,9 +113,9 @@ export default function NewTransactionScreen() {
         <ScrollView className="px-6">
           {/* Header */}
           <View className="flex-row items-center py-6">
-            <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2">
+            <Pressable onPress={() => router.back()} className="p-2 -ml-2">
               <ArrowLeft size={24} color="#FFD700" />
-            </TouchableOpacity>
+            </Pressable>
             <Text className="text-text text-xl font-bold ml-2">
               {transactionType === "EXPENSE" ? "Registrar Batalla" : "Botín de Guerra"}
             </Text>
@@ -123,7 +123,7 @@ export default function NewTransactionScreen() {
 
           {/* Type Toggle */}
           <View className="flex-row bg-surface rounded-2xl p-1 mb-8 border border-border">
-            <TouchableOpacity
+            <Pressable
               onPress={() => setValue("type", "EXPENSE")}
               className={`flex-1 py-3 rounded-xl items-center ${
                 transactionType === "EXPENSE" ? "bg-red-500/20 border border-red-500/50" : ""
@@ -132,8 +132,8 @@ export default function NewTransactionScreen() {
               <Text className={transactionType === "EXPENSE" ? "text-red-400 font-bold" : "text-text-muted"}>
                 Gasto ⚔️
               </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+            </Pressable>
+            <Pressable
               onPress={() => setValue("type", "INCOME")}
               className={`flex-1 py-3 rounded-xl items-center ${
                 transactionType === "INCOME" ? "bg-green-500/20 border border-green-500/50" : ""
@@ -142,7 +142,7 @@ export default function NewTransactionScreen() {
               <Text className={transactionType === "INCOME" ? "text-green-400 font-bold" : "text-text-muted"}>
                 Ingreso 💰
               </Text>
-            </TouchableOpacity>
+            </Pressable>
           </View>
 
           {/* Amount Input */}
@@ -166,7 +166,7 @@ export default function NewTransactionScreen() {
                 </View>
               )}
             />
-            {errors.amount && <Text className="text-red-400 text-sm mt-1 ml-1">{errors.amount.message}</Text>}
+            {errors.amount ? <Text className="text-red-400 text-sm mt-1 ml-1">{errors.amount.message}</Text> : null}
           </MotiView>
 
           {/* Category Selector */}
@@ -183,7 +183,7 @@ export default function NewTransactionScreen() {
                     categories
                       .filter((c) => c.type === transactionType)
                       .map((cat) => (
-                        <TouchableOpacity
+                        <Pressable
                           key={cat.id}
                           onPress={() => setValue("categoryId", cat.id)}
                           className={`px-4 py-2 rounded-full border ${
@@ -195,13 +195,13 @@ export default function NewTransactionScreen() {
                           <Text className={value === cat.id ? "text-primary font-bold" : "text-text-muted"}>
                             {cat.name}
                           </Text>
-                        </TouchableOpacity>
+                        </Pressable>
                       ))
                   )}
                 </View>
               )}
             />
-            {errors.categoryId && <Text className="text-red-400 text-sm mt-1 ml-1">{errors.categoryId.message}</Text>}
+            {errors.categoryId ? <Text className="text-red-400 text-sm mt-1 ml-1">{errors.categoryId.message}</Text> : null}
           </MotiView>
 
           {/* Description */}
@@ -227,7 +227,7 @@ export default function NewTransactionScreen() {
           </MotiView>
 
           {/* Submit Button */}
-          <TouchableOpacity
+          <Pressable
             onPress={handleSubmit(onSubmit)}
             className={`h-16 rounded-2xl items-center justify-center mt-12 mb-10 ${
               transactionType === "EXPENSE" ? "bg-red-600" : "bg-green-600"
@@ -236,7 +236,7 @@ export default function NewTransactionScreen() {
             <Text className="text-text font-bold text-lg">
               {transactionType === "EXPENSE" ? "Confirmar Gasto" : "Asegurar Botín"}
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>

@@ -3,7 +3,7 @@ import {
   View,
   Text,
   TextInput,
-  TouchableOpacity,
+  Pressable,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -83,11 +83,11 @@ export default function LoginScreen() {
                   </View>
                 )}
               />
-              {errors.email && (
+              {errors.email ? (
                 <Text className="text-red-400 text-sm mt-1 ml-1">
                   {errors.email.message}
                 </Text>
-              )}
+              ) : null}
             </View>
 
             <View>
@@ -110,28 +110,28 @@ export default function LoginScreen() {
                   </View>
                 )}
               />
-              {errors.password && (
+              {errors.password ? (
                 <Text className="text-red-400 text-sm mt-1 ml-1">
                   {errors.password.message}
                 </Text>
-              )}
+              ) : null}
             </View>
 
-            <TouchableOpacity
+            <Pressable
               onPress={handleSubmit(onSubmit)}
               className="bg-primary h-14 rounded-xl items-center justify-center mt-8 active:opacity-80"
             >
               <Text className="text-background font-bold text-lg">
                 Entrar al Reino
               </Text>
-            </TouchableOpacity>
+            </Pressable>
 
             <View className="flex-row justify-center mt-6">
               <Text className="text-text-muted">¿Eres nuevo recluta? </Text>
               <Link href="/(auth)/register" asChild>
-                <TouchableOpacity>
+                <Pressable>
                   <Text className="text-primary font-bold">Únete a la guardia</Text>
-                </TouchableOpacity>
+                </Pressable>
               </Link>
             </View>
           </View>

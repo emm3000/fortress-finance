@@ -136,9 +136,10 @@ export default function Dashboard() {
           {/* HP Bar */}
           <View className="h-4 bg-background rounded-full overflow-hidden border border-border">
             <MotiView
-              from={{ width: "0%" }}
-              animate={{ width: `${hpPercentage}%` }}
+              from={{ scaleX: 0 }}
+              animate={{ scaleX: hpPercentage / 100 }}
               transition={{ type: "spring", damping: 15 }}
+              style={{ width: "100%", transformOrigin: "left" }}
               className={`h-full rounded-full ${hpPercentage < 30 ? "bg-red-500" : "bg-primary"}`}
             />
           </View>
