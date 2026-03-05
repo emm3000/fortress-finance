@@ -24,8 +24,9 @@ export const useSync = () => {
       await SyncService.fullSync();
       
       console.log("Synchronization complete! 🔄");
-    } catch (error: any) {
-      setLastSyncError(error.message || "Sync failed");
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Sync failed";
+      setLastSyncError(errorMessage);
       console.error("Sync error:", error);
     } finally {
       setIsSyncing(false);

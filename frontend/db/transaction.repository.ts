@@ -40,13 +40,15 @@ export const TransactionRepository = {
   },
 
   /**
-   * Get all transactions for a user.
+   * Get transactions for a user with pagination (Offline-First).
+   * @param limit Maximum number of transactions to return
+   * @param offset Number of transactions to skip
    */
-  async getAll(userId: string): Promise<Transaction[]> {
+  async getAll(userId: string, limit: number = 20, offset: number = 0): Promise<Transaction[]> {
     const db = await getDatabase();
     return await db.getAllAsync<Transaction>(
-      "SELECT * FROM transactions WHERE user_id = ? ORDER BY date DESC",
-      [userId]
+      "SELECT * FROM transactions WHERE user_id = ? ORDER BY date DESC LIMIT ? OFFSET ?",
+      [userId, limit, offset]
     );
   },
 

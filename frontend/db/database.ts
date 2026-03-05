@@ -62,6 +62,10 @@ export const initDatabase = async () => {
        key TEXT PRIMARY KEY NOT NULL,
        value TEXT NOT NULL
     );
+
+    -- Performance Indexes
+    CREATE INDEX IF NOT EXISTS idx_transactions_user_date ON transactions(user_id, date DESC);
+    CREATE INDEX IF NOT EXISTS idx_transactions_sync ON transactions(is_synced);
   `);
 
   console.log("Local database initialized successfully 🏰");

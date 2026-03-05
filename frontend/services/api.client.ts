@@ -12,14 +12,13 @@ const apiClient = axios.create({
   },
 });
 
-// Interceptor to add JWT token to requests
-apiClient.interceptors.request.use(async (config) => {
-  const token = await SecureStore.getItemAsync("auth_token");
+export const setAuthToken = (token: string | null) => {
   if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+    apiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  } else {
+    delete apiClient.defaults.headers.common["Authorization"];
   }
-  return config;
-});
+};
 
 // Interceptor to handle unauthorized errors (token expired)
 apiClient.interceptors.response.use(
