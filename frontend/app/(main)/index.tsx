@@ -1,5 +1,5 @@
 import React, { useEffect, useCallback } from "react";
-import { router, Href } from "expo-router";
+import { Link } from "expo-router";
 import {
   View,
   Text,
@@ -60,14 +60,6 @@ export default function Dashboard() {
        console.error("Refresh failed:", error);
     }
   }, [performSync, refreshCastle]);
-
-  const navigateToHistory = useCallback(() => {
-    router.push("/(main)/history" as Href);
-  }, []);
-
-  const navigateToNewTransaction = useCallback(() => {
-    router.push("/(main)/new-transaction" as Href);
-  }, []);
 
   const hpPercentage = React.useMemo(() => {
     return castle ? (castle.hp / castle.max_hp) * 100 : 0;
@@ -184,13 +176,12 @@ export default function Dashboard() {
             <Text className="text-text-muted mt-2 mb-4 text-center">Sin batallas recientes</Text>
           )}
           
-          <Pressable 
-            onPress={navigateToHistory}
-            className="mt-2 py-4 flex-row items-center justify-center"
-          >
-            <Text className="text-primary font-medium">Ver todas las crónicas</Text>
-            <ChevronRight size={16} color={theme.colors.primary.DEFAULT} />
-          </Pressable>
+          <Link href="/(main)/history" asChild>
+            <Pressable className="mt-2 py-4 flex-row items-center justify-center">
+              <Text className="text-primary font-medium">Ver todas las crónicas</Text>
+              <ChevronRight size={16} color={theme.colors.primary.DEFAULT} />
+            </Pressable>
+          </Link>
         </View>
 
         {/* Logout */}
@@ -203,13 +194,13 @@ export default function Dashboard() {
         </Pressable>
       </ScrollView>
 
-      {/* Floating Action Button */}
-      <Pressable
-        onPress={navigateToNewTransaction}
-        className="absolute bottom-10 right-6 w-16 h-16 bg-primary rounded-full items-center justify-center shadow-lg shadow-primary/50 border-4 border-background"
-      >
-        <TrendingDown size={32} color={theme.colors.background} />
-      </Pressable>
+      <Link href="/(main)/new-transaction" asChild>
+        <Pressable
+          className="absolute bottom-10 right-6 w-16 h-16 bg-primary rounded-full items-center justify-center shadow-lg shadow-primary/50 border-4 border-background"
+        >
+          <TrendingDown size={32} color={theme.colors.background} />
+        </Pressable>
+      </Link>
     </SafeAreaView>
   );
 }
