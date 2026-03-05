@@ -73,9 +73,9 @@ Agregamos herramientas modernas demandadas en la industria para garantizar calid
 
 ### 3. Utilidades y Middlewares Globales
 
-- [ ] Desarrollar `middlewares/errorHandler.ts`: Para atrapar excepciones de Prisma y mandarlas amigablemente con códigos 400/500 al cliente.
-- [ ] Crear el middleware genérico para enrutar Zod: `middlewares/validate.ts` (Que valide req.body / req.query / req.params).
-- [ ] Crear utils de seguridad: `utils/password.ts` (hash/compare) y `utils/jwt.ts` (sign/verify).
+- [x] Desarrollar `middlewares/errorHandler.ts`: Para atrapar excepciones de Prisma y mandarlas amigablemente con códigos 400/500 al cliente.
+- [x] Crear el middleware genérico para enrutar Zod: `middlewares/validate.ts` (Que valide req.body / req.query / req.params).
+- [x] Crear utils de seguridad: `utils/password.ts` (hash/compare) y `utils/jwt.ts` (sign/verify).
 
 ### 4. Dominio: Autenticación de Usuarios (Auth)
 

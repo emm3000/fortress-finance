@@ -7,6 +7,7 @@ export default [
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
   eslintConfigPrettier,
+  { ignores: ['dist/**', 'src/generated/**'] },
   {
     languageOptions: {
       globals: {

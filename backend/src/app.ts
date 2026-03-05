@@ -1,4 +1,4 @@
-import express, { Request, Response, NextFunction } from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -16,11 +16,9 @@ app.get('/api/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'OK', message: 'Servicio en línea' });
 });
 
+import { errorHandler } from './middlewares/errorHandler';
+
 // Middleware genérico para manejo de errores
-app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
-  // eslint-disable-next-line no-console
-  console.error(err.stack);
-  res.status(500).json({ error: 'Internal Server Error' });
-});
+app.use(errorHandler);
 
 export default app;
