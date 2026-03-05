@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { router } from "expo-router";
+import React, { useEffect, useCallback } from "react";
+import { router, Href } from "expo-router";
 import {
   View,
   Text,
@@ -11,6 +11,8 @@ import {
 import { useAuthStore } from "../../store/auth.store";
 import { useCastle } from "../../hooks/useCastle";
 import { useSync } from "../../hooks/useSync";
+import { useTransactions } from "../../hooks/useTransactions";
+import { theme } from "../../constants/theme";
 import {
   Shield,
   Coins,
@@ -28,23 +30,45 @@ export default function Dashboard() {
   const logout = useAuthStore((state) => state.logout);
   const { castle, refreshCastle } = useCastle();
   const { performSync, isSyncing } = useSync();
+  const { transactions } = useTransactions();
 
   useEffect(() => {
-    // Initial sync on mount
-    performSync().then(() => refreshCastle());
+    // Initial sync on mount with proper error boundary handling and state cleanup
+    let mounted = true;
+    performSync()
+      .then(() => {
+        if (mounted) refreshCastle();
+      })
+      .catch((error) => console.error("Initial Sync Failed:", error));
+      
+    return () => { mounted = false; };
   }, [performSync, refreshCastle]);
 
-  const onRefresh = async () => {
-    await performSync();
-    await refreshCastle();
-  };
+  const onRefresh = useCallback(async () => {
+    try {
+      await performSync();
+      await refreshCastle();
+    } catch (error) {
+       console.error("Refresh failed:", error);
+    }
+  }, [performSync, refreshCastle]);
+
+  const navigateToHistory = useCallback(() => {
+    router.push("/(main)/history" as Href);
+  }, []);
+
+  const navigateToNewTransaction = useCallback(() => {
+    router.push("/(main)/new-transaction" as Href);
+  }, []);
 
   const hpPercentage = castle ? (castle.hp / castle.max_hp) * 100 : 0;
-  const statusColors: any = {
+  const statusColors: Record<string, string> = {
     HEALTHY: "text-green-400",
     UNDER_ATTACK: "text-red-400",
     RUINS: "text-gray-500",
   };
+
+  const recentTransactions = transactions.slice(0, 3);
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -54,7 +78,7 @@ export default function Dashboard() {
           <RefreshControl
             refreshing={isSyncing}
             onRefresh={onRefresh}
-            tintColor="#FFD700"
+            tintColor={theme.colors.primary.DEFAULT}
           />
         }
       >
@@ -71,7 +95,7 @@ export default function Dashboard() {
           >
             <RefreshCw
               size={20}
-              color="#FFD700"
+              color={theme.colors.primary.DEFAULT}
               className={isSyncing ? "animate-spin" : ""}
             />
           </TouchableOpacity>
@@ -87,7 +111,7 @@ export default function Dashboard() {
           <View className="flex-row justify-between items-start mb-6">
             <View className="flex-row items-center">
               <View className="w-12 h-12 bg-primary/20 rounded-2xl items-center justify-center border border-primary/30">
-                <Shield size={28} color="#FFD700" />
+                <Shield size={28} color={theme.colors.primary.DEFAULT} />
               </View>
               <View className="ml-4">
                 <Text className="text-white text-lg font-bold">Tu Fortaleza</Text>
@@ -116,7 +140,7 @@ export default function Dashboard() {
         {/* Stats Row */}
         <View className="flex-row px-6 mt-4 space-x-4">
           <View className="flex-1 p-4 bg-surface rounded-3xl border border-border">
-            <Coins size={24} color="#FFD700" />
+            <Coins size={24} color={theme.colors.primary.DEFAULT} />
             <Text className="text-gray-400 text-xs mt-2">Oro Total</Text>
             <Text className="text-white text-xl font-bold">{castle?.gold_balance || 0}</Text>
           </View>
@@ -127,51 +151,56 @@ export default function Dashboard() {
           </View>
         </View>
 
-        {/* Recent Activity Placeholder */}
+        {/* Recent Activity */}
         <View className="px-6 mt-8">
           <Text className="text-white text-lg font-bold mb-4">Registro de Batallas</Text>
-          {[1, 2].map((i) => (
-            <View key={i} className="mb-3 p-4 bg-surface rounded-2xl border border-border flex-row items-center justify-between">
-              <View className="flex-row items-center">
-                <View className={`w-10 h-10 rounded-full items-center justify-center ${i === 1 ? 'bg-red-500/10' : 'bg-green-500/10'}`}>
-                  {i === 1 ? <TrendingDown size={20} color="#f87171" /> : <TrendingUp size={20} color="#4ade80" />}
+          
+          {recentTransactions.length > 0 ? (
+            recentTransactions.map((t) => (
+              <View key={t.id} className="mb-3 p-4 bg-surface rounded-2xl border border-border flex-row items-center justify-between">
+                <View className="flex-row items-center flex-1">
+                  <View className={`w-10 h-10 rounded-full items-center justify-center ${t.type === 'EXPENSE' ? 'bg-red-500/10' : 'bg-green-500/10'}`}>
+                    {t.type === 'EXPENSE' ? <TrendingDown size={20} color={theme.colors.danger} /> : <TrendingUp size={20} color={theme.colors.success} />}
+                  </View>
+                  <View className="ml-4 flex-1">
+                    <Text className="text-white font-medium" numberOfLines={1}>{t.description || "Transacción"}</Text>
+                    <Text className="text-gray-500 text-xs">{new Date(t.date).toLocaleDateString()}</Text>
+                  </View>
                 </View>
-                <View className="ml-4">
-                  <Text className="text-white font-medium">{i === 1 ? "Ataque de Orcos (Exceso)" : "Día de Paz (Ahorro)"}</Text>
-                  <Text className="text-gray-500 text-xs">Ayer, 08:00 PM</Text>
-                </View>
+                <Text className={`font-bold ml-2 ${t.type === 'EXPENSE' ? 'text-red-400' : 'text-green-400'}`}>
+                  {t.type === 'EXPENSE' ? "-" : "+"}{t.amount} G
+                </Text>
               </View>
-              <Text className={`font-bold ${i === 1 ? 'text-red-400' : 'text-green-400'}`}>
-                {i === 1 ? "-12 HP" : "+2 HP"}
-              </Text>
-            </View>
-          ))}
+            ))
+          ) : (
+            <Text className="text-gray-500 mt-2 mb-4 text-center">Sin batallas recientes</Text>
+          )}
           
           <TouchableOpacity 
-            onPress={() => router.push("/(main)/history" as any)}
+            onPress={navigateToHistory}
             className="mt-2 py-4 flex-row items-center justify-center"
           >
             <Text className="text-primary font-medium">Ver todas las crónicas</Text>
-            <ChevronRight size={16} color="#FFD700" />
+            <ChevronRight size={16} color={theme.colors.primary.DEFAULT} />
           </TouchableOpacity>
         </View>
 
-        {/* Logout (Provisional) */}
+        {/* Logout */}
         <TouchableOpacity 
           onPress={logout}
           className="mx-6 mt-8 flex-row items-center justify-center p-4 border border-red-900/30 rounded-2xl"
         >
-          <LogOut size={18} color="#991b1b" />
+          <LogOut size={18} color={theme.colors.dangerDark} />
           <Text className="ml-2 text-red-800 font-medium text-sm">Cerrar Sesión</Text>
         </TouchableOpacity>
       </ScrollView>
 
       {/* Floating Action Button */}
       <TouchableOpacity
-        onPress={() => router.push("/(main)/new-transaction" as any)}
+        onPress={navigateToNewTransaction}
         className="absolute bottom-10 right-6 w-16 h-16 bg-primary rounded-full items-center justify-center shadow-lg shadow-primary/50 border-4 border-background"
       >
-        <TrendingDown size={32} color="#0F0F0F" />
+        <TrendingDown size={32} color={theme.colors.background} />
       </TouchableOpacity>
     </SafeAreaView>
   );

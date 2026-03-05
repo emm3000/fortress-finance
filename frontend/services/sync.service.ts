@@ -38,27 +38,31 @@ export const SyncService = {
       const { syncTimestamp, changes } = response.data;
 
       // 4. APPLY CHANGES (PULL)
-      
-      // Update Castle/Wallet
-      if (changes.castle || changes.wallet) {
-        // Merge castle and wallet into our local castle_state table
-        await CastleRepository.upsert({
-          user_id: changes.castle.userId,
-          hp: changes.castle.hp,
-          max_hp: changes.castle.maxHp,
-          status: changes.castle.status,
-          gold_balance: changes.wallet?.goldBalance || 0,
-          streak_days: changes.wallet?.streakDays || 0,
-        });
-      }
+      try {
+        // Update Castle/Wallet
+        if (changes.castle || changes.wallet) {
+          // Merge castle and wallet into our local castle_state table
+          await CastleRepository.upsert({
+            user_id: changes.castle.userId,
+            hp: changes.castle.hp,
+            max_hp: changes.castle.maxHp,
+            status: changes.castle.status,
+            gold_balance: changes.wallet?.goldBalance || 0,
+            streak_days: changes.wallet?.streakDays || 0,
+          });
+        }
 
-      // Mark pushed transactions as synced
-      if (pendingTransactions.length > 0) {
-        await TransactionRepository.markAsSynced(pendingTransactions.map(t => t.id));
-      }
+        // Mark pushed transactions as synced
+        if (pendingTransactions.length > 0) {
+          await TransactionRepository.markAsSynced(pendingTransactions.map(t => t.id));
+        }
 
-      // 5. Update last sync time
-      await SyncMetaRepository.set("last_sync_timestamp", syncTimestamp);
+        // 5. Update last sync time
+        await SyncMetaRepository.set("last_sync_timestamp", syncTimestamp);
+      } catch (dbError) {
+        console.error("Critical error saving sync data to local DB:", dbError);
+        throw dbError;
+      }
 
       return { status: "success", syncTimestamp };
     } catch (error) {
