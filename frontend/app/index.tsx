@@ -1,17 +1,28 @@
-import { Text, View } from "react-native";
+import { useEffect } from "react";
+import { View, ActivityIndicator } from "react-native";
+import { router } from "expo-router";
+import { useAuthStore } from "../store/auth.store";
 
 export default function Index() {
+  const { isAuthenticated, isLoading, initializeAuth } = useAuthStore();
+
+  useEffect(() => {
+    initializeAuth();
+  }, []);
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (isAuthenticated) {
+        router.replace("/(main)");
+      } else {
+        router.replace("/(auth)/login");
+      }
+    }
+  }, [isAuthenticated, isLoading]);
+
   return (
     <View className="flex-1 items-center justify-center bg-background">
-      <Text className="text-4xl font-bold text-primary">
-        ¡Hola Mundo! 🏰
-      </Text>
-      <Text className="text-gray-400 mt-4 text-lg">
-        Defensa de la Fortaleza
-      </Text>
-      <View className="mt-8 p-4 bg-surface rounded-2xl border border-border">
-        <Text className="text-white">Motor de Sincronización Ready ⚡️</Text>
-      </View>
+      <ActivityIndicator size="large" color="#FFD700" />
     </View>
   );
 }
