@@ -2,11 +2,21 @@ import { Stack } from "expo-router";
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import { View, Text } from 'react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { initDatabase } from '../db/database';
 import "../global.css";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60, // 1 minute
+      retry: 2,
+    },
+  },
+});
 
 export default function RootLayout() {
   const [dbInitialized, setDbInitialized] = useState(false);
@@ -49,10 +59,12 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="(main)" />
-      <Stack.Screen name="(auth)" />
-    </Stack>
+    <QueryClientProvider client={queryClient}>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(main)" />
+        <Stack.Screen name="(auth)" />
+      </Stack>
+    </QueryClientProvider>
   );
 }

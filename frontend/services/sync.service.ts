@@ -9,6 +9,7 @@ export const SyncService = {
    * Main synchronization flow: PUSH unsynced and PULL changes.
    */
   async fullSync() {
+    console.log("SyncService: Starting fullSync()");
     try {
       // 1. Get local pending transactions (PUSH)
       const pendingTransactions = await TransactionRepository.getPendingSync();
@@ -75,6 +76,7 @@ export const SyncService = {
    * Fetch and update categories. Usually done on first launch or periodicly.
    */
   async syncCategories() {
+    console.log("SyncService: Fetching categories from backend...");
     try {
       const response = await apiClient.get("/categories");
       const categories = response.data;

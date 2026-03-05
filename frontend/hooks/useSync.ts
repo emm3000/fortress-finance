@@ -1,41 +1,47 @@
-import { useState, useCallback } from "react";
+import { useCallback } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { SyncService } from "../services/sync.service";
 import { useAuthStore } from "../store/auth.store";
 
 /**
- * Hook to manage the synchronization process in the UI.
+ * Hook to manage the synchronization process in the UI using React Query.
  */
 export const useSync = () => {
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [lastSyncError, setLastSyncError] = useState<string | null>(null);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const queryClient = useQueryClient();
 
-  const performSync = useCallback(async () => {
-    if (!isAuthenticated || isSyncing) return;
-
-    setIsSyncing(true);
-    setLastSyncError(null);
-
-    try {
+  const syncMutation = useMutation({
+    mutationFn: async () => {
+      if (!isAuthenticated) return;
+      console.log("useSync: Actually starting sync process...");
       // First, ensure we have categories
       await SyncService.syncCategories();
-      
       // Then perform the full data sync
       await SyncService.fullSync();
-      
       console.log("Synchronization complete! 🔄");
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Sync failed";
-      setLastSyncError(errorMessage);
+    },
+    onSuccess: () => {
+      // Invalidate relevant queries when sync completes to refresh UI
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['castle'] }); 
+    },
+    onError: (error) => {
       console.error("Sync error:", error);
-    } finally {
-      setIsSyncing(false);
     }
-  }, [isAuthenticated, isSyncing]);
+  });
+
+  const performSync = useCallback(async () => {
+    if (!isAuthenticated || syncMutation.isPending) return;
+    try {
+      await syncMutation.mutateAsync();
+    } catch {
+       // Handled in onError
+    }
+  }, [isAuthenticated, syncMutation]);
 
   return {
     performSync,
-    isSyncing,
-    lastSyncError,
+    isSyncing: syncMutation.isPending,
+    lastSyncError: syncMutation.error ? (syncMutation.error as Error).message : null,
   };
 };

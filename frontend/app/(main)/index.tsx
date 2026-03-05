@@ -4,7 +4,7 @@ import {
   View,
   Text,
   ScrollView,
-  TouchableOpacity,
+  Pressable,
   SafeAreaView,
   RefreshControl,
 } from "react-native";
@@ -25,6 +25,12 @@ import {
 } from "lucide-react-native";
 import { MotiView } from "moti";
 
+const STATUS_COLORS: Record<string, string> = {
+  HEALTHY: "text-green-400",
+  UNDER_ATTACK: "text-red-400",
+  RUINS: "text-gray-500",
+};
+
 export default function Dashboard() {
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
@@ -32,8 +38,10 @@ export default function Dashboard() {
   const { performSync, isSyncing } = useSync();
   const { transactions } = useTransactions();
 
+  console.log("Dashboard Rendered");
+
   useEffect(() => {
-    // Initial sync on mount with proper error boundary handling and state cleanup
+    console.log("Dashboard: Mounting and Running Initial Sync");
     let mounted = true;
     performSync()
       .then(() => {
@@ -42,7 +50,7 @@ export default function Dashboard() {
       .catch((error) => console.error("Initial Sync Failed:", error));
       
     return () => { mounted = false; };
-  }, [performSync, refreshCastle]);
+  }, []); // Run once on mount to avoid infinite loops from hook re-renders
 
   const onRefresh = useCallback(async () => {
     try {
@@ -61,14 +69,13 @@ export default function Dashboard() {
     router.push("/(main)/new-transaction" as Href);
   }, []);
 
-  const hpPercentage = castle ? (castle.hp / castle.max_hp) * 100 : 0;
-  const statusColors: Record<string, string> = {
-    HEALTHY: "text-green-400",
-    UNDER_ATTACK: "text-red-400",
-    RUINS: "text-gray-500",
-  };
+  const hpPercentage = React.useMemo(() => {
+    return castle ? (castle.hp / castle.max_hp) * 100 : 0;
+  }, [castle]);
 
-  const recentTransactions = transactions.slice(0, 3);
+  const recentTransactions = React.useMemo(() => {
+    return transactions.slice(0, 3);
+  }, [transactions]);
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -88,7 +95,7 @@ export default function Dashboard() {
             <Text className="text-gray-400 text-sm">Bienvenido, Guerrero</Text>
             <Text className="text-white text-2xl font-bold">{user?.name}</Text>
           </View>
-          <TouchableOpacity
+          <Pressable
             onPress={performSync}
             disabled={isSyncing}
             className="bg-surface p-3 rounded-full border border-border"
@@ -98,7 +105,7 @@ export default function Dashboard() {
               color={theme.colors.primary.DEFAULT}
               className={isSyncing ? "animate-spin" : ""}
             />
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
         {/* Castle Status Card */}
@@ -115,7 +122,7 @@ export default function Dashboard() {
               </View>
               <View className="ml-4">
                 <Text className="text-white text-lg font-bold">Tu Fortaleza</Text>
-                <Text className={`font-medium ${statusColors[castle?.status || "HEALTHY"]}`}>
+                <Text className={`font-medium ${STATUS_COLORS[castle?.status || "HEALTHY"]}`}>
                   {castle?.status === "HEALTHY" ? "Reino Próspero" : "¡Bajo Ataque!"}
                 </Text>
               </View>
@@ -176,32 +183,32 @@ export default function Dashboard() {
             <Text className="text-gray-500 mt-2 mb-4 text-center">Sin batallas recientes</Text>
           )}
           
-          <TouchableOpacity 
+          <Pressable 
             onPress={navigateToHistory}
             className="mt-2 py-4 flex-row items-center justify-center"
           >
             <Text className="text-primary font-medium">Ver todas las crónicas</Text>
             <ChevronRight size={16} color={theme.colors.primary.DEFAULT} />
-          </TouchableOpacity>
+          </Pressable>
         </View>
 
         {/* Logout */}
-        <TouchableOpacity 
+        <Pressable 
           onPress={logout}
           className="mx-6 mt-8 flex-row items-center justify-center p-4 border border-red-900/30 rounded-2xl"
         >
           <LogOut size={18} color={theme.colors.dangerDark} />
           <Text className="ml-2 text-red-800 font-medium text-sm">Cerrar Sesión</Text>
-        </TouchableOpacity>
+        </Pressable>
       </ScrollView>
 
       {/* Floating Action Button */}
-      <TouchableOpacity
+      <Pressable
         onPress={navigateToNewTransaction}
         className="absolute bottom-10 right-6 w-16 h-16 bg-primary rounded-full items-center justify-center shadow-lg shadow-primary/50 border-4 border-background"
       >
         <TrendingDown size={32} color={theme.colors.background} />
-      </TouchableOpacity>
+      </Pressable>
     </SafeAreaView>
   );
 }

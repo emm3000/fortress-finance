@@ -13,6 +13,7 @@ import { router } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import * as Crypto from "expo-crypto";
 import { CategoryRepository, Category } from "../../db/category.repository";
 import { TransactionRepository } from "../../db/transaction.repository";
 import { useSync } from "../../hooks/useSync";
@@ -71,7 +72,7 @@ export default function NewTransactionScreen() {
 
     try {
       const newTransaction = {
-        id: crypto.randomUUID(),
+        id: Crypto.randomUUID(),
         user_id: user.id,
         category_id: data.categoryId,
         amount: Number(data.amount),
