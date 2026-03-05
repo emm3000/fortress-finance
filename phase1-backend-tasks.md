@@ -63,13 +63,13 @@ Agregamos herramientas modernas demandadas en la industria para garantizar calid
 
 ### 2. Base de Datos y Prisma ORM
 
-- [ ] Inicializar Prisma (`npx prisma init`).
-- [ ] Definir el Schema en `schema.prisma` basado en el PRD de la Fase 1:
+- [x] Inicializar Prisma (`npx prisma init`).
+- [x] Definir el Schema en `schema.prisma` basado en el PRD de la Fase 1:
   - Modelo `User`
   - Modelo `Category`
   - Modelo `Transaction` (con lógica de `deleted_at` para el offline-first).
-- [ ] Desplegar o configurar instancia PostgreSQL (local o Docker).
-- [ ] Correr la primera migración de estructura base (`npx prisma migrate dev`).
+- [x] Desplegar o configurar instancia PostgreSQL (local o Docker).
+- [x] Correr la primera migración de estructura base (`npx prisma migrate dev`).
 
 ### 3. Utilidades y Middlewares Globales
 
