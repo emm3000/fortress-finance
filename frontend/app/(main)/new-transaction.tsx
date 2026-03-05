@@ -116,7 +116,7 @@ export default function NewTransactionScreen() {
             <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2">
               <ArrowLeft size={24} color="#FFD700" />
             </TouchableOpacity>
-            <Text className="text-white text-xl font-bold ml-2">
+            <Text className="text-text text-xl font-bold ml-2">
               {transactionType === "EXPENSE" ? "Registrar Batalla" : "Botín de Guerra"}
             </Text>
           </View>
@@ -129,7 +129,7 @@ export default function NewTransactionScreen() {
                 transactionType === "EXPENSE" ? "bg-red-500/20 border border-red-500/50" : ""
               }`}
             >
-              <Text className={transactionType === "EXPENSE" ? "text-red-400 font-bold" : "text-gray-500"}>
+              <Text className={transactionType === "EXPENSE" ? "text-red-400 font-bold" : "text-text-muted"}>
                 Gasto ⚔️
               </Text>
             </TouchableOpacity>
@@ -139,7 +139,7 @@ export default function NewTransactionScreen() {
                 transactionType === "INCOME" ? "bg-green-500/20 border border-green-500/50" : ""
               }`}
             >
-              <Text className={transactionType === "INCOME" ? "text-green-400 font-bold" : "text-gray-500"}>
+              <Text className={transactionType === "INCOME" ? "text-green-400 font-bold" : "text-text-muted"}>
                 Ingreso 💰
               </Text>
             </TouchableOpacity>
@@ -147,7 +147,7 @@ export default function NewTransactionScreen() {
 
           {/* Amount Input */}
           <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} delay={100}>
-            <Text className="text-gray-400 mb-2 ml-1">Monto de Oro</Text>
+            <Text className="text-text-muted mb-2 ml-1">Monto de Oro</Text>
             <Controller
               control={control}
               name="amount"
@@ -155,7 +155,7 @@ export default function NewTransactionScreen() {
                 <View className="flex-row items-center bg-surface border border-border rounded-2xl px-4 h-20">
                   <CircleDollarSign size={28} color="#FFD700" />
                   <TextInput
-                    className="flex-1 text-white text-3xl font-bold ml-3"
+                    className="flex-1 text-text text-3xl font-bold ml-3"
                     placeholder="0.00"
                     placeholderTextColor="#444"
                     keyboardType="decimal-pad"
@@ -171,7 +171,7 @@ export default function NewTransactionScreen() {
 
           {/* Category Selector */}
           <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} delay={200} className="mt-6">
-            <Text className="text-gray-400 mb-2 ml-1">Categoría</Text>
+            <Text className="text-text-muted mb-2 ml-1">Categoría</Text>
             <Controller
               control={control}
               name="categoryId"
@@ -192,7 +192,7 @@ export default function NewTransactionScreen() {
                               : "bg-surface border-border"
                           }`}
                         >
-                          <Text className={value === cat.id ? "text-primary font-bold" : "text-gray-400"}>
+                          <Text className={value === cat.id ? "text-primary font-bold" : "text-text-muted"}>
                             {cat.name}
                           </Text>
                         </TouchableOpacity>
@@ -206,7 +206,7 @@ export default function NewTransactionScreen() {
 
           {/* Description */}
           <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} delay={300} className="mt-8">
-            <Text className="text-gray-400 mb-2 ml-1">Notas de Batalla</Text>
+            <Text className="text-text-muted mb-2 ml-1">Notas de Batalla</Text>
             <Controller
               control={control}
               name="description"
@@ -214,7 +214,7 @@ export default function NewTransactionScreen() {
                 <View className="flex-row items-center bg-surface border border-border rounded-2xl px-4 h-14">
                   <FileText size={20} color="#666" />
                   <TextInput
-                    className="flex-1 text-white ml-3"
+                    className="flex-1 text-text ml-3"
                     placeholder="¿En qué se gastó el oro?"
                     placeholderTextColor="#444"
                     onBlur={onBlur}
@@ -233,7 +233,7 @@ export default function NewTransactionScreen() {
               transactionType === "EXPENSE" ? "bg-red-600" : "bg-green-600"
             }`}
           >
-            <Text className="text-white font-bold text-lg">
+            <Text className="text-text font-bold text-lg">
               {transactionType === "EXPENSE" ? "Confirmar Gasto" : "Asegurar Botín"}
             </Text>
           </TouchableOpacity>

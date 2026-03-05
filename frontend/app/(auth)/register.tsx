@@ -53,10 +53,10 @@ export default function RegisterScreen() {
             <View className="w-20 h-20 bg-primary/20 rounded-full items-center justify-center border-2 border-primary">
               <UserPlus size={40} color="#FFD700" />
             </View>
-            <Text className="text-white text-3xl font-bold mt-4 text-center">
+            <Text className="text-text text-3xl font-bold mt-4 text-center">
               Nueva <Text className="text-primary">Guardia</Text>
             </Text>
-            <Text className="text-gray-400 text-center mt-2">
+            <Text className="text-text-muted text-center mt-2">
               Comienza tu entrenamiento financiero
             </Text>
           </View>
@@ -72,7 +72,7 @@ export default function RegisterScreen() {
                   <View className="flex-row items-center bg-surface border border-border rounded-xl px-4 h-14">
                     <User size={20} color="#666" />
                     <TextInput
-                      className="flex-1 text-white ml-3"
+                      className="flex-1 text-text ml-3"
                       placeholder="Tu nombre"
                       placeholderTextColor="#666"
                       onBlur={onBlur}
@@ -98,7 +98,7 @@ export default function RegisterScreen() {
                   <View className="flex-row items-center bg-surface border border-border rounded-xl px-4 h-14">
                     <Mail size={20} color="#666" />
                     <TextInput
-                      className="flex-1 text-white ml-3"
+                      className="flex-1 text-text ml-3"
                       placeholder="tu@email.com"
                       placeholderTextColor="#666"
                       onBlur={onBlur}
@@ -126,7 +126,7 @@ export default function RegisterScreen() {
                   <View className="flex-row items-center bg-surface border border-border rounded-xl px-4 h-14">
                     <Lock size={20} color="#666" />
                     <TextInput
-                      className="flex-1 text-white ml-3"
+                      className="flex-1 text-text ml-3"
                       placeholder="••••••"
                       placeholderTextColor="#666"
                       onBlur={onBlur}
@@ -154,7 +154,7 @@ export default function RegisterScreen() {
             </TouchableOpacity>
 
             <View className="flex-row justify-center mt-6">
-              <Text className="text-gray-400">¿Ya tienes rango? </Text>
+              <Text className="text-text-muted">¿Ya tienes rango? </Text>
               <Link href="/(auth)/login" asChild>
                 <TouchableOpacity>
                   <Text className="text-primary font-bold">Inicia sesión</Text>

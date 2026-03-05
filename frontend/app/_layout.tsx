@@ -3,6 +3,9 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import { View, Text } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider, DarkTheme, DefaultTheme } from '@react-navigation/native';
+import { StatusBar } from 'expo-status-bar';
+import { useColorScheme } from 'nativewind';
 import { initDatabase } from '../db/database';
 import "../global.css";
 
@@ -21,6 +24,7 @@ const queryClient = new QueryClient({
 export default function RootLayout() {
   const [dbInitialized, setDbInitialized] = useState(false);
   const [dbError, setDbError] = useState<Error | null>(null);
+  const { colorScheme } = useColorScheme();
 
   useEffect(() => {
     async function prepare() {
@@ -58,13 +62,18 @@ export default function RootLayout() {
     return null;
   }
 
+  const navTheme = colorScheme === 'dark' ? DarkTheme : DefaultTheme;
+
   return (
     <QueryClientProvider client={queryClient}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="index" />
-        <Stack.Screen name="(main)" />
-        <Stack.Screen name="(auth)" />
-      </Stack>
+      <ThemeProvider value={navTheme}>
+        <StatusBar style="auto" />
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
+          <Stack.Screen name="(main)" />
+          <Stack.Screen name="(auth)" />
+        </Stack>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

@@ -56,7 +56,7 @@ export default function HistoryScreen() {
         <TouchableOpacity onPress={() => router.back()} className="p-2 -ml-2">
           <ArrowLeft size={24} color="#FFD700" />
         </TouchableOpacity>
-        <Text className="text-white text-xl font-bold ml-2">Crónicas de Guerra</Text>
+        <Text className="text-text text-xl font-bold ml-2">Crónicas de Guerra</Text>
       </View>
 
       {isTransactionsLoading && transactions.length === 0 ? (
@@ -82,7 +82,7 @@ export default function HistoryScreen() {
             ListEmptyComponent={
               <View className="items-center justify-center py-20">
                 <History size={64} color="#444" />
-                <Text className="text-gray-500 mt-4 text-center">
+                <Text className="text-text-muted mt-4 text-center">
                   Aún no hay batallas registradas en el pergamino.
                 </Text>
               </View>
@@ -114,10 +114,10 @@ export default function HistoryScreen() {
                       )}
                     </View>
                     <View className="ml-4 flex-1">
-                      <Text className="text-white font-bold text-base" numberOfLines={1}>
+                      <Text className="text-text font-bold text-base" numberOfLines={1}>
                         {t.description || category?.name || "Sin descripción"}
                       </Text>
-                      <Text className="text-gray-500 text-xs">
+                      <Text className="text-text-muted text-xs">
                         {format(new Date(t.date), "PPP", { locale: es })}
                       </Text>
                     </View>

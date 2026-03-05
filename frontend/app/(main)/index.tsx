@@ -28,7 +28,7 @@ import { MotiView } from "moti";
 const STATUS_COLORS: Record<string, string> = {
   HEALTHY: "text-green-400",
   UNDER_ATTACK: "text-red-400",
-  RUINS: "text-gray-500",
+  RUINS: "text-text-muted",
 };
 
 export default function Dashboard() {
@@ -92,8 +92,8 @@ export default function Dashboard() {
         {/* Header */}
         <View className="px-6 py-4 flex-row justify-between items-center">
           <View>
-            <Text className="text-gray-400 text-sm">Bienvenido, Guerrero</Text>
-            <Text className="text-white text-2xl font-bold">{user?.name}</Text>
+            <Text className="text-text-muted text-sm">Bienvenido, Guerrero</Text>
+            <Text className="text-text text-2xl font-bold">{user?.name}</Text>
           </View>
           <Pressable
             onPress={performSync}
@@ -121,15 +121,15 @@ export default function Dashboard() {
                 <Shield size={28} color={theme.colors.primary.DEFAULT} />
               </View>
               <View className="ml-4">
-                <Text className="text-white text-lg font-bold">Tu Fortaleza</Text>
+                <Text className="text-text text-lg font-bold">Tu Fortaleza</Text>
                 <Text className={`font-medium ${STATUS_COLORS[castle?.status || "HEALTHY"]}`}>
                   {castle?.status === "HEALTHY" ? "Reino Próspero" : "¡Bajo Ataque!"}
                 </Text>
               </View>
             </View>
             <View className="items-end">
-              <Text className="text-white text-xl font-bold">{castle?.hp} / {castle?.max_hp}</Text>
-              <Text className="text-gray-500 text-xs text-right">HP Restante</Text>
+              <Text className="text-text text-xl font-bold">{castle?.hp} / {castle?.max_hp}</Text>
+              <Text className="text-text-muted text-xs text-right">HP Restante</Text>
             </View>
           </View>
 
@@ -148,19 +148,19 @@ export default function Dashboard() {
         <View className="flex-row px-6 mt-4 space-x-4">
           <View className="flex-1 p-4 bg-surface rounded-3xl border border-border">
             <Coins size={24} color={theme.colors.primary.DEFAULT} />
-            <Text className="text-gray-400 text-xs mt-2">Oro Total</Text>
-            <Text className="text-white text-xl font-bold">{castle?.gold_balance || 0}</Text>
+            <Text className="text-text-muted text-xs mt-2">Oro Total</Text>
+            <Text className="text-text text-xl font-bold">{castle?.gold_balance || 0}</Text>
           </View>
           <View className="flex-1 p-4 bg-surface rounded-3xl border border-border">
             <Flame size={24} color="#FF4500" />
-            <Text className="text-gray-400 text-xs mt-2">Racha Actual</Text>
-            <Text className="text-white text-xl font-bold">{castle?.streak_days || 0} Días</Text>
+            <Text className="text-text-muted text-xs mt-2">Racha Actual</Text>
+            <Text className="text-text text-xl font-bold">{castle?.streak_days || 0} Días</Text>
           </View>
         </View>
 
         {/* Recent Activity */}
         <View className="px-6 mt-8">
-          <Text className="text-white text-lg font-bold mb-4">Registro de Batallas</Text>
+          <Text className="text-text text-lg font-bold mb-4">Registro de Batallas</Text>
           
           {recentTransactions.length > 0 ? (
             recentTransactions.map((t) => (
@@ -170,8 +170,8 @@ export default function Dashboard() {
                     {t.type === 'EXPENSE' ? <TrendingDown size={20} color={theme.colors.danger} /> : <TrendingUp size={20} color={theme.colors.success} />}
                   </View>
                   <View className="ml-4 flex-1">
-                    <Text className="text-white font-medium" numberOfLines={1}>{t.description || "Transacción"}</Text>
-                    <Text className="text-gray-500 text-xs">{new Date(t.date).toLocaleDateString()}</Text>
+                    <Text className="text-text font-medium" numberOfLines={1}>{t.description || "Transacción"}</Text>
+                    <Text className="text-text-muted text-xs">{new Date(t.date).toLocaleDateString()}</Text>
                   </View>
                 </View>
                 <Text className={`font-bold ml-2 ${t.type === 'EXPENSE' ? 'text-red-400' : 'text-green-400'}`}>
@@ -180,7 +180,7 @@ export default function Dashboard() {
               </View>
             ))
           ) : (
-            <Text className="text-gray-500 mt-2 mb-4 text-center">Sin batallas recientes</Text>
+            <Text className="text-text-muted mt-2 mb-4 text-center">Sin batallas recientes</Text>
           )}
           
           <Pressable 
