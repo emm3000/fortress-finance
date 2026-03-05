@@ -1,0 +1,10 @@
+node_modules/
+.DS_Store
+.env
+.env.*
+
+# Ignore agent generated files
+.agent/
+.agents/
+.gemini/
+skills-lock.json
