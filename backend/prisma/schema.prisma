@@ -17,18 +17,20 @@ enum TransactionType {
 }
 
 model User {
-  id           String          @id @default(uuid()) @db.Uuid
-  email        String          @unique
-  passwordHash String          @map("password_hash")
-  name         String
-  createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt    DateTime        @updatedAt @map("updated_at") @db.Timestamptz
-  transactions Transaction[]
-  castleState  CastleState?
-  budgets      Budget[]
-  gameEvents   GameEventLog[]
-  wallet       UserWallet?
-  inventory    UserInventory[]
+  id            String            @id @default(uuid()) @db.Uuid
+  email         String            @unique
+  passwordHash  String            @map("password_hash")
+  name          String
+  createdAt     DateTime          @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime          @updatedAt @map("updated_at") @db.Timestamptz
+  transactions  Transaction[]
+  castleState   CastleState?
+  budgets       Budget[]
+  gameEvents    GameEventLog[]
+  wallet        UserWallet?
+  inventory     UserInventory[]
+  pushTokens    UserPushToken[]
+  notifications NotificationLog[]
 
   @@map("users")
 }
@@ -140,4 +142,32 @@ model UserInventory {
 
   @@unique([userId, itemId]) // No tener el mismo item dos veces
   @@map("user_inventories")
+}
+
+model UserPushToken {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  tokenString String   @unique @map("token_string")
+  deviceInfo  String?  @map("device_info")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_push_tokens")
+}
+
+model NotificationLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  title     String
+  body      String
+  type      String // "ATTACK", "REWARD", "SHOP"
+  status    String   @default("SENT") // "SENT", "FAILED"
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("notification_logs")
 }

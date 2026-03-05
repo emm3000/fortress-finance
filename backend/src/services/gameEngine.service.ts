@@ -1,5 +1,7 @@
 import prisma from '../config/db';
 import { startOfMonth, endOfMonth } from 'date-fns';
+import { sendPushNotification } from './notification.service';
+
 
 /**
  * Perform daily liquidation for a single user.
@@ -9,7 +11,7 @@ export const liquidateUser = async (userId: string, targetDate: Date = new Date(
   const monthStart = startOfMonth(targetDate);
   const monthEnd = endOfMonth(targetDate);
 
-  return await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     // 1. Get user's budgets
     const budgets = await tx.budget.findMany({
       where: { userId },
@@ -127,7 +129,30 @@ export const liquidateUser = async (userId: string, targetDate: Date = new Date(
 
     return { status: 'success', totalDamage, eventsCount: events.length };
   });
+
+  // Enviar notificaciones fuera de la transacción para no bloquearla
+  if (result.status === 'success' && typeof result.totalDamage === 'number') {
+    if (result.totalDamage > 0) {
+      await sendPushNotification({
+        userId,
+        title: '🏰 ¡Tu fortaleza está bajo ataque!',
+        body: 'Has excedido tus presupuestos y los orcos han dañado tu castillo. ¡Vuelve a la app para verlo!',
+        type: 'ATTACK',
+      });
+    } else {
+      await sendPushNotification({
+        userId,
+        title: '🛡️ Tu reino prospera',
+        body: 'Has cumplido tus metas. Tu castillo se recupera y has recolectado oro.',
+        type: 'REWARD',
+      });
+    }
+  }
+
+
+  return result;
 };
+
 
 /**
  * Batch liquidation for all users (Cron Job Entry point)
