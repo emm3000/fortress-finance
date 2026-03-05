@@ -11,12 +11,28 @@ const transactionSyncSchema = z.object({
   deletedAt: z.string().datetime().optional().nullable().transform(v => v ? new Date(v) : null),
 });
 
+const budgetSyncSchema = z.object({
+  id: z.string().uuid(),
+  categoryId: z.string().uuid(),
+  limitAmount: z.number().positive(),
+  period: z.enum(['MONTHLY']).default('MONTHLY'),
+  updatedAt: z.string().datetime().transform((v) => new Date(v)),
+});
+
 export const syncSchema = z.object({
   body: z.object({
-    lastSyncTimestamp: z.string().datetime().optional().nullable().transform(v => v ? new Date(v) : new Date(0)),
+    lastSyncTimestamp: z
+      .string()
+      .datetime()
+      .optional()
+      .nullable()
+      .transform((v) => (v ? new Date(v) : new Date(0))),
     transactions: z.array(transactionSyncSchema),
+    budgets: z.array(budgetSyncSchema).optional().default([]),
   }),
 });
 
 export type SyncBody = z.infer<typeof syncSchema>['body'];
 export type TransactionSyncInput = z.infer<typeof transactionSyncSchema>;
+export type BudgetSyncInput = z.infer<typeof budgetSyncSchema>;
+

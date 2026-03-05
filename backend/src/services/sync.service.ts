@@ -2,11 +2,13 @@ import prisma from '../config/db';
 import { SyncBody } from '../validations/sync.validation';
 
 export const synchronize = async (userId: string, data: SyncBody) => {
-  const { lastSyncTimestamp, transactions } = data;
+  const { lastSyncTimestamp, transactions, budgets } = data;
 
   // Execute PUSH and PULL atomically to prevent race conditions
-  const { syncTimestamp, serverChanges } = await prisma.$transaction(async (tx) => {
-    // 1. PUSH: Guardar cambios provenientes de la App
+  const result = await prisma.$transaction(async (tx) => {
+    // --- 1. PUSH: Guardar cambios provenientes de la App ---
+
+    // Transactions PUSH
     if (transactions.length > 0) {
       await Promise.all(
         transactions.map((t) =>
@@ -37,27 +39,64 @@ export const synchronize = async (userId: string, data: SyncBody) => {
       );
     }
 
-    // 2. PULL: Leer timestamp del servidor DENTRO de la transacción para evitar
-    //    diferencias de reloj entre Node y Postgres
+    // Budgets PUSH
+    if (budgets && budgets.length > 0) {
+      await Promise.all(
+        budgets.map((b) =>
+          tx.budget.upsert({
+            where: { id: b.id },
+            create: {
+              id: b.id,
+              userId,
+              categoryId: b.categoryId,
+              limitAmount: b.limitAmount,
+              period: b.period,
+              updatedAt: b.updatedAt,
+            },
+            update: {
+              limitAmount: b.limitAmount,
+              period: b.period,
+              updatedAt: b.updatedAt,
+            },
+          })
+        )
+      );
+    }
+
+    // --- 2. PULL: Leer cambios del servidor ---
     const now = new Date();
 
-    // Traemos todo lo que se haya actualizado DESPUÉS del último sync del cliente
-    const changes = await tx.transaction.findMany({
+    const transactionsPull = await tx.transaction.findMany({
       where: {
         userId,
-        updatedAt: {
-          gt: lastSyncTimestamp,
-        },
+        updatedAt: { gt: lastSyncTimestamp },
       },
       orderBy: { updatedAt: 'asc' },
     });
 
-    return { syncTimestamp: now.toISOString(), serverChanges: changes };
+    const budgetsPull = await tx.budget.findMany({
+      where: {
+        userId,
+        updatedAt: { gt: lastSyncTimestamp },
+      },
+      orderBy: { updatedAt: 'asc' },
+    });
+
+    const castlePull = await tx.castleState.findUnique({
+      where: { userId },
+    });
+
+    return {
+      syncTimestamp: now.toISOString(),
+      changes: {
+        transactions: transactionsPull,
+        budgets: budgetsPull,
+        castle: castlePull,
+      },
+    };
   });
 
-  return {
-    syncTimestamp,
-    changes: serverChanges,
-  };
+  return result;
 };
+
 

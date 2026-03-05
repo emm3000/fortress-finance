@@ -17,25 +17,41 @@ export const registerUser = async (data: RegisterBody) => {
 
   const passwordHash = await hashPassword(password);
 
-  const user = await prisma.user.create({
-    data: {
-      email,
-      passwordHash,
-      name,
-    },
+  // Crear usuario y castillo en una transacción atómica
+  const result = await prisma.$transaction(async (tx) => {
+    const newUser = await tx.user.create({
+      data: {
+        email,
+        passwordHash,
+        name,
+      },
+    });
+
+    await tx.castleState.create({
+      data: {
+        userId: newUser.id,
+        hp: 100,
+        maxHp: 100,
+        level: 1,
+        status: 'HEALTHY',
+      },
+    });
+
+    return newUser;
   });
 
-  const token = signToken({ userId: user.id });
+  const token = signToken({ userId: result.id });
 
   return {
     user: {
-      id: user.id,
-      email: user.email,
-      name: user.name,
+      id: result.id,
+      email: result.email,
+      name: result.name,
     },
     token,
   };
 };
+
 
 export const loginUser = async (data: LoginBody) => {
   const { email, password } = data;

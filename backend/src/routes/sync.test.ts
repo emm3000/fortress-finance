@@ -77,9 +77,13 @@ describe('Sync Routes Integration', () => {
       });
 
     expect(response.status).toBe(200);
-    expect(Array.isArray(response.body.changes)).toBe(true);
-    expect(response.body.changes.length).toBeGreaterThan(0); // Debería traer la TX del test anterior
+    expect(response.body.changes).toHaveProperty('transactions');
+    expect(response.body.changes).toHaveProperty('budgets');
+    expect(response.body.changes).toHaveProperty('castle');
+    expect(Array.isArray(response.body.changes.transactions)).toBe(true);
+    expect(response.body.changes.transactions.length).toBeGreaterThan(0); // Debería traer la TX del test anterior
   });
+
 
   it('should fail if unauthorized', async () => {
     const response = await request(app)

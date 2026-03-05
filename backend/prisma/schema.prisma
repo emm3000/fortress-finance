@@ -17,13 +17,16 @@ enum TransactionType {
 }
 
 model User {
-  id           String        @id @default(uuid()) @db.Uuid
-  email        String        @unique
-  passwordHash String        @map("password_hash")
+  id           String         @id @default(uuid()) @db.Uuid
+  email        String         @unique
+  passwordHash String         @map("password_hash")
   name         String
-  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt    DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+  createdAt    DateTime       @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime       @updatedAt @map("updated_at") @db.Timestamptz
   transactions Transaction[]
+  castleState  CastleState?
+  budgets      Budget[]
+  gameEvents   GameEventLog[]
 
   @@map("users")
 }
@@ -36,6 +39,7 @@ model Category {
   createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamptz
   updatedAt    DateTime        @updatedAt @map("updated_at") @db.Timestamptz
   transactions Transaction[]
+  budgets      Budget[]
 
   @@map("categories")
 }
@@ -57,4 +61,45 @@ model Transaction {
   // Composite index for efficient sync PULL queries: find all user's changes after a timestamp
   @@index([userId, updatedAt])
   @@map("transactions")
+}
+
+model CastleState {
+  userId    String   @id @map("user_id") @db.Uuid
+  level     Int      @default(1)
+  hp        Int      @default(100)
+  maxHp     Int      @default(100) @map("max_hp")
+  status    String   @default("HEALTHY") // "HEALTHY", "UNDER_ATTACK", "RUINS"
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("castle_states")
+}
+
+model Budget {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  categoryId  String   @map("category_id") @db.Uuid
+  limitAmount Decimal  @map("limit_amount") @db.Decimal(10, 2)
+  period      String   @default("MONTHLY") // "MONTHLY"
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, categoryId]) // Solo un presupuesto por categoría por usuario
+  @@map("budgets")
+}
+
+model GameEventLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  eventDesc String   @map("event_desc") @db.VarChar
+  hpImpact  Int      @map("hp_impact")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("game_events_log")
 }
