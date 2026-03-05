@@ -13,11 +13,13 @@ app.use(morgan('dev'));
 
 import authRoutes from './routes/auth.routes';
 import categoryRoutes from './routes/category.routes';
+import syncRoutes from './routes/sync.routes';
 import { requireAuth } from './middlewares/requireAuth';
 
 // Rutas
 app.use('/api/auth', authRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/sync', syncRoutes);
 
 // Ruta base
 app.get('/api/health', (req: Request, res: Response) => {
