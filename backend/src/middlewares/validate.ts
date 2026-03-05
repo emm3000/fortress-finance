@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { ZodTypeAny, ZodError, ZodIssue } from 'zod';
+import { ZodTypeAny, ZodError } from 'zod';
 
 export const validate =
   (schema: ZodTypeAny) =>
@@ -13,11 +13,9 @@ export const validate =
       next();
     } catch (error) {
       if (error instanceof ZodError) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const zodError = error as any;
         res.status(400).json({
           error: 'Validation Error',
-          details: zodError.errors.map((e: ZodIssue) => ({
+          details: error.issues.map((e) => ({
             path: e.path.join('.'),
             message: e.message,
           })),
