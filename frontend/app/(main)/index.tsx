@@ -147,7 +147,10 @@ export default function Dashboard() {
             </View>
           ))}
           
-          <TouchableOpacity className="mt-2 py-4 flex-row items-center justify-center">
+          <TouchableOpacity 
+            onPress={() => router.push("/(main)/history" as any)}
+            className="mt-2 py-4 flex-row items-center justify-center"
+          >
             <Text className="text-primary font-medium">Ver todas las crónicas</Text>
             <ChevronRight size={16} color="#FFD700" />
           </TouchableOpacity>
