@@ -79,32 +79,32 @@ Agregamos herramientas modernas demandadas en la industria para garantizar calid
 
 ### 4. Dominio: Autenticación de Usuarios (Auth)
 
-- [ ] **Validadores (`validations/auth.validation.ts`):** Schemas de Zod para Registro y Login.
-- [ ] **Servicios (`services/auth.service.ts`):**
+- [x] **Validadores (`validations/auth.validation.ts`):** Schemas de Zod para Registro y Login.
+- [x] **Servicios (`services/auth.service.ts`):**
   - `registerUser(payload)`: valida, hashea, guarda, devuelve usuario.
   - `loginUser(payload)`: comprueba email, machea password y retorna JWT.
-- [ ] **Controladores (`controllers/auth.controller.ts`):** Invoca a servicios y maneja codigos de respuesta de Express.
-- [ ] **Rutas (`routes/auth.routes.ts`):** `POST /api/auth/register` y `POST /api/auth/login`.
+- [x] **Controladores (`controllers/auth.controller.ts`):** Invoca a servicios y maneja codigos de respuesta de Express.
+- [x] **Rutas (`routes/auth.routes.ts`):** `POST /api/auth/register` y `POST /api/auth/login`.
 
 ### 5. Middleware de Autenticación Activa
 
-- [ ] Escribir `middlewares/requireAuth.ts`: Lee el Header `Authorization` tipo `Bearer Token`, verifica el JWT de tu variable de entorno secreta, extrae el `userId` y lo inyecta en el objeto Request para que las siguientes rutas sepan quién es el usuario.
+- [x] Escribir `middlewares/requireAuth.ts`: Lee el Header `Authorization` tipo `Bearer Token`, verifica el JWT de tu variable de entorno secreta, extrae el `userId` y lo inyecta en el objeto Request para que las siguientes rutas sepan quién es el usuario.
 
 ### 6. Dominio: Categorías (Setup)
 
-- [ ] **Seed Base de Datos:** Crear un script (`prisma/seed.ts`) que inserte categorías predefinidas estándar ("Sueldo", "Comida", "Transporte").
-- [ ] **Ruta de Categorías:** `GET /api/categories` de solo lectura y protegida para que el cliente móvil baje las categorías y cachee localmente.
+- [x] **Seed Base de Datos:** Crear un script (`prisma/seed.ts`) que inserte categorías predefinidas estándar ("Sueldo", "Comida", "Transporte").
+- [x] **Ruta de Categorías:** `GET /api/categories` de solo lectura y protegida para que el cliente móvil baje las categorías y cachee localmente.
 
 ### 7. Dominio: Sincronización Transaccional (Corazón Offline-First)
 
-- [ ] **Esquemas de Zod:** Diseñar cómo será la forma del PUSH que mandará la App. E.g. una lista de "cambios": `{ transactions: TransactionInputType[] }`.
-- [ ] **Servicios de Sincronización (`services/sync.service.ts`):**
+- [x] **Esquemas de Zod:** Diseñar cómo será la forma del PUSH que mandará la App. E.g. una lista de "cambios": `{ transactions: TransactionInputType[] }`.
+- [x] **Servicios de Sincronización (`services/sync.service.ts`):**
   - Implementación PUSH: Iterar (o hacer map a un batch transaccional de prisma) la lista provista en una `Prisma.$transaction`. Hacer **Upsert** usando el UUID que viene de la App cliente.
   - Implementación PULL: Leer en BDD todas las transacciones donde el `user_id` coincida y `updated_at` sea mayor al `lastSyncTime` que manda el cliente desde la app. Incluir las soft-deleted.
-- [ ] **Controlador & Rutas:** Exponer el endpoint maestro `POST /api/sync` y envolverlo con `requireAuth` para segurizar el proceso Offline-First.
+- [x] **Controlador & Rutas:** Exponer el endpoint maestro `POST /api/sync` y envolverlo con `requireAuth` para segurizar el proceso Offline-First.
 
 ### 8. Testing Automatizado Base (QA)
 
-- [ ] Test Unitario simple probando `utils/password.ts` y las firmas de criptografía.
-- [ ] Test E2E de Flujo Auth (`Vitest` + `Supertest`): Ejecutar HTTP req contra `POST /register`, esperar el 201 y JWT de vuelta. Intentar `POST /login` y assert validation errors 400.
+- [x] Test Unitario simple probando `utils/password.ts` y las firmas de criptografía.
+- [x] Test E2E de Flujo Auth (`Vitest` + `Supertest`): Ejecutar HTTP req contra `POST /register`, esperar el 201 y JWT de vuelta. Intentar `POST /login` y assert validation errors 400.
 - [ ] (Opcional pero Recomendado) Test E2E de Sync PULL/PUSH que asegure que enviar información no sobreescribe otra erróneamente.
