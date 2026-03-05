@@ -5,16 +5,15 @@ export const validate =
   (schema: ZodTypeAny) =>
   (req: Request, res: Response, next: NextFunction): void => {
     try {
-       
       const parsed = schema.parse({
         body: req.body,
         query: req.query,
         params: req.params,
-      }) as any;
+      }) as Record<string, unknown>;
 
       // Reassign body (typically safe)
       if (parsed.body) req.body = parsed.body;
-      
+
       // For query and params, we merge values into existing objects to avoid getter issues
       if (parsed.query) {
         Object.assign(req.query, parsed.query);
@@ -38,3 +37,4 @@ export const validate =
       }
     }
   };
+

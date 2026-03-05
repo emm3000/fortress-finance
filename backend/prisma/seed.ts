@@ -14,17 +14,10 @@ async function main() {
     { name: 'Otros', type: 'EXPENSE', icon: 'ellipsis-horizontal' },
   ];
 
+  // eslint-disable-next-line no-console
   console.log('🌱 Seed: Iniciando siembra de categorías...');
 
-  for (const cat of categories) {
-    await prisma.category.upsert({
-      where: { id: '00000000-0000-0000-0000-000000000000' }, // Dummy since we use name/type mostly or just create
-      update: {},
-      create: cat,
-    });
-  }
-
-  // Better approach for seeding without fixed IDs: check existence by name
+  // Single idempotent loop: skip if already exists, create otherwise
   for (const cat of categories) {
     const existing = await prisma.category.findFirst({
       where: { name: cat.name, type: cat.type },
@@ -35,11 +28,13 @@ async function main() {
     }
   }
 
+  // eslint-disable-next-line no-console
   console.log('✅ Seed: Categorías sembradas con éxito.');
 }
 
 main()
   .catch((e) => {
+    // eslint-disable-next-line no-console
     console.error(e);
     process.exit(1);
   })

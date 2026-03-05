@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { AppError } from '../utils/AppError';
 
 export const errorHandler = (
   err: unknown,
@@ -9,6 +10,12 @@ export const errorHandler = (
 ): void => {
   // eslint-disable-next-line no-console
   console.error('[Error Handler]:', err);
+
+  // Handle semantic application errors (401, 409, etc.)
+  if (err instanceof AppError) {
+    res.status(err.statusCode).json({ error: err.message });
+    return;
+  }
 
   if (err instanceof PrismaClientKnownRequestError) {
     // Handling Prisma specific errors

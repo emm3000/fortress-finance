@@ -28,12 +28,13 @@ describe('Auth Routes Integration', () => {
     expect(response.body.token).toBeDefined();
   });
 
-  it('should not register a user with the same email', async () => {
+  it('should not register a user with the same email (409 Conflict)', async () => {
     const response = await request(app)
       .post('/api/auth/register')
       .send(testUser);
 
-    expect(response.status).toBe(500); // errorHandler maps unknown Error to 500 currently, or we can improve it
+    expect(response.status).toBe(409);
+    expect(response.body.error).toBe('El usuario ya existe');
   });
 
   it('should login successfully with correct credentials', async () => {
@@ -49,7 +50,7 @@ describe('Auth Routes Integration', () => {
     expect(response.body.user.email).toBe(testUser.email);
   });
 
-  it('should return error for wrong password', async () => {
+  it('should return 401 for wrong password', async () => {
     const response = await request(app)
       .post('/api/auth/login')
       .send({
@@ -57,7 +58,8 @@ describe('Auth Routes Integration', () => {
         password: 'wrongpassword',
       });
 
-    expect(response.status).toBe(500); // services/auth.service.ts throws Error which maps to 500
+    expect(response.status).toBe(401);
+    expect(response.body.error).toBe('Credenciales inválidas');
   });
 
   it('should fail validation for invalid email', async () => {
@@ -73,3 +75,4 @@ describe('Auth Routes Integration', () => {
     expect(response.body.error).toBe('Validation Error');
   });
 });
+

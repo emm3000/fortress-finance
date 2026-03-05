@@ -1,11 +1,10 @@
 import 'dotenv/config';
+import { env } from './config/env';
 import app from './app';
 
-const PORT = process.env.PORT || 4000;
-
-const server = app.listen(PORT, () => {
+const server = app.listen(env.PORT, () => {
   // eslint-disable-next-line no-console
-  console.log(`🚀 Server ready at: http://localhost:${PORT}`);
+  console.log(`🚀 Server ready at: http://localhost:${env.PORT}`);
 });
 
 export default server;

@@ -4,51 +4,60 @@ import { SyncBody } from '../validations/sync.validation';
 export const synchronize = async (userId: string, data: SyncBody) => {
   const { lastSyncTimestamp, transactions } = data;
 
-  // 1. PUSH: Guardar cambios provenientes de la App
-  if (transactions.length > 0) {
-    await prisma.$transaction(
-      transactions.map((tx) =>
-        prisma.transaction.upsert({
-          where: { id: tx.id },
-          create: {
-            id: tx.id,
-            userId,
-            amount: tx.amount,
-            type: tx.type,
-            categoryId: tx.categoryId,
-            date: tx.date,
-            notes: tx.notes,
-            updatedAt: tx.updatedAt,
-            deletedAt: tx.deletedAt,
-          },
-          update: {
-            amount: tx.amount,
-            type: tx.type,
-            categoryId: tx.categoryId,
-            date: tx.date,
-            notes: tx.notes,
-            updatedAt: tx.updatedAt,
-            deletedAt: tx.deletedAt,
-          },
-        })
-      )
-    );
-  }
+  // Execute PUSH and PULL atomically to prevent race conditions
+  const { syncTimestamp, serverChanges } = await prisma.$transaction(async (tx) => {
+    // 1. PUSH: Guardar cambios provenientes de la App
+    if (transactions.length > 0) {
+      await Promise.all(
+        transactions.map((t) =>
+          tx.transaction.upsert({
+            where: { id: t.id },
+            create: {
+              id: t.id,
+              userId,
+              amount: t.amount,
+              type: t.type,
+              categoryId: t.categoryId,
+              date: t.date,
+              notes: t.notes,
+              updatedAt: t.updatedAt,
+              deletedAt: t.deletedAt,
+            },
+            update: {
+              amount: t.amount,
+              type: t.type,
+              categoryId: t.categoryId,
+              date: t.date,
+              notes: t.notes,
+              updatedAt: t.updatedAt,
+              deletedAt: t.deletedAt,
+            },
+          })
+        )
+      );
+    }
 
-  // 2. PULL: Obtener cambios desde el servidor para la App
-  // Traemos todo lo que se haya actualizado DESPUÉS del último sync del cliente
-  const serverChanges = await prisma.transaction.findMany({
-    where: {
-      userId,
-      updatedAt: {
-        gt: lastSyncTimestamp,
+    // 2. PULL: Leer timestamp del servidor DENTRO de la transacción para evitar
+    //    diferencias de reloj entre Node y Postgres
+    const now = new Date();
+
+    // Traemos todo lo que se haya actualizado DESPUÉS del último sync del cliente
+    const changes = await tx.transaction.findMany({
+      where: {
+        userId,
+        updatedAt: {
+          gt: lastSyncTimestamp,
+        },
       },
-    },
-    orderBy: { updatedAt: 'asc' },
+      orderBy: { updatedAt: 'asc' },
+    });
+
+    return { syncTimestamp: now.toISOString(), serverChanges: changes };
   });
 
   return {
-    syncTimestamp: new Date().toISOString(),
+    syncTimestamp,
     changes: serverChanges,
   };
 };
+

@@ -2,6 +2,7 @@ import prisma from '../config/db';
 import { hashPassword, comparePassword } from '../utils/password';
 import { signToken } from '../utils/jwt';
 import { RegisterBody, LoginBody } from '../validations/auth.validation';
+import { AppError } from '../utils/AppError';
 
 export const registerUser = async (data: RegisterBody) => {
   const { email, password, name } = data;
@@ -11,7 +12,7 @@ export const registerUser = async (data: RegisterBody) => {
   });
 
   if (existingUser) {
-    throw new Error('El usuario ya existe');
+    throw new AppError(409, 'El usuario ya existe');
   }
 
   const passwordHash = await hashPassword(password);
@@ -44,13 +45,13 @@ export const loginUser = async (data: LoginBody) => {
   });
 
   if (!user) {
-    throw new Error('Credenciales inválidas');
+    throw new AppError(401, 'Credenciales inválidas');
   }
 
   const isPasswordMatch = await comparePassword(password, user.passwordHash);
 
   if (!isPasswordMatch) {
-    throw new Error('Credenciales inválidas');
+    throw new AppError(401, 'Credenciales inválidas');
   }
 
   const token = signToken({ userId: user.id });
