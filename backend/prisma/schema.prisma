@@ -17,16 +17,18 @@ enum TransactionType {
 }
 
 model User {
-  id           String         @id @default(uuid()) @db.Uuid
-  email        String         @unique
-  passwordHash String         @map("password_hash")
+  id           String          @id @default(uuid()) @db.Uuid
+  email        String          @unique
+  passwordHash String          @map("password_hash")
   name         String
-  createdAt    DateTime       @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt    DateTime       @updatedAt @map("updated_at") @db.Timestamptz
+  createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt    DateTime        @updatedAt @map("updated_at") @db.Timestamptz
   transactions Transaction[]
   castleState  CastleState?
   budgets      Budget[]
   gameEvents   GameEventLog[]
+  wallet       UserWallet?
+  inventory    UserInventory[]
 
   @@map("users")
 }
@@ -102,4 +104,40 @@ model GameEventLog {
 
   @@index([userId, createdAt])
   @@map("game_events_log")
+}
+
+model UserWallet {
+  userId      String   @id @map("user_id") @db.Uuid
+  goldBalance Int      @default(0) @map("gold_balance")
+  streakDays  Int      @default(0) @map("streak_days")
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_wallets")
+}
+
+model ShopItem {
+  id        String          @id @default(uuid()) @db.Uuid
+  name      String
+  price     Int
+  assetUrl  String          @map("asset_url")
+  type      String // "WALL", "TOWER", "SKIN", etc.
+  inventory UserInventory[]
+
+  @@map("shop_items")
+}
+
+model UserInventory {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  itemId     String   @map("item_id") @db.Uuid
+  isEquipped Boolean  @default(false) @map("is_equipped")
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  item ShopItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemId]) // No tener el mismo item dos veces
+  @@map("user_inventories")
 }

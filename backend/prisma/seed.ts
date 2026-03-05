@@ -1,17 +1,17 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, TransactionType } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 async function main() {
   const categories = [
-    { name: 'Comida', type: 'EXPENSE', icon: 'fast-food' },
-    { name: 'Transporte', type: 'EXPENSE', icon: 'bus' },
-    { name: 'Salud', type: 'EXPENSE', icon: 'medical' },
-    { name: 'Diversión', type: 'EXPENSE', icon: 'game-controller' },
-    { name: 'Hogar', type: 'EXPENSE', icon: 'home' },
-    { name: 'Sueldo', type: 'INCOME', icon: 'cash' },
-    { name: 'Ahorro', type: 'INCOME', icon: 'wallet' },
-    { name: 'Otros', type: 'EXPENSE', icon: 'ellipsis-horizontal' },
+    { name: 'Comida', type: TransactionType.EXPENSE, icon: 'fast-food' },
+    { name: 'Transporte', type: TransactionType.EXPENSE, icon: 'bus' },
+    { name: 'Salud', type: TransactionType.EXPENSE, icon: 'medical' },
+    { name: 'Diversión', type: TransactionType.EXPENSE, icon: 'game-controller' },
+    { name: 'Hogar', type: TransactionType.EXPENSE, icon: 'home' },
+    { name: 'Sueldo', type: TransactionType.INCOME, icon: 'cash' },
+    { name: 'Ahorro', type: TransactionType.INCOME, icon: 'wallet' },
+    { name: 'Otros', type: TransactionType.EXPENSE, icon: 'ellipsis-horizontal' },
   ];
 
   // eslint-disable-next-line no-console
@@ -28,8 +28,48 @@ async function main() {
     }
   }
 
+  // 2. Sembrar items de la tienda
+  const shopItems = [
+    {
+      id: 'e1d1b1a1-1111-4444-8888-999999999991',
+      name: 'Torre de Vigilancia',
+      price: 150,
+      assetUrl: 'tower_wood.png',
+      type: 'TOWER',
+    },
+    {
+      id: 'e1d1b1a1-1111-4444-8888-999999999992',
+      name: 'Puerta de Hierro',
+      price: 300,
+      assetUrl: 'gate_iron.png',
+      type: 'GATE',
+    },
+    {
+      id: 'e1d1b1a1-1111-4444-8888-999999999993',
+      name: 'Muralla de Piedra',
+      price: 500,
+      assetUrl: 'wall_stone.png',
+      type: 'WALL',
+    },
+    {
+      id: 'e1d1b1a1-1111-4444-8888-999999999994',
+      name: 'Torre de Magos',
+      price: 1000,
+      assetUrl: 'tower_magic.png',
+      type: 'TOWER',
+    },
+  ];
+
+  for (const item of shopItems) {
+    await prisma.shopItem.upsert({
+      where: { id: item.id },
+      update: {},
+      create: item,
+    });
+  }
+
   // eslint-disable-next-line no-console
-  console.log('✅ Seed: Categorías sembradas con éxito.');
+  console.log('✅ Seed: Items de tienda sembrados.');
 }
 
 main()

@@ -2,7 +2,7 @@ import prisma from '../config/db';
 import { SyncBody } from '../validations/sync.validation';
 
 export const synchronize = async (userId: string, data: SyncBody) => {
-  const { lastSyncTimestamp, transactions, budgets } = data;
+  const { lastSyncTimestamp, transactions, budgets, inventory } = data;
 
   // Execute PUSH and PULL atomically to prevent race conditions
   const result = await prisma.$transaction(async (tx) => {
@@ -63,6 +63,21 @@ export const synchronize = async (userId: string, data: SyncBody) => {
       );
     }
 
+    // Inventory PUSH (Solo permitimos sincronizar isEquipped)
+    if (inventory && inventory.length > 0) {
+      await Promise.all(
+        inventory.map((inv) =>
+          tx.userInventory.update({
+            where: { id: inv.id, userId }, // Verificamos userId por seguridad
+            data: {
+              isEquipped: inv.isEquipped,
+              updatedAt: inv.updatedAt,
+            },
+          })
+        )
+      );
+    }
+
     // --- 2. PULL: Leer cambios del servidor ---
     const now = new Date();
 
@@ -82,7 +97,20 @@ export const synchronize = async (userId: string, data: SyncBody) => {
       orderBy: { updatedAt: 'asc' },
     });
 
+    const inventoryPull = await tx.userInventory.findMany({
+      where: {
+        userId,
+        updatedAt: { gt: lastSyncTimestamp },
+      },
+      include: { item: true },
+      orderBy: { updatedAt: 'asc' },
+    });
+
     const castlePull = await tx.castleState.findUnique({
+      where: { userId },
+    });
+
+    const walletPull = await tx.userWallet.findUnique({
       where: { userId },
     });
 
@@ -91,12 +119,15 @@ export const synchronize = async (userId: string, data: SyncBody) => {
       changes: {
         transactions: transactionsPull,
         budgets: budgetsPull,
+        inventory: inventoryPull,
         castle: castlePull,
+        wallet: walletPull,
       },
     };
   });
 
   return result;
 };
+
 
 

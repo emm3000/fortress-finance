@@ -37,8 +37,17 @@ export const registerUser = async (data: RegisterBody) => {
       },
     });
 
+    await tx.userWallet.create({
+      data: {
+        userId: newUser.id,
+        goldBalance: 50, // Pequeño regalo inicial
+        streakDays: 0,
+      },
+    });
+
     return newUser;
   });
+
 
   const token = signToken({ userId: result.id });
 

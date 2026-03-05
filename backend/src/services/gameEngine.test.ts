@@ -9,11 +9,11 @@ describe('GameEngine Service - Liquidation', () => {
 
   beforeEach(async () => {
     // Cleanup - Solo lo que pertenece al usuario de prueba o tablas de log
-    // Evitar borrar 'category' si otros tests dependen del seed global
     await prisma.gameEventLog.deleteMany();
     await prisma.budget.deleteMany();
     await prisma.transaction.deleteMany();
     await prisma.castleState.deleteMany();
+    await prisma.userWallet.deleteMany();
     await prisma.user.deleteMany();
 
     // Create test user
@@ -26,10 +26,7 @@ describe('GameEngine Service - Liquidation', () => {
     });
     userId = user.id;
 
-
-    // The castle is automatically created via the trigger in auth.service/registerUser
-    // but here we are using prisma.user.create directly. 
-    // Wait, I should use auth.service to be consistent or create castle manually here.
+    // Create castle and wallet manually for the test
     await prisma.castleState.create({
       data: {
         userId,
@@ -40,14 +37,30 @@ describe('GameEngine Service - Liquidation', () => {
       },
     });
 
-    const category = await prisma.category.create({
+    await prisma.userWallet.create({
       data: {
-        name: 'Comida',
-        type: 'EXPENSE',
-        icon: 'food',
+        userId,
+        goldBalance: 50,
+        streakDays: 0,
       },
     });
-    categoryId = category.id;
+
+    const category = await prisma.category.findFirst({
+        where: { type: 'EXPENSE' }
+    });
+    
+    if (category) {
+        categoryId = category.id;
+    } else {
+        const newCat = await prisma.category.create({
+            data: {
+                name: 'Test Expense',
+                type: 'EXPENSE',
+                icon: 'test'
+            }
+        });
+        categoryId = newCat.id;
+    }
   });
 
   afterAll(async () => {
@@ -87,13 +100,17 @@ describe('GameEngine Service - Liquidation', () => {
     expect(castle?.hp).toBeLessThan(100);
     expect(castle?.status).toBe('UNDER_ATTACK');
 
-    // 5. Verify Event Log
+    // 5. Verify Wallet (streak should be 0)
+    const wallet = await prisma.userWallet.findUnique({ where: { userId } });
+    expect(wallet?.streakDays).toBe(0);
+
+    // 6. Verify Event Log
     const logs = await prisma.gameEventLog.findMany({ where: { userId } });
     expect(logs.length).toBe(1);
     expect(logs[0].hpImpact).toBeLessThan(0);
   });
 
-  it('should heal castle if no budgets are exceeded', async () => {
+  it('should heal castle and reward gold if no budgets are exceeded', async () => {
     // 1. Lower castle HP manually
     await prisma.castleState.update({
       where: { userId },
@@ -129,7 +146,12 @@ describe('GameEngine Service - Liquidation', () => {
     expect(castle?.hp).toBeGreaterThan(50);
     expect(castle?.status).toBe('HEALTHY');
 
-    // 6. Verify Event Log
+    // 6. Verify Wallet (streak should be 1, gold should increase)
+    const wallet = await prisma.userWallet.findUnique({ where: { userId } });
+    expect(wallet?.streakDays).toBe(1);
+    expect(wallet?.goldBalance).toBeGreaterThan(50);
+
+    // 7. Verify Event Log
     const logs = await prisma.gameEventLog.findMany({ where: { userId } });
     expect(logs.some(l => l.hpImpact > 0)).toBe(true);
   });

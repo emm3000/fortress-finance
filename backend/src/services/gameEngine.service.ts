@@ -61,8 +61,9 @@ export const liquidateUser = async (userId: string, targetDate: Date = new Date(
       }
     }
 
-    // 4. Update Castle and Logs
+    // 4. Update Castle, Wallet and Logs
     if (totalDamage > 0) {
+      // Impacto en el Castillo
       const newHp = Math.max(0, castle.hp - totalDamage);
       await tx.castleState.update({
         where: { userId },
@@ -71,8 +72,14 @@ export const liquidateUser = async (userId: string, targetDate: Date = new Date(
           status: newHp === 0 ? 'RUINS' : 'UNDER_ATTACK',
         },
       });
+
+      // Impacto en la Racha (se pierde la racha por exceder presupuestos)
+      await tx.userWallet.update({
+        where: { userId },
+        data: { streakDays: 0 },
+      });
     } else {
-      // No budgets exceeded! The kingdom prospers (Sanación)
+      // No budgets exceeded! The kingdom prospers (Sanación y Oro)
       const healing = 2; // Fixed healing per day of discipline
       const newHp = Math.min(castle.maxHp, castle.hp + healing);
       
@@ -84,11 +91,28 @@ export const liquidateUser = async (userId: string, targetDate: Date = new Date(
         },
       });
 
+      // Acreditar Oro y aumentar racha
+      const wallet = await tx.userWallet.findUnique({ where: { userId } });
+      const currentStreak = wallet?.streakDays || 0;
+      const newStreak = currentStreak + 1;
+      
+      // Recompensa: 10 base + 5 por cada día de racha (máximo 50 de bono)
+      const goldReward = 10 + Math.min(50, currentStreak * 5);
+
+      await tx.userWallet.update({
+        where: { userId },
+        data: {
+          streakDays: newStreak,
+          goldBalance: { increment: goldReward },
+        },
+      });
+
       events.push({
-        eventDesc: 'Día de paz. La fortaleza se recupera.',
+        eventDesc: `Día de paz. Racha de ${newStreak} días. +${goldReward} de oro recolectado.`,
         hpImpact: healing,
       });
     }
+
 
     // Register events
     if (events.length > 0) {

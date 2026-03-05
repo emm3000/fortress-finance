@@ -19,6 +19,12 @@ const budgetSyncSchema = z.object({
   updatedAt: z.string().datetime().transform((v) => new Date(v)),
 });
 
+const inventorySyncSchema = z.object({
+  id: z.string().uuid(),
+  isEquipped: z.boolean(),
+  updatedAt: z.string().datetime().transform((v) => new Date(v)),
+});
+
 export const syncSchema = z.object({
   body: z.object({
     lastSyncTimestamp: z
@@ -29,10 +35,13 @@ export const syncSchema = z.object({
       .transform((v) => (v ? new Date(v) : new Date(0))),
     transactions: z.array(transactionSyncSchema),
     budgets: z.array(budgetSyncSchema).optional().default([]),
+    inventory: z.array(inventorySyncSchema).optional().default([]), // Solo para sincronizar isEquipped
   }),
 });
 
 export type SyncBody = z.infer<typeof syncSchema>['body'];
 export type TransactionSyncInput = z.infer<typeof transactionSyncSchema>;
 export type BudgetSyncInput = z.infer<typeof budgetSyncSchema>;
+export type InventorySyncInput = z.infer<typeof inventorySyncSchema>;
+
 

@@ -7,6 +7,7 @@ import categoryRoutes from './routes/category.routes';
 import syncRoutes from './routes/sync.routes';
 import budgetRoutes from './routes/budget.routes';
 import castleRoutes from './routes/castle.routes';
+import economyRoutes from './routes/economy.routes';
 import { requireAuth } from './middlewares/requireAuth';
 import { errorHandler } from './middlewares/errorHandler';
 import { env } from './config/env';
@@ -28,6 +29,8 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/sync', syncRoutes);
 app.use('/api/budgets', budgetRoutes);
 app.use('/api/castle', castleRoutes);
+app.use('/api/economy', economyRoutes);
+
 
 
 
