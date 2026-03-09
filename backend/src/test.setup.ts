@@ -16,10 +16,11 @@ if (testDatabaseUrl) {
 const dbUrl = process.env.DATABASE_URL ?? '';
 const looksLikeTestDb = /(?:test|testing|_test)(?:$|[_-])/i.test(dbUrl);
 const isCi = process.env.CI === 'true';
+const strictTestDb = process.env.STRICT_TEST_DB === 'true';
 
-if (isCi && !looksLikeTestDb) {
+if ((isCi || strictTestDb) && !looksLikeTestDb) {
   throw new Error(
-    'Unsafe test database detected in CI. DATABASE_URL must point to a dedicated test database.',
+    'Unsafe test database detected. DATABASE_URL must point to a dedicated test database.',
   );
 }
 

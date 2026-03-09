@@ -1,6 +1,7 @@
 import type { ExpoPushMessage } from 'expo-server-sdk';
 import { Expo } from 'expo-server-sdk';
 import prisma from '../config/db';
+import { logger } from '../utils/logger';
 
 const expo = new Expo();
 
@@ -108,8 +109,10 @@ export const sendPushNotification = async (options: SendPushOptions) => {
   const messages: ExpoPushMessage[] = [];
   for (const pushToken of pushTokens) {
     if (!Expo.isExpoPushToken(pushToken.tokenString)) {
-      // eslint-disable-next-line no-console
-      console.error('Token inválido detectado para usuario', userId, pushToken.tokenString);
+      logger.warn('Invalid expo push token detected', {
+        userId,
+        token: pushToken.tokenString,
+      });
       continue;
     }
 
@@ -131,8 +134,7 @@ export const sendPushNotification = async (options: SendPushOptions) => {
       const ticketChunk = await expo.sendPushNotificationsAsync(chunk);
       tickets.push(...ticketChunk);
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error enviando batch de notificaciones:', error);
+      logger.error('Failed to send push notification chunk', { userId, error });
     }
   }
 

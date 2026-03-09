@@ -1,5 +1,6 @@
 import cron from 'node-cron';
 import * as gameEngine from '../services/gameEngine.service';
+import { logger } from '../utils/logger';
 
 /**
  * Configure and start background cron jobs
@@ -9,18 +10,14 @@ export const initCronJobs = () => {
   // '0 0 * * *'
   // For testing/demo, we can use every hour or a manual trigger endpoint
   cron.schedule('0 0 * * *', async () => {
-    // eslint-disable-next-line no-console
-    console.log('🕒 Iniciando liquidación diaria...');
+    logger.info('Starting daily liquidation cron');
     try {
       const results = await gameEngine.runGlobalLiquidation();
-      // eslint-disable-next-line no-console
-      console.log(`✅ Liquidación completada. Usuarios procesados: ${String(results.length)}`);
+      logger.info('Daily liquidation cron completed', { processedUsers: results.length });
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('❌ Error en el cron de liquidación:', error);
+      logger.error('Daily liquidation cron failed', { error });
     }
   });
 
-  // eslint-disable-next-line no-console
-  console.log('⏰ Cron Jobs inicializados');
+  logger.info('Cron jobs initialized');
 };

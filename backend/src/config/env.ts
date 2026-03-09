@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { config } from 'dotenv';
+import { logger } from '../utils/logger';
 
 // Load .env before validating — makes this module self-contained
 // regardless of import order (e.g., in tests)
@@ -18,8 +19,9 @@ const envSchema = z.object({
 const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
-  // eslint-disable-next-line no-console
-  console.error('❌ Variables de entorno inválidas:\n', z.treeifyError(parsed.error));
+  logger.error('Invalid environment variables', {
+    issues: z.treeifyError(parsed.error),
+  });
   process.exit(1);
 }
 

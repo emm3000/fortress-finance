@@ -2,17 +2,21 @@ import type { Request, Response, NextFunction } from 'express';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { AppError } from '../utils/AppError';
 import { env } from '../config/env';
+import { logger } from '../utils/logger';
 
 export const errorHandler = (
   err: unknown,
-  _req: Request,
+  req: Request,
   res: Response,
   _next: NextFunction,
 ): void => {
   const isProduction = env.NODE_ENV === 'production';
 
-  // eslint-disable-next-line no-console
-  console.error('[Error Handler]:', err);
+  logger.error('Unhandled API error', {
+    path: req.path,
+    method: req.method,
+    error: err,
+  });
 
   // Handle semantic application errors (401, 409, etc.)
   if (err instanceof AppError) {

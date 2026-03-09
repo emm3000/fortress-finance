@@ -1,6 +1,9 @@
 import prisma from '../config/db';
 import { startOfMonth, endOfMonth } from 'date-fns';
 import { sendPushNotification } from './notification.service';
+import { logger } from '../utils/logger';
+
+const LIQUIDATION_CONCURRENCY = 5;
 
 /**
  * Perform daily liquidation for a single user.
@@ -36,29 +39,37 @@ export const liquidateUser = async (userId: string, targetDate: Date = new Date(
       return { status: 'no_castle' };
     }
 
+    const budgetCategoryIds = budgets.map((budget) => budget.categoryId);
+    const spentByCategoryRows =
+      budgetCategoryIds.length > 0
+        ? await tx.transaction.groupBy({
+            by: ['categoryId'],
+            where: {
+              userId,
+              type: 'EXPENSE',
+              categoryId: { in: budgetCategoryIds },
+              date: {
+                gte: monthStart,
+                lte: monthEnd,
+              },
+              deletedAt: null,
+            },
+            _sum: {
+              amount: true,
+            },
+          })
+        : [];
+    const spentByCategory = new Map(
+      spentByCategoryRows.map((row) => [row.categoryId, Number(row._sum.amount ?? 0)]),
+    );
+
     let totalDamage = 0;
     const events: { eventDesc: string; hpImpact: number }[] = [];
     const budgetAlerts: { title: string; body: string; type: 'ATTACK' }[] = [];
 
     // 3. Check each budget
     for (const budget of budgets) {
-      const aggregate = await tx.transaction.aggregate({
-        _sum: {
-          amount: true,
-        },
-        where: {
-          userId,
-          categoryId: budget.categoryId,
-          type: 'EXPENSE',
-          date: {
-            gte: monthStart,
-            lte: monthEnd,
-          },
-          deletedAt: null,
-        },
-      });
-
-      const totalSpent = Number(aggregate._sum.amount ?? 0);
+      const totalSpent = spentByCategory.get(budget.categoryId) ?? 0;
       const limitAmount = Number(budget.limitAmount);
       const ratio = limitAmount > 0 ? totalSpent / limitAmount : 0;
       const categoryName = budget.category.name;
@@ -193,16 +204,36 @@ export const runGlobalLiquidation = async () => {
     select: { id: true },
   });
 
-  const results = [];
-  for (const user of users) {
-    try {
-      const res = await liquidateUser(user.id);
-      results.push({ userId: user.id, ...res });
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error(`Error liquidating user ${user.id}:`, error);
-      results.push({ userId: user.id, status: 'error', error });
-    }
+  const results: Record<string, unknown>[] = [];
+  const pendingUserIds = users.map((user) => user.id);
+
+  const workers = Array.from({ length: Math.min(LIQUIDATION_CONCURRENCY, pendingUserIds.length) }, () =>
+    (async () => {
+      while (pendingUserIds.length > 0) {
+        const userId = pendingUserIds.shift();
+        if (!userId) {
+          return;
+        }
+
+        try {
+          const result = await liquidateUser(userId);
+          results.push({ userId, ...result });
+        } catch (error) {
+          logger.error('Error liquidating user', { userId, error });
+          results.push({
+            userId,
+            status: 'error',
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+        }
+      }
+    })(),
+  );
+
+  if (workers.length > 0) {
+    await Promise.all(workers);
+  } else {
+    logger.info('Global liquidation skipped: no users found');
   }
 
   return results;

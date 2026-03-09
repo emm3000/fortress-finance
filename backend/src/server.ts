@@ -2,10 +2,10 @@ import 'dotenv/config';
 import { env } from './config/env';
 import app from './app';
 import { initCronJobs } from './config/cron';
+import { logger } from './utils/logger';
 
 const server = app.listen(env.PORT, () => {
-  // eslint-disable-next-line no-console
-  console.log(`🚀 Server ready at: http://localhost:${String(env.PORT)}`);
+  logger.info('Server ready', { port: env.PORT });
 
   if (env.ENABLE_CRON) {
     // Iniciar Cron Jobs solo cuando la instancia está marcada para ello.
@@ -13,8 +13,7 @@ const server = app.listen(env.PORT, () => {
     return;
   }
 
-  // eslint-disable-next-line no-console
-  console.log('⏸️ Cron Jobs deshabilitados en esta instancia (ENABLE_CRON=false)');
+  logger.info('Cron jobs disabled for this instance', { enableCron: false });
 });
 
 export default server;
