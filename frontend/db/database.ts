@@ -5,6 +5,24 @@ const DATABASE_NAME = "fortaleza.db";
 let dbInstance: SQLite.SQLiteDatabase | null = null;
 let initPromise: Promise<SQLite.SQLiteDatabase> | null = null;
 
+const ensureTransactionsColumns = async (db: SQLite.SQLiteDatabase) => {
+  type TableInfoRow = { name: string };
+  const tableInfo = await db.getAllAsync<TableInfoRow>("PRAGMA table_info(transactions)");
+  const columnNames = new Set(tableInfo.map((column) => column.name));
+
+  if (!columnNames.has("updated_at")) {
+    await db.execAsync("ALTER TABLE transactions ADD COLUMN updated_at TEXT");
+  }
+
+  if (!columnNames.has("deleted_at")) {
+    await db.execAsync("ALTER TABLE transactions ADD COLUMN deleted_at TEXT");
+  }
+
+  await db.execAsync(
+    "UPDATE transactions SET updated_at = COALESCE(updated_at, created_at, CURRENT_TIMESTAMP)"
+  );
+};
+
 /**
  * Initialize the local database and create tables if they don't exist.
  * This is the foundation for the Offline-First architecture.
@@ -41,6 +59,8 @@ export const initDatabase = async () => {
         type TEXT CHECK(type IN ('INCOME', 'EXPENSE')) NOT NULL,
         is_synced INTEGER DEFAULT 0, -- 0: Pending, 1: Synced
         created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        deleted_at TEXT,
         FOREIGN KEY (category_id) REFERENCES categories (id)
       );
 
@@ -74,7 +94,10 @@ export const initDatabase = async () => {
       CREATE INDEX IF NOT EXISTS idx_transactions_user_date ON transactions(user_id, date DESC);
       CREATE INDEX IF NOT EXISTS idx_transactions_sync ON transactions(is_synced);
       CREATE INDEX IF NOT EXISTS idx_transactions_user_sync ON transactions(user_id, is_synced);
+      CREATE INDEX IF NOT EXISTS idx_transactions_user_deleted_date ON transactions(user_id, deleted_at, date DESC);
     `);
+
+    await ensureTransactionsColumns(db);
 
     dbInstance = db;
     return db;

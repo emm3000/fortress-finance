@@ -4,6 +4,9 @@ import {
   Text,
   RefreshControl,
   ActivityIndicator,
+  Pressable,
+  Alert,
+  InteractionManager,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FlashList } from "@shopify/flash-list";
@@ -11,7 +14,7 @@ import { router } from "expo-router";
 import { useTransactions } from "../../hooks/useTransactions";
 import { useSync } from "../../hooks/useSync";
 import { useCategories } from "../../hooks/useCategories";
-import { Transaction } from "../../db/transaction.repository";
+import { Transaction, TransactionRepository } from "../../db/transaction.repository";
 import { Category } from "../../db/category.repository";
 import { EmptyState } from "../../components/feedback/empty-state";
 import { LoadingState } from "../../components/feedback/loading-state";
@@ -22,16 +25,23 @@ import {
   History,
   CloudOff,
   CloudCheck,
+  Pencil,
+  Trash2,
 } from "lucide-react-native";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { useAuthStore } from "../../store/auth.store";
 
 const TransactionListItem = React.memo(function TransactionListItem({
   transaction,
   category,
+  onEdit,
+  onDelete,
 }: {
   transaction: Transaction;
   category?: Category;
+  onEdit: (transactionId: string) => void;
+  onDelete: (transactionId: string) => void;
 }) {
   const formattedDate = useMemo(
     () => format(new Date(transaction.date), "PPP", { locale: es }),
@@ -81,12 +91,33 @@ const TransactionListItem = React.memo(function TransactionListItem({
             {transaction.is_synced ? "Sincronizado" : "Local"}
           </Text>
         </View>
+        <View className="flex-row items-center gap-2 mt-2">
+          <Pressable
+            onPress={() => onEdit(transaction.id)}
+            className="w-7 h-7 rounded-lg border border-border items-center justify-center"
+            accessibilityRole="button"
+            accessibilityLabel="Editar transacción"
+            accessibilityHint="Abre el formulario para editar esta transacción"
+          >
+            <Pencil size={14} color="#9ca3af" />
+          </Pressable>
+          <Pressable
+            onPress={() => onDelete(transaction.id)}
+            className="w-7 h-7 rounded-lg border border-red-900/50 items-center justify-center"
+            accessibilityRole="button"
+            accessibilityLabel="Eliminar transacción"
+            accessibilityHint="Abre una confirmación para eliminar esta transacción"
+          >
+            <Trash2 size={14} color="#f87171" />
+          </Pressable>
+        </View>
       </View>
     </View>
   );
 });
 
 export default function HistoryScreen() {
+  const userId = useAuthStore((state) => state.user?.id);
   const { 
     transactions, 
     isLoading: isTransactionsLoading, 
@@ -115,12 +146,58 @@ export default function HistoryScreen() {
 
   const keyExtractor = useCallback((item: Transaction) => item.id, []);
 
+  const handleEdit = useCallback((transactionId: string) => {
+    router.push({
+      pathname: "/(main)/new-transaction",
+      params: { id: transactionId },
+    });
+  }, []);
+
+  const handleDelete = useCallback(
+    (transactionId: string) => {
+      if (!userId) return;
+      Alert.alert(
+        "Eliminar transacción",
+        "Esta acción ocultará la transacción de tu historial. ¿Deseas continuar?",
+        [
+          { text: "Cancelar", style: "cancel" },
+          {
+            text: "Eliminar",
+            style: "destructive",
+            onPress: () => {
+              TransactionRepository.softDelete(transactionId, userId)
+                .then(async () => {
+                  await refreshTransactions();
+                  InteractionManager.runAfterInteractions(() => {
+                    performSync().catch(() => {
+                      // Errors are surfaced through sync state.
+                    });
+                  });
+                })
+                .catch((error) => {
+                  console.error("Failed to delete transaction locally:", error);
+                });
+            },
+          },
+        ]
+      );
+    },
+    [performSync, refreshTransactions, userId]
+  );
+
   const renderItem = useCallback(
     ({ item }: { item: Transaction }) => {
       const category = categoriesById[item.category_id || ""];
-      return <TransactionListItem transaction={item} category={category} />;
+      return (
+        <TransactionListItem
+          transaction={item}
+          category={category}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
+      );
     },
-    [categoriesById]
+    [categoriesById, handleDelete, handleEdit]
   );
 
   return (

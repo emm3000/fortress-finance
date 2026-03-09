@@ -31,7 +31,8 @@ export const SyncService = {
         categoryId: t.category_id,
         date: t.date,
         notes: t.description,
-        updatedAt: new Date().toISOString(), // In a real app, use record's updatedAt
+        updatedAt: t.updated_at,
+        deletedAt: t.deleted_at,
       }));
 
       // 2. Get last sync timestamp
@@ -48,6 +49,7 @@ export const SyncService = {
       const { syncTimestamp, changes } = response.data;
       const castleChange = changes?.castle;
       const walletChange = changes?.wallet;
+      const transactionsPull = Array.isArray(changes?.transactions) ? changes.transactions : [];
 
       // 4. APPLY CHANGES (PULL)
       try {
@@ -62,6 +64,10 @@ export const SyncService = {
             gold_balance: walletChange?.goldBalance || 0,
             streak_days: walletChange?.streakDays || 0,
           });
+        }
+
+        if (transactionsPull.length > 0) {
+          await TransactionRepository.upsertManyFromRemote(transactionsPull);
         }
 
         // Mark pushed transactions as synced
@@ -79,7 +85,7 @@ export const SyncService = {
       return {
         status: "success",
         syncTimestamp,
-        hasTransactionsUpdates: pendingTransactions.length > 0,
+        hasTransactionsUpdates: pendingTransactions.length > 0 || transactionsPull.length > 0,
         hasCastleUpdate: !!castleChange,
       };
     } catch (error) {

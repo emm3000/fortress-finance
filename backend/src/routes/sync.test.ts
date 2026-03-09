@@ -112,4 +112,73 @@ describe('Sync Routes Integration', () => {
     expect(response.status).toBe(400);
     expect(response.body.error).toBe('Validation Error');
   });
+
+  it('should synchronize soft-deleted transactions and return deletedAt on pull', async () => {
+    const txId = uuidv4();
+    const createdAt = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+    const deletedAt = new Date().toISOString();
+
+    const firstSync = await request(app)
+      .post('/api/sync')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        lastSyncTimestamp: null,
+        transactions: [
+          {
+            id: txId,
+            amount: 22.5,
+            type: 'EXPENSE',
+            categoryId,
+            date: createdAt,
+            notes: 'to delete',
+            updatedAt: createdAt,
+            deletedAt: null,
+          },
+        ],
+      });
+
+    expect(firstSync.status).toBe(200);
+
+    const deleteSync = await request(app)
+      .post('/api/sync')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        lastSyncTimestamp: null,
+        transactions: [
+          {
+            id: txId,
+            amount: 22.5,
+            type: 'EXPENSE',
+            categoryId,
+            date: createdAt,
+            notes: 'to delete',
+            updatedAt: deletedAt,
+            deletedAt,
+          },
+        ],
+      });
+
+    expect(deleteSync.status).toBe(200);
+
+    const deletedTx = await prisma.transaction.findUnique({ where: { id: txId } });
+    expect(deletedTx?.deletedAt).toBeTruthy();
+
+    const pullDeleted = await request(app)
+      .post('/api/sync')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        lastSyncTimestamp: new Date(Date.now() - 60 * 1000).toISOString(),
+        transactions: [],
+      });
+
+    expect(pullDeleted.status).toBe(200);
+    interface PullTransaction {
+      id: string;
+      deletedAt: string | null;
+    }
+    const pulledTransactions = pullDeleted.body.changes.transactions as PullTransaction[];
+    const pulledTx = pulledTransactions.find((tx) => tx.id === txId);
+    expect(pulledTx).toBeDefined();
+    expect(pulledTx.deletedAt).toBeTruthy();
+  });
 });

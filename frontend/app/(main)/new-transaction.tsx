@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -11,11 +11,12 @@ import {
   InteractionManager,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import * as Crypto from "expo-crypto";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCategories } from "../../hooks/useCategories";
 import { TransactionRepository } from "../../db/transaction.repository";
 import { useSync } from "../../hooks/useSync";
@@ -43,13 +44,18 @@ const toStoredIsoDate = (dateInput: string) => {
   return new Date(`${dateInput}T12:00:00`).toISOString();
 };
 
+const toDateInput = (storedDate: string) => {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(storedDate)) return storedDate;
+  return storedDate.slice(0, 10);
+};
+
 const transactionSchema = z.object({
   amount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, "Monto inválido"),
   categoryId: z.string().min(1, "Selecciona una categoría"),
   date: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida (usa YYYY-MM-DD)"),
-  description: z.string().max(100, "Muy larga").optional(),
+  description: z.string().max(200, "Muy larga").optional(),
   type: z.enum(["INCOME", "EXPENSE"]),
 });
 
@@ -57,10 +63,14 @@ type TransactionFormData = z.infer<typeof transactionSchema>;
 
 export default function NewTransactionScreen() {
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isLoadingExisting, setIsLoadingExisting] = useState(false);
   const { user } = useAuthStore();
   const { performSync } = useSync();
   const { data: categories = [], isLoading: isCategoriesLoading } = useCategories();
   const insets = useSafeAreaInsets();
+  const queryClient = useQueryClient();
+  const { id } = useLocalSearchParams<{ id?: string | string[] }>();
+  const editingTransactionId = typeof id === "string" && id.length > 0 ? id : undefined;
 
   const {
     control,
@@ -84,6 +94,39 @@ export default function NewTransactionScreen() {
     () => categories.filter((c) => c.type === transactionType),
     [categories, transactionType]
   );
+  const isEditing = !!editingTransactionId;
+
+  useEffect(() => {
+    if (!isEditing || !editingTransactionId || !user?.id) return;
+
+    let isCancelled = false;
+    setIsLoadingExisting(true);
+
+    TransactionRepository.getById(editingTransactionId, user.id)
+      .then((existing) => {
+        if (isCancelled) return;
+        if (!existing || existing.deleted_at) {
+          setSubmitError("La transacción no existe o ya fue eliminada.");
+          return;
+        }
+        setValue("type", existing.type);
+        setValue("amount", String(existing.amount));
+        setValue("categoryId", existing.category_id ?? "");
+        setValue("date", toDateInput(existing.date));
+        setValue("description", existing.description ?? "");
+      })
+      .catch(() => {
+        if (isCancelled) return;
+        setSubmitError("No se pudo cargar la transacción.");
+      })
+      .finally(() => {
+        if (!isCancelled) setIsLoadingExisting(false);
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [editingTransactionId, isEditing, setValue, user?.id]);
 
   const onSubmit = async (data: TransactionFormData) => {
     setSubmitError(null);
@@ -94,25 +137,40 @@ export default function NewTransactionScreen() {
     }
 
     try {
-      const newTransaction = {
-        id: Crypto.randomUUID(),
-        user_id: user.id,
-        category_id: data.categoryId,
-        amount: Number(data.amount),
-        description: data.description || "",
-        date: toStoredIsoDate(data.date),
-        type: data.type,
-        is_synced: 0,
-      };
+      if (isEditing && editingTransactionId) {
+        await TransactionRepository.update(editingTransactionId, user.id, {
+          amount: Number(data.amount),
+          type: data.type,
+          category_id: data.categoryId,
+          description: data.description || "",
+          date: toStoredIsoDate(data.date),
+        });
+      } else {
+        const now = new Date().toISOString();
+        const newTransaction = {
+          id: Crypto.randomUUID(),
+          user_id: user.id,
+          category_id: data.categoryId,
+          amount: Number(data.amount),
+          description: data.description || "",
+          date: toStoredIsoDate(data.date),
+          type: data.type,
+          is_synced: 0,
+          updated_at: now,
+          deleted_at: null,
+        };
 
-      await TransactionRepository.create(newTransaction);
-      AnalyticsService.track("transaction_created", {
-        userId: user.id,
-        type: data.type,
-        amount: Number(data.amount),
-        categoryId: data.categoryId,
-        date: data.date,
-      });
+        await TransactionRepository.create(newTransaction);
+        AnalyticsService.track("transaction_created", {
+          userId: user.id,
+          type: data.type,
+          amount: Number(data.amount),
+          categoryId: data.categoryId,
+          date: data.date,
+        });
+      }
+
+      await queryClient.invalidateQueries({ queryKey: ["transactions", user.id] });
 
       router.back();
 
@@ -125,7 +183,7 @@ export default function NewTransactionScreen() {
     } catch (error: any) {
       const message =
         error?.response?.data?.message ||
-        "No se pudo guardar la transacción. Se revirtió el intento y no se aplicaron cambios.";
+        "No se pudo guardar la transacción. Inténtalo de nuevo.";
       setSubmitError(message);
       console.error("Failed to save transaction:", error);
     }
@@ -142,13 +200,25 @@ export default function NewTransactionScreen() {
           contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
         >
           <ScreenHeader
-            title={transactionType === "EXPENSE" ? "Registrar Batalla" : "Botín de Guerra"}
+            title={
+              isEditing
+                ? "Editar transacción"
+                : transactionType === "EXPENSE"
+                  ? "Registrar Batalla"
+                  : "Botín de Guerra"
+            }
             onBack={() => router.back()}
             backAccessibilityHint="Regresa al dashboard"
             size="lg"
             bordered={false}
             withHorizontalPadding={false}
           />
+
+          {isLoadingExisting ? (
+            <View className="py-8 items-center">
+              <ActivityIndicator color="#FFD700" />
+            </View>
+          ) : null}
 
           {/* Type Toggle */}
           <View className="flex-row bg-surface rounded-2xl p-1 mb-8 border border-border">
@@ -294,19 +364,23 @@ export default function NewTransactionScreen() {
           {/* Submit Button */}
           <Pressable
             onPress={handleSubmit(onSubmit)}
-            disabled={isSubmitting}
+            disabled={isSubmitting || isLoadingExisting}
             accessibilityRole="button"
             accessibilityLabel="Guardar transacción"
             accessibilityHint="Registra la transacción y vuelve al dashboard"
             className={`h-16 rounded-2xl items-center justify-center mt-12 mb-10 ${
               transactionType === "EXPENSE" ? "bg-red-600" : "bg-green-600"
-            } ${isSubmitting ? "opacity-60" : ""}`}
+            } ${isSubmitting || isLoadingExisting ? "opacity-60" : ""}`}
           >
             {isSubmitting ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
               <Text className="text-text font-bold text-lg">
-                {transactionType === "EXPENSE" ? "Confirmar Gasto" : "Asegurar Botín"}
+                {isEditing
+                  ? "Guardar cambios"
+                  : transactionType === "EXPENSE"
+                    ? "Confirmar Gasto"
+                    : "Asegurar Botín"}
               </Text>
             )}
           </Pressable>
