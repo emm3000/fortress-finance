@@ -39,6 +39,7 @@ export const useSync = () => {
       if (!userId) return;
       if (result.hasTransactionsUpdates) {
         queryClient.invalidateQueries({ queryKey: ["transactions", userId] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard", "monthly", userId] });
       }
       if (result.hasCastleUpdate) {
         queryClient.invalidateQueries({ queryKey: ["castle", userId] });

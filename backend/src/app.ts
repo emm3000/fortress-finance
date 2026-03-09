@@ -13,6 +13,7 @@ import economyRoutes from './routes/economy.routes';
 import notificationRoutes from './routes/notification.routes';
 import onboardingRoutes from './routes/onboarding.routes';
 import transactionRoutes from './routes/transaction.routes';
+import dashboardRoutes from './routes/dashboard.routes';
 import { requireAuth } from './middlewares/requireAuth';
 import { errorHandler } from './middlewares/errorHandler';
 import { env } from './config/env';
@@ -64,6 +65,7 @@ app.use('/api/economy', economyRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/onboarding', onboardingRoutes);
 app.use('/api/transactions', transactionRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Ruta base
 app.get('/api/health', (req: Request, res: Response) => {

@@ -13,6 +13,7 @@ import { useAuthStore } from "../../store/auth.store";
 import { useCastle } from "../../hooks/useCastle";
 import { useSync } from "../../hooks/useSync";
 import { useTransactions } from "../../hooks/useTransactions";
+import { useMonthlyDashboard } from "../../hooks/useMonthlyDashboard";
 import { theme } from "../../constants/theme";
 import {
   Shield,
@@ -23,6 +24,9 @@ import {
   ChevronRight,
   TrendingDown,
   TrendingUp,
+  Wallet,
+  PiggyBank,
+  BarChart3,
 } from "lucide-react-native";
 import { MotiView } from "moti";
 
@@ -38,6 +42,7 @@ export default function Dashboard() {
   const { castle } = useCastle();
   const { performSync, isSyncing } = useSync();
   const { transactions } = useTransactions();
+  const { data: monthlyDashboard } = useMonthlyDashboard();
   const hasInitializedSync = useRef(false);
   const insets = useSafeAreaInsets();
   const hpCurrent = castle?.hp ?? 0;
@@ -70,6 +75,10 @@ export default function Dashboard() {
   const recentTransactions = React.useMemo(() => {
     return transactions.slice(0, 3);
   }, [transactions]);
+  const maxCategorySpent = React.useMemo(() => {
+    const categories = monthlyDashboard?.topExpenseCategories ?? [];
+    return Math.max(...categories.map((item) => item.totalSpent), 0);
+  }, [monthlyDashboard?.topExpenseCategories]);
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -153,6 +162,76 @@ export default function Dashboard() {
             <Flame size={24} color="#FF4500" />
             <Text className="text-text-muted text-xs mt-2">Racha Actual</Text>
             <Text className="text-text text-xl font-bold">{castle?.streak_days || 0} Días</Text>
+          </View>
+        </View>
+
+        {/* Monthly Summary */}
+        <View className="px-6 mt-8">
+          <View className="flex-row items-center mb-4">
+            <BarChart3 size={18} color={theme.colors.primary.DEFAULT} />
+            <Text className="text-text text-lg font-bold ml-2">Resumen del Mes</Text>
+          </View>
+
+          <View className="flex-row gap-3">
+            <View className="flex-1 p-4 bg-surface rounded-2xl border border-border">
+              <View className="flex-row items-center">
+                <Wallet size={16} color="#4ade80" />
+                <Text className="text-text-muted text-xs ml-2">Ingresos</Text>
+              </View>
+              <Text className="text-green-400 text-xl font-bold mt-2">
+                +{monthlyDashboard?.totals.income ?? 0}
+              </Text>
+            </View>
+
+            <View className="flex-1 p-4 bg-surface rounded-2xl border border-border">
+              <View className="flex-row items-center">
+                <Coins size={16} color="#f87171" />
+                <Text className="text-text-muted text-xs ml-2">Gastos</Text>
+              </View>
+              <Text className="text-red-400 text-xl font-bold mt-2">
+                -{monthlyDashboard?.totals.expense ?? 0}
+              </Text>
+            </View>
+
+            <View className="flex-1 p-4 bg-surface rounded-2xl border border-border">
+              <View className="flex-row items-center">
+                <PiggyBank size={16} color={theme.colors.primary.DEFAULT} />
+                <Text className="text-text-muted text-xs ml-2">Balance</Text>
+              </View>
+              <Text className="text-text text-xl font-bold mt-2">
+                {monthlyDashboard?.totals.balance ?? 0}
+              </Text>
+            </View>
+          </View>
+
+          <View className="mt-4 p-4 bg-surface rounded-2xl border border-border">
+            <Text className="text-text font-semibold mb-3">Top categorías de gasto</Text>
+            {(monthlyDashboard?.topExpenseCategories.length ?? 0) === 0 ? (
+              <Text className="text-text-muted text-sm">
+                Aún no hay gastos este mes. Registra tu primera transacción.
+              </Text>
+            ) : (
+              monthlyDashboard?.topExpenseCategories.map((item) => {
+                const widthPercent =
+                  maxCategorySpent > 0 ? (item.totalSpent / maxCategorySpent) * 100 : 0;
+                return (
+                  <View key={item.categoryId} className="mb-3">
+                    <View className="flex-row justify-between items-center mb-1">
+                      <Text className="text-text text-sm" numberOfLines={1}>
+                        {item.categoryName}
+                      </Text>
+                      <Text className="text-text-muted text-xs">{item.totalSpent}</Text>
+                    </View>
+                    <View className="h-2 rounded-full bg-background border border-border overflow-hidden">
+                      <View
+                        className="h-full rounded-full bg-primary"
+                        style={{ width: `${Math.max(widthPercent, 4)}%` }}
+                      />
+                    </View>
+                  </View>
+                );
+              })
+            )}
           </View>
         </View>
 
