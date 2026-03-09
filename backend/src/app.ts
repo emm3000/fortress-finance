@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import express from 'express';
 import cors from 'cors';
+import type { CorsOptions } from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import authRoutes from './routes/auth.routes';
@@ -15,10 +16,36 @@ import { errorHandler } from './middlewares/errorHandler';
 import { env } from './config/env';
 
 const app = express();
+const allowedCorsOrigins = env.CORS_ORIGINS.split(',')
+  .map((origin) => origin.trim())
+  .filter((origin) => origin.length > 0);
+
+const corsOptions: CorsOptions = {
+  origin: (origin, callback) => {
+    // Mobile apps, curl and server-to-server requests may not send Origin.
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+
+    if (allowedCorsOrigins.length === 0 && env.NODE_ENV !== 'production') {
+      callback(null, true);
+      return;
+    }
+
+    if (allowedCorsOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error('Origin not allowed by CORS'));
+  },
+  credentials: true,
+};
 
 // Middlewares globales
 app.use(helmet());
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 if (env.NODE_ENV !== 'production') {
