@@ -1,6 +1,7 @@
-import type { Request, Response, NextFunction } from 'express';
+import type { Request, Response } from 'express';
 import * as notificationService from '../services/notification.service';
-import { AppError } from '../utils/AppError';
+import { asyncHandler } from '../utils/asyncHandler';
+import { getUserIdOrThrow } from '../utils/http';
 import type {
   NotificationListQuery,
   PushTokenInput,
@@ -9,65 +10,28 @@ import type {
 
 type RegisterTokenRequest = Request<Record<string, never>, unknown, PushTokenInput>;
 type UnregisterTokenRequest = Request<Record<string, never>, unknown, UnregisterTokenInput>;
-type NotificationListRequest = Request<Record<string, never>, unknown, unknown, NotificationListQuery>;
 
-export const registerToken = async (
-  req: RegisterTokenRequest,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const userId = req.user?.userId;
-    if (!userId) {
-      throw new AppError(401, 'No autorizado');
-    }
+export const registerToken = asyncHandler(async (req: RegisterTokenRequest, res: Response) => {
+  const userId = getUserIdOrThrow(req, 'No autorizado');
+  const { token, deviceInfo } = req.body;
+  await notificationService.registerPushToken(userId, token, deviceInfo);
 
-    const { token, deviceInfo } = req.body;
-    await notificationService.registerPushToken(userId, token, deviceInfo);
+  res.status(200).json({ message: 'Token registrado exitosamente' });
+});
 
-    res.status(200).json({ message: 'Token registrado exitosamente' });
-  } catch (error) {
-    next(error);
-  }
-};
+export const unregisterToken = asyncHandler(async (req: UnregisterTokenRequest, res: Response) => {
+  const userId = getUserIdOrThrow(req, 'No autorizado');
+  const { token } = req.body;
+  await notificationService.unregisterPushToken(userId, token);
 
-export const unregisterToken = async (
-  req: UnregisterTokenRequest,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const userId = req.user?.userId;
-    if (!userId) {
-      throw new AppError(401, 'No autorizado');
-    }
+  res.status(200).json({ message: 'Token eliminado exitosamente' });
+});
 
-    const { token } = req.body;
-    await notificationService.unregisterPushToken(userId, token);
+export const listNotifications = asyncHandler(async (req: Request, res: Response) => {
+  const userId = getUserIdOrThrow(req, 'No autorizado');
+  const rawLimit = (req.query as { limit?: unknown }).limit;
+  const limit = typeof rawLimit === 'number' ? rawLimit : Number(rawLimit ?? 30);
+  const notifications = await notificationService.getUserNotifications(userId, limit);
 
-    res.status(200).json({ message: 'Token eliminado exitosamente' });
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const listNotifications = async (
-  req: NotificationListRequest,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const userId = req.user?.userId;
-    if (!userId) {
-      throw new AppError(401, 'No autorizado');
-    }
-
-    const limitCandidate: unknown = req.query.limit;
-    const limit = typeof limitCandidate === 'number' ? limitCandidate : Number(limitCandidate ?? 30);
-    const notifications = await notificationService.getUserNotifications(userId, limit);
-
-    res.status(200).json(notifications);
-  } catch (error) {
-    next(error);
-  }
-};
+  res.status(200).json(notifications);
+});

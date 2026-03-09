@@ -1,41 +1,20 @@
-import type { NextFunction, Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import * as transactionService from '../services/transaction.service';
-import { AppError } from '../utils/AppError';
+import { asyncHandler } from '../utils/asyncHandler';
+import { getStringParamOrThrow, getUserIdOrThrow } from '../utils/http';
 import type { UpdateTransactionInput } from '../validations/transaction.validation';
 
-export const update = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const userId = req.user?.userId;
-    if (!userId) {
-      throw new AppError(401, 'Usuario no identificado');
-    }
+export const update = asyncHandler(async (req: Request, res: Response) => {
+  const userId = getUserIdOrThrow(req);
+  const transactionId = getStringParamOrThrow(req, 'id', 'ID de transacción inválido');
+  const payload = req.body as UpdateTransactionInput;
+  const updated = await transactionService.updateTransaction(userId, transactionId, payload);
+  res.status(200).json(updated);
+});
 
-    const transactionId = req.params.id;
-    if (typeof transactionId !== 'string') {
-      throw new AppError(400, 'ID de transacción inválido');
-    }
-    const payload = req.body as UpdateTransactionInput;
-    const updated = await transactionService.updateTransaction(userId, transactionId, payload);
-    res.status(200).json(updated);
-  } catch (error) {
-    next(error);
-  }
-};
-
-export const remove = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const userId = req.user?.userId;
-    if (!userId) {
-      throw new AppError(401, 'Usuario no identificado');
-    }
-
-    const transactionId = req.params.id;
-    if (typeof transactionId !== 'string') {
-      throw new AppError(400, 'ID de transacción inválido');
-    }
-    await transactionService.deleteTransaction(userId, transactionId);
-    res.status(200).json({ message: 'Transacción eliminada' });
-  } catch (error) {
-    next(error);
-  }
-};
+export const remove = asyncHandler(async (req: Request, res: Response) => {
+  const userId = getUserIdOrThrow(req);
+  const transactionId = getStringParamOrThrow(req, 'id', 'ID de transacción inválido');
+  await transactionService.deleteTransaction(userId, transactionId);
+  res.status(200).json({ message: 'Transacción eliminada' });
+});

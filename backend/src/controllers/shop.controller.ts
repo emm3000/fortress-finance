@@ -1,11 +1,8 @@
-import type { Request, Response, NextFunction } from 'express';
+import type { Request, Response } from 'express';
 import * as shopService from '../services/shop.service';
+import { asyncHandler } from '../utils/asyncHandler';
 
-export const getShopItems = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const items = await shopService.getAllShopItems();
-    res.status(200).json(items);
-  } catch (error) {
-    next(error);
-  }
-};
+export const getShopItems = asyncHandler(async (_req: Request, res: Response) => {
+  const items = await shopService.getAllShopItems();
+  res.status(200).json(items);
+});
