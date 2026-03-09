@@ -117,6 +117,18 @@ export default function LoginScreen() {
             </Pressable>
           </Link>
         </View>
+
+        <View className="items-center mt-3">
+          <Link href="/(auth)/onboarding" asChild>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Ver introducción"
+              accessibilityHint="Vuelve a ver los pasos introductorios"
+            >
+              <Text className="text-text-muted underline">Ver introducción</Text>
+            </Pressable>
+          </Link>
+        </View>
       </View>
     </AuthScreenShell>
   );

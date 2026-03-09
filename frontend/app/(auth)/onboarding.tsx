@@ -1,7 +1,9 @@
 import React from "react";
 import { Pressable, Text, View } from "react-native";
 import { router } from "expo-router";
+import * as SecureStore from "expo-secure-store";
 import { Shield, Coins, BellRing } from "lucide-react-native";
+import { OnboardingService } from "../../services/onboarding.service";
 
 type OnboardingStep = {
   title: string;
@@ -27,13 +29,29 @@ const STEPS: OnboardingStep[] = [
   },
 ];
 
+const DEFAULT_ONBOARDING_PREFERENCES = {
+  currency: "USD",
+  monthlyIncomeGoal: 3000,
+};
+
 export default function OnboardingScreen() {
   const [stepIndex, setStepIndex] = React.useState(0);
   const currentStep = STEPS[stepIndex];
   const isLastStep = stepIndex === STEPS.length - 1;
 
-  const handleNext = () => {
+  const markOnboardingAsSkipped = async () => {
+    await SecureStore.setItemAsync("onboarding_skipped", "true");
+  };
+
+  const handleSkip = async () => {
+    await markOnboardingAsSkipped();
+    router.replace("/(auth)/login");
+  };
+
+  const handleNext = async () => {
     if (isLastStep) {
+      await OnboardingService.saveDraft(DEFAULT_ONBOARDING_PREFERENCES);
+      await markOnboardingAsSkipped();
       router.replace("/(auth)/register");
       return;
     }
@@ -45,7 +63,7 @@ export default function OnboardingScreen() {
     <View className="flex-1 bg-background px-6 py-10">
       <View className="items-end">
         <Pressable
-          onPress={() => router.replace("/(auth)/login")}
+          onPress={() => void handleSkip()}
           accessibilityRole="button"
           accessibilityLabel="Saltar onboarding"
           accessibilityHint="Omitir introducción e ir a iniciar sesión"
@@ -76,7 +94,7 @@ export default function OnboardingScreen() {
 
       <View className="gap-3">
         <Pressable
-          onPress={handleNext}
+          onPress={() => void handleNext()}
           className="items-center rounded-2xl bg-primary px-4 py-4"
           accessibilityRole="button"
           accessibilityLabel={isLastStep ? "Comenzar ahora" : "Siguiente paso"}
@@ -86,7 +104,11 @@ export default function OnboardingScreen() {
         </Pressable>
 
         <Pressable
-          onPress={() => router.replace("/(auth)/register")}
+          onPress={async () => {
+            await OnboardingService.saveDraft(DEFAULT_ONBOARDING_PREFERENCES);
+            await markOnboardingAsSkipped();
+            router.replace("/(auth)/register");
+          }}
           className="items-center rounded-2xl border border-border bg-surface px-4 py-4"
           accessibilityRole="button"
           accessibilityLabel="Ir a registro"
