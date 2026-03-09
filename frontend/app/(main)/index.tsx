@@ -39,14 +39,13 @@ export default function Dashboard() {
   const { transactions } = useTransactions();
   const hasInitializedSync = useRef(false);
   const insets = useSafeAreaInsets();
-
-  console.log("Dashboard Rendered");
+  const hpCurrent = castle?.hp ?? 0;
+  const hpMax = castle?.max_hp ?? 0;
 
   useEffect(() => {
     if (hasInitializedSync.current) return;
     hasInitializedSync.current = true;
 
-    console.log("Dashboard: Mounting and Running Initial Sync");
     let mounted = true;
     performSync()
       .then(() => {
@@ -67,8 +66,9 @@ export default function Dashboard() {
   }, [performSync, refreshCastle]);
 
   const hpPercentage = React.useMemo(() => {
-    return castle ? (castle.hp / castle.max_hp) * 100 : 0;
-  }, [castle]);
+    if (!hpMax) return 0;
+    return (hpCurrent / hpMax) * 100;
+  }, [hpCurrent, hpMax]);
 
   const recentTransactions = React.useMemo(() => {
     return transactions.slice(0, 3);
@@ -95,6 +95,9 @@ export default function Dashboard() {
           <Pressable
             onPress={onRefresh}
             disabled={isSyncing}
+            accessibilityRole="button"
+            accessibilityLabel="Sincronizar datos"
+            accessibilityHint="Actualiza los datos locales con el servidor"
             className="bg-surface p-3 rounded-full border border-border"
           >
             <RefreshCw
@@ -125,7 +128,7 @@ export default function Dashboard() {
               </View>
             </View>
             <View className="items-end">
-              <Text className="text-text text-xl font-bold">{castle?.hp} / {castle?.max_hp}</Text>
+              <Text className="text-text text-xl font-bold">{hpCurrent} / {hpMax}</Text>
               <Text className="text-text-muted text-xs text-right">HP Restante</Text>
             </View>
           </View>
@@ -182,7 +185,12 @@ export default function Dashboard() {
           )}
           
           <Link href="/(main)/history" asChild>
-            <Pressable className="mt-2 py-4 flex-row items-center justify-center">
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Ver historial completo"
+              accessibilityHint="Abre la pantalla con todas las transacciones"
+              className="mt-2 py-4 flex-row items-center justify-center"
+            >
               <Text className="text-primary font-medium">Ver todas las crónicas</Text>
               <ChevronRight size={16} color={theme.colors.primary.DEFAULT} />
             </Pressable>
@@ -192,16 +200,22 @@ export default function Dashboard() {
         {/* Logout */}
         <Pressable 
           onPress={logout}
+          accessibilityRole="button"
+          accessibilityLabel="Cerrar sesión"
+          accessibilityHint="Finaliza tu sesión actual y vuelve al login"
           className="mx-6 mt-8 flex-row items-center justify-center p-4 border border-red-900/30 rounded-2xl"
         >
           <LogOut size={18} color={theme.colors.dangerDark} />
-          <Text className="ml-2 text-red-800 font-medium text-sm">Cerrar Sesión</Text>
+          <Text className="ml-2 text-red-400 font-medium text-sm">Cerrar Sesión</Text>
         </Pressable>
       </ScrollView>
 
       <Link href="/(main)/new-transaction" asChild>
         <Pressable
           style={{ bottom: insets.bottom + 16 }}
+          accessibilityRole="button"
+          accessibilityLabel="Registrar transacción"
+          accessibilityHint="Abre el formulario para crear una nueva transacción"
           className="absolute right-6 w-16 h-16 bg-primary rounded-full items-center justify-center shadow-lg shadow-primary/50 border-4 border-background"
         >
           <TrendingDown size={32} color={theme.colors.background} />

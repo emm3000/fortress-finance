@@ -154,6 +154,9 @@ export default function RegisterScreen() {
             <Pressable
               onPress={handleSubmit(onSubmit)}
               disabled={isSubmitting}
+              accessibilityRole="button"
+              accessibilityLabel="Registrar cuenta"
+              accessibilityHint="Envía tus datos para crear una cuenta nueva"
               className={`bg-primary h-14 rounded-xl items-center justify-center mt-8 active:opacity-80 ${
                 isSubmitting ? "opacity-60" : ""
               }`}
@@ -176,7 +179,11 @@ export default function RegisterScreen() {
             <View className="flex-row justify-center mt-6">
               <Text className="text-text-muted">¿Ya tienes rango? </Text>
               <Link href="/(auth)/login" asChild>
-                <Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Ir a iniciar sesión"
+                  accessibilityHint="Abre la pantalla de acceso"
+                >
                   <Text className="text-primary font-bold">Inicia sesión</Text>
                 </Pressable>
               </Link>

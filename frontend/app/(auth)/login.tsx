@@ -127,6 +127,9 @@ export default function LoginScreen() {
             <Pressable
               onPress={handleSubmit(onSubmit)}
               disabled={isSubmitting}
+              accessibilityRole="button"
+              accessibilityLabel="Iniciar sesión"
+              accessibilityHint="Envía tus credenciales para entrar al reino"
               className={`bg-primary h-14 rounded-xl items-center justify-center mt-8 active:opacity-80 ${
                 isSubmitting ? "opacity-60" : ""
               }`}
@@ -149,7 +152,11 @@ export default function LoginScreen() {
             <View className="flex-row justify-center mt-6">
               <Text className="text-text-muted">¿Eres nuevo recluta? </Text>
               <Link href="/(auth)/register" asChild>
-                <Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Ir a registro"
+                  accessibilityHint="Abre la pantalla para crear una cuenta nueva"
+                >
                   <Text className="text-primary font-bold">Únete a la guardia</Text>
                 </Pressable>
               </Link>

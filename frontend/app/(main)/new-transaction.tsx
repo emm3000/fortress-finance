@@ -90,18 +90,6 @@ export default function NewTransactionScreen() {
         is_synced: 0,
       };
 
-      console.log("Submitting transaction:", newTransaction);
-      console.log("Values array would be:", [
-        newTransaction.id,
-        newTransaction.user_id,
-        newTransaction.category_id,
-        newTransaction.amount,
-        newTransaction.description,
-        newTransaction.date,
-        newTransaction.type,
-        0
-      ]);
-
       await TransactionRepository.create(newTransaction);
       
       // Sync in background and return
@@ -126,7 +114,13 @@ export default function NewTransactionScreen() {
         >
           {/* Header */}
           <View className="flex-row items-center py-6">
-            <Pressable onPress={() => router.back()} className="p-2 -ml-2">
+            <Pressable
+              onPress={() => router.back()}
+              accessibilityRole="button"
+              accessibilityLabel="Volver"
+              accessibilityHint="Regresa al dashboard"
+              className="p-2 -ml-2"
+            >
               <ArrowLeft size={24} color="#FFD700" />
             </Pressable>
             <Text className="text-text text-xl font-bold ml-2">
@@ -139,6 +133,9 @@ export default function NewTransactionScreen() {
             <Pressable
               onPress={() => setValue("type", "EXPENSE")}
               disabled={isSubmitting}
+              accessibilityRole="button"
+              accessibilityLabel="Tipo gasto"
+              accessibilityHint="Selecciona que esta transacción es un gasto"
               className={`flex-1 py-3 rounded-xl items-center ${
                 transactionType === "EXPENSE" ? "bg-red-500/20 border border-red-500/50" : ""
               }`}
@@ -150,6 +147,9 @@ export default function NewTransactionScreen() {
             <Pressable
               onPress={() => setValue("type", "INCOME")}
               disabled={isSubmitting}
+              accessibilityRole="button"
+              accessibilityLabel="Tipo ingreso"
+              accessibilityHint="Selecciona que esta transacción es un ingreso"
               className={`flex-1 py-3 rounded-xl items-center ${
                 transactionType === "INCOME" ? "bg-green-500/20 border border-green-500/50" : ""
               }`}
@@ -246,6 +246,9 @@ export default function NewTransactionScreen() {
           <Pressable
             onPress={handleSubmit(onSubmit)}
             disabled={isSubmitting}
+            accessibilityRole="button"
+            accessibilityLabel="Guardar transacción"
+            accessibilityHint="Registra la transacción y vuelve al dashboard"
             className={`h-16 rounded-2xl items-center justify-center mt-12 mb-10 ${
               transactionType === "EXPENSE" ? "bg-red-600" : "bg-green-600"
             } ${isSubmitting ? "opacity-60" : ""}`}
