@@ -75,7 +75,6 @@ export const initDatabase = async () => {
       CREATE INDEX IF NOT EXISTS idx_transactions_sync ON transactions(is_synced);
     `);
 
-    console.log("Local database initialized successfully 🏰");
     dbInstance = db;
     return db;
   })();

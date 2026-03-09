@@ -8,15 +8,16 @@ import { useAuthStore } from "../store/auth.store";
  */
 export const useSync = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const userId = useAuthStore((state) => state.user?.id);
   const queryClient = useQueryClient();
 
   const syncMutation = useMutation({
     mutationFn: async () => {
-      if (!isAuthenticated) return;
+      if (!isAuthenticated || !userId) return;
       // First, ensure we have categories
       await SyncService.syncCategories();
       // Then perform the full data sync
-      await SyncService.fullSync();
+      await SyncService.fullSync(userId);
     },
     onSuccess: () => {
       // Invalidate relevant queries when sync completes to refresh UI
@@ -29,13 +30,13 @@ export const useSync = () => {
   });
 
   const performSync = useCallback(async () => {
-    if (!isAuthenticated || syncMutation.isPending) return;
+    if (!isAuthenticated || !userId || syncMutation.isPending) return;
     try {
       await syncMutation.mutateAsync();
     } catch {
        // Handled in onError
     }
-  }, [isAuthenticated, syncMutation]);
+  }, [isAuthenticated, userId, syncMutation]);
 
   return {
     performSync,

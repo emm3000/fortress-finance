@@ -17,19 +17,22 @@ export const CategoryRepository = {
    * Bulk insert/update categories (usually from server sync).
    */
   async upsertMany(categories: Category[]) {
+    if (categories.length === 0) return;
     const db = await getDatabase();
-    for (const cat of categories) {
-      await db.runAsync(
-        `INSERT OR REPLACE INTO categories (id, name, icon, color, type, is_default)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        cat.id,
-        cat.name,
-        cat.icon !== null ? cat.icon : "",
-        cat.color !== null ? cat.color : "",
-        cat.type,
-        cat.is_default
-      );
-    }
+    await db.withTransactionAsync(async () => {
+      for (const cat of categories) {
+        await db.runAsync(
+          `INSERT OR REPLACE INTO categories (id, name, icon, color, type, is_default)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          cat.id,
+          cat.name,
+          cat.icon !== null ? cat.icon : "",
+          cat.color !== null ? cat.color : "",
+          cat.type,
+          cat.is_default
+        );
+      }
+    });
   },
 
   /**

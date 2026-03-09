@@ -8,10 +8,10 @@ export const SyncService = {
   /**
    * Main synchronization flow: PUSH unsynced and PULL changes.
    */
-  async fullSync() {
+  async fullSync(userId: string) {
     try {
       // 1. Get local pending transactions (PUSH)
-      const pendingTransactions = await TransactionRepository.getPendingSync();
+      const pendingTransactions = await TransactionRepository.getPendingSync(userId);
       
       // Map to backend schema (notes, updatedAt)
       const transactionsPush = pendingTransactions.map(t => ({
@@ -36,19 +36,21 @@ export const SyncService = {
       });
 
       const { syncTimestamp, changes } = response.data;
+      const castleChange = changes?.castle;
+      const walletChange = changes?.wallet;
 
       // 4. APPLY CHANGES (PULL)
       try {
-        // Update Castle/Wallet
-        if (changes.castle || changes.wallet) {
+        // Update local castle state when castle payload is present.
+        if (castleChange) {
           // Merge castle and wallet into our local castle_state table
           await CastleRepository.upsert({
-            user_id: changes.castle.userId,
-            hp: changes.castle.hp,
-            max_hp: changes.castle.maxHp,
-            status: changes.castle.status,
-            gold_balance: changes.wallet?.goldBalance || 0,
-            streak_days: changes.wallet?.streakDays || 0,
+            user_id: castleChange.userId,
+            hp: castleChange.hp,
+            max_hp: castleChange.maxHp,
+            status: castleChange.status,
+            gold_balance: walletChange?.goldBalance || 0,
+            streak_days: walletChange?.streakDays || 0,
           });
         }
 

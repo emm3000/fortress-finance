@@ -52,12 +52,13 @@ export const TransactionRepository = {
   },
 
   /**
-   * Get transactions pending synchronization.
+   * Get pending transactions for a specific user.
    */
-  async getPendingSync(): Promise<Transaction[]> {
+  async getPendingSync(userId: string): Promise<Transaction[]> {
     const db = await getDatabase();
     return await db.getAllAsync<Transaction>(
-      "SELECT * FROM transactions WHERE is_synced = 0"
+      "SELECT * FROM transactions WHERE user_id = ? AND is_synced = 0",
+      userId
     );
   },
 
