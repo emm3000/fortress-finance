@@ -17,8 +17,8 @@ describe('Sync Routes Integration', () => {
   beforeAll(async () => {
     // 1. Registrar usuario y obtener token
     const authRes = await request(app).post('/api/auth/register').send(testUser);
-    token = authRes.body.token;
-    userId = authRes.body.user.id as string;
+    token = authRes.body.data.token;
+    userId = authRes.body.data.user.id as string;
 
     // 2. Obtener una categoría válida del seed
     const cat = await prisma.category.findFirst();
@@ -55,7 +55,7 @@ describe('Sync Routes Integration', () => {
       .send(syncData);
 
     expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty('syncTimestamp');
+    expect(response.body.data).toHaveProperty('syncTimestamp');
 
     // Verificar que se guardó en DB
     const savedTx = await prisma.transaction.findUnique({ where: { id: txId } });
@@ -76,11 +76,11 @@ describe('Sync Routes Integration', () => {
       });
 
     expect(response.status).toBe(200);
-    expect(response.body.changes).toHaveProperty('transactions');
-    expect(response.body.changes).toHaveProperty('budgets');
-    expect(response.body.changes).toHaveProperty('castle');
-    expect(Array.isArray(response.body.changes.transactions)).toBe(true);
-    expect(response.body.changes.transactions.length).toBeGreaterThan(0); // Debería traer la TX del test anterior
+    expect(response.body.data.changes).toHaveProperty('transactions');
+    expect(response.body.data.changes).toHaveProperty('budgets');
+    expect(response.body.data.changes).toHaveProperty('castle');
+    expect(Array.isArray(response.body.data.changes.transactions)).toBe(true);
+    expect(response.body.data.changes.transactions.length).toBeGreaterThan(0); // Debería traer la TX del test anterior
   });
 
   it('should fail if unauthorized', async () => {
@@ -112,7 +112,7 @@ describe('Sync Routes Integration', () => {
       });
 
     expect(response.status).toBe(400);
-    expect(response.body.error).toBe('Validation Error');
+    expect(response.body.error.message).toBe('Validation Error');
   });
 
   it('should synchronize soft-deleted transactions and return deletedAt on pull', async () => {
@@ -178,7 +178,7 @@ describe('Sync Routes Integration', () => {
       id: string;
       deletedAt: string | null;
     }
-    const pulledTransactions = pullDeleted.body.changes.transactions as PullTransaction[];
+    const pulledTransactions = pullDeleted.body.data.changes.transactions as PullTransaction[];
     const pulledTx = pulledTransactions.find((tx) => tx.id === txId);
     expect(pulledTx).toBeDefined();
     expect(pulledTx.deletedAt).toBeTruthy();

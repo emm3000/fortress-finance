@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 import type { z } from 'zod';
+import { sendError } from '../utils/response';
 
 interface ValidationResult {
   body?: unknown;
@@ -34,8 +35,7 @@ export const validate =
       next();
     } catch (error) {
       if (error instanceof ZodError) {
-        res.status(400).json({
-          error: 'Validation Error',
+        sendError(res, 400, 'Validation Error', {
           details: error.issues.map((e) => ({
             path: e.path.join('.'),
             message: e.message,

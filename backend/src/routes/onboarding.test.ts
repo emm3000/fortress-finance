@@ -15,8 +15,8 @@ describe('Onboarding Routes Integration', () => {
 
   beforeAll(async () => {
     const registerResponse = await request(app).post('/api/auth/register').send(testUser);
-    token = registerResponse.body.token;
-    userId = registerResponse.body.user.id;
+    token = registerResponse.body.data.token;
+    userId = registerResponse.body.data.user.id;
   });
 
   afterAll(async () => {
@@ -33,8 +33,8 @@ describe('Onboarding Routes Integration', () => {
       });
 
     expect(response.status).toBe(200);
-    expect(response.body.currency).toBe('USD');
-    expect(Number(response.body.monthlyIncomeGoal)).toBe(3500.5);
+    expect(response.body.data.currency).toBe('USD');
+    expect(Number(response.body.data.monthlyIncomeGoal)).toBe(3500.5);
 
     const stored = await prisma.userPreference.findUnique({ where: { userId } });
     expect(stored).not.toBeNull();
@@ -83,6 +83,6 @@ describe('Onboarding Routes Integration', () => {
       });
 
     expect(response.status).toBe(400);
-    expect(response.body.error).toBe('Validation Error');
+    expect(response.body.error.message).toBe('Validation Error');
   });
 });

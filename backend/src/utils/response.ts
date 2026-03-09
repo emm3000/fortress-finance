@@ -1,5 +1,4 @@
 import type { Response } from 'express';
-import { env } from '../config/env';
 
 export interface ApiMeta {
   requestId?: string;
@@ -19,24 +18,17 @@ export interface ApiError {
   };
 }
 
-const useEnvelope = env.API_RESPONSE_ENVELOPE;
-
 export const sendSuccess = (
   res: Response,
   statusCode: number,
   payload: unknown,
   meta?: ApiMeta,
 ): void => {
-  if (useEnvelope) {
-    const body: ApiSuccess<unknown> = {
-      data: payload,
-      ...(meta ? { meta } : {}),
-    };
-    res.status(statusCode).json(body);
-    return;
-  }
-
-  res.status(statusCode).json(payload);
+  const body: ApiSuccess<unknown> = {
+    data: payload,
+    ...(meta ? { meta } : {}),
+  };
+  res.status(statusCode).json(body);
 };
 
 export const sendOk = (res: Response, payload: unknown, meta?: ApiMeta): void => {
@@ -56,33 +48,12 @@ export const sendError = (
     details?: unknown;
   },
 ): void => {
-  if (useEnvelope) {
-    const body: ApiError = {
-      error: {
-        message,
-        ...(options?.code ? { code: options.code } : {}),
-        ...(typeof options?.details !== 'undefined' ? { details: options.details } : {}),
-      },
-    };
-    res.status(statusCode).json(body);
-    return;
-  }
-
-  const legacyDetails = options?.details;
-  const legacyMessage =
-    typeof legacyDetails === 'object' &&
-    legacyDetails !== null &&
-    'message' in legacyDetails &&
-    typeof (legacyDetails as { message?: unknown }).message === 'string'
-      ? (legacyDetails as { message: string }).message
-      : undefined;
-
-  const legacy = {
-    error: message,
-    ...(typeof legacyMessage !== 'undefined' ? { message: legacyMessage } : {}),
-    ...(typeof options?.details !== 'undefined' && typeof legacyMessage === 'undefined'
-      ? { details: options.details }
-      : {}),
+  const body: ApiError = {
+    error: {
+      message,
+      ...(options?.code ? { code: options.code } : {}),
+      ...(typeof options?.details !== 'undefined' ? { details: options.details } : {}),
+    },
   };
-  res.status(statusCode).json(legacy);
+  res.status(statusCode).json(body);
 };

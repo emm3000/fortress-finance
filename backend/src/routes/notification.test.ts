@@ -15,8 +15,8 @@ describe('Notification Routes Integration', () => {
 
   beforeAll(async () => {
     const registerRes = await request(app).post('/api/auth/register').send(testUser);
-    token = registerRes.body.token;
-    userId = registerRes.body.user.id;
+    token = registerRes.body.data.token;
+    userId = registerRes.body.data.user.id;
 
     await prisma.notificationLog.createMany({
       data: [
@@ -49,10 +49,10 @@ describe('Notification Routes Integration', () => {
       .set('Authorization', `Bearer ${token}`);
 
     expect(response.status).toBe(200);
-    expect(Array.isArray(response.body)).toBe(true);
-    expect(response.body.length).toBeGreaterThanOrEqual(2);
-    expect(response.body[0]).toHaveProperty('title');
-    expect(response.body[0]).toHaveProperty('createdAt');
+    expect(Array.isArray(response.body.data)).toBe(true);
+    expect(response.body.data.length).toBeGreaterThanOrEqual(2);
+    expect(response.body.data[0]).toHaveProperty('title');
+    expect(response.body.data[0]).toHaveProperty('createdAt');
   });
 
   it('should return 401 for unauthenticated request', async () => {
@@ -66,6 +66,6 @@ describe('Notification Routes Integration', () => {
       .set('Authorization', `Bearer ${token}`);
 
     expect(response.status).toBe(400);
-    expect(response.body.error).toBe('Validation Error');
+    expect(response.body.error.message).toBe('Validation Error');
   });
 });

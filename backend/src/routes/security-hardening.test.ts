@@ -27,10 +27,10 @@ describe('Security Hardening Integration', () => {
     const user1Register = await request(app).post('/api/auth/register').send(user1);
     const user2Register = await request(app).post('/api/auth/register').send(user2);
 
-    user1Token = user1Register.body.token;
-    user2Token = user2Register.body.token;
-    user1Id = user1Register.body.user.id;
-    user2Id = user2Register.body.user.id;
+    user1Token = user1Register.body.data.token;
+    user2Token = user2Register.body.data.token;
+    user1Id = user1Register.body.data.user.id;
+    user2Id = user2Register.body.data.user.id;
 
     const category = await prisma.category.findFirst({ where: { type: 'EXPENSE' } });
     if (!category) {

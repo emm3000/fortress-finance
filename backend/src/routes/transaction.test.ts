@@ -27,9 +27,9 @@ describe('Transaction Routes Integration', () => {
     const ownerRegister = await request(app).post('/api/auth/register').send(owner);
     const attackerRegister = await request(app).post('/api/auth/register').send(attacker);
 
-    ownerToken = ownerRegister.body.token;
-    attackerToken = attackerRegister.body.token;
-    ownerId = ownerRegister.body.user.id;
+    ownerToken = ownerRegister.body.data.token;
+    attackerToken = attackerRegister.body.data.token;
+    ownerId = ownerRegister.body.data.user.id;
 
     const category = await prisma.category.findFirst({ where: { type: 'EXPENSE' } });
     if (!category) {
@@ -81,7 +81,7 @@ describe('Transaction Routes Integration', () => {
       });
 
     expect(response.status).toBe(200);
-    expect(Number(response.body.amount)).toBe(99.9);
+    expect(Number(response.body.data.amount)).toBe(99.9);
 
     const stored = await prisma.transaction.findUnique({ where: { id: transactionId } });
     expect(Number(stored?.amount ?? 0)).toBe(99.9);
@@ -109,7 +109,7 @@ describe('Transaction Routes Integration', () => {
       .set('Authorization', `Bearer ${ownerToken}`);
 
     expect(response.status).toBe(200);
-    expect(response.body.message).toBe('Transacción eliminada');
+    expect(response.body.data.message).toBe('Transacción eliminada');
 
     const stored = await prisma.transaction.findUnique({ where: { id: transactionId } });
     expect(stored?.deletedAt).not.toBeNull();

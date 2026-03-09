@@ -17,8 +17,8 @@ describe('Budget Routes Integration', () => {
 
   beforeAll(async () => {
     const registerRes = await request(app).post('/api/auth/register').send(testUser);
-    token = registerRes.body.token;
-    userId = registerRes.body.user.id;
+    token = registerRes.body.data.token;
+    userId = registerRes.body.data.user.id;
 
     const expenseCategory = await prisma.category.findFirst({
       where: { type: 'EXPENSE' },
@@ -49,7 +49,7 @@ describe('Budget Routes Integration', () => {
       });
 
     expect(createRes.status).toBe(200);
-    expect(Number(createRes.body.limitAmount)).toBe(500);
+    expect(Number(createRes.body.data.limitAmount)).toBe(500);
 
     const updateRes = await request(app)
       .post('/api/budgets')
@@ -61,16 +61,16 @@ describe('Budget Routes Integration', () => {
       });
 
     expect(updateRes.status).toBe(200);
-    expect(Number(updateRes.body.limitAmount)).toBe(700);
+    expect(Number(updateRes.body.data.limitAmount)).toBe(700);
 
     const listRes = await request(app)
       .get('/api/budgets')
       .set('Authorization', `Bearer ${token}`);
 
     expect(listRes.status).toBe(200);
-    expect(Array.isArray(listRes.body)).toBe(true);
-    expect(listRes.body.length).toBe(1);
-    expect(Number(listRes.body[0].limitAmount)).toBe(700);
+    expect(Array.isArray(listRes.body.data)).toBe(true);
+    expect(listRes.body.data.length).toBe(1);
+    expect(Number(listRes.body.data[0].limitAmount)).toBe(700);
   });
 
   it('should expose budget progress inputs through monthly dashboard totals', async () => {
@@ -105,14 +105,14 @@ describe('Budget Routes Integration', () => {
       .set('Authorization', `Bearer ${token}`);
 
     expect(dashboardRes.status).toBe(200);
-    expect(dashboardRes.body.totals.expense).toBeGreaterThanOrEqual(350);
+    expect(dashboardRes.body.data.totals.expense).toBeGreaterThanOrEqual(350);
 
     interface TopExpenseCategory {
       categoryId: string;
       totalSpent: number;
     }
 
-    const topExpenseCategories = dashboardRes.body.topExpenseCategories as TopExpenseCategory[];
+    const topExpenseCategories = dashboardRes.body.data.topExpenseCategories as TopExpenseCategory[];
     const topCategory = topExpenseCategories.find((item) => item.categoryId === expenseCategoryId);
 
     expect(topCategory).toBeDefined();

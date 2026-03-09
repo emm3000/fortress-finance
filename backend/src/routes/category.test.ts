@@ -14,7 +14,7 @@ describe('Category Routes Integration', () => {
   beforeAll(async () => {
     // Registrar usuario y obtener token
     const response = await request(app).post('/api/auth/register').send(testUser);
-    token = response.body.token;
+    token = response.body.data.token;
   });
 
   afterAll(async () => {
@@ -29,11 +29,11 @@ describe('Category Routes Integration', () => {
       .set('Authorization', `Bearer ${token}`);
 
     expect(response.status).toBe(200);
-    expect(Array.isArray(response.body)).toBe(true);
-    expect(response.body.length).toBeGreaterThan(0);
-    expect(response.body[0]).toHaveProperty('name');
-    expect(response.body[0]).toHaveProperty('type');
-    expect(response.body[0]).toHaveProperty('icon');
+    expect(Array.isArray(response.body.data)).toBe(true);
+    expect(response.body.data.length).toBeGreaterThan(0);
+    expect(response.body.data[0]).toHaveProperty('name');
+    expect(response.body.data[0]).toHaveProperty('type');
+    expect(response.body.data[0]).toHaveProperty('icon');
   });
 
   it('should fail if no token provided', async () => {

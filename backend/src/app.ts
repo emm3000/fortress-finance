@@ -17,6 +17,7 @@ import dashboardRoutes from './routes/dashboard.routes';
 import { requireAuth } from './middlewares/requireAuth';
 import { errorHandler } from './middlewares/errorHandler';
 import { env } from './config/env';
+import { sendOk } from './utils/response';
 
 const app = express();
 const allowedCorsOrigins = env.CORS_ORIGINS.split(',')
@@ -69,12 +70,12 @@ app.use('/api/dashboard', dashboardRoutes);
 
 // Ruta base
 app.get('/api/health', (req: Request, res: Response) => {
-  res.status(200).json({ status: 'OK', message: 'Servicio en línea' });
+  sendOk(res, { status: 'OK', message: 'Servicio en línea' });
 });
 
 // Ruta de ejemplo protegida
 app.get('/api/me', requireAuth, (req: Request, res: Response) => {
-  res.status(200).json({ user: req.user });
+  sendOk(res, { user: req.user });
 });
 
 // Middleware genérico para manejo de errores

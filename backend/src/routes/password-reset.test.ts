@@ -35,8 +35,8 @@ describe('Password Reset Routes Integration', () => {
       .send({ email: testUser.email });
 
     expect(response.status).toBe(200);
-    expect(response.body.message).toContain('Si el correo existe');
-    expect(response.body.resetToken).toBeDefined();
+    expect(response.body.data.message).toContain('Si el correo existe');
+    expect(response.body.data.resetToken).toBeDefined();
   });
 
   it('should reset password with valid token and reject token reuse', async () => {
@@ -44,7 +44,7 @@ describe('Password Reset Routes Integration', () => {
       .post('/api/auth/password-reset/request')
       .send({ email: testUser.email });
 
-    const resetToken = requestReset.body.resetToken as string;
+    const resetToken = requestReset.body.data.resetToken as string;
 
     const confirmResponse = await request(app)
       .post('/api/auth/password-reset/confirm')
@@ -63,7 +63,7 @@ describe('Password Reset Routes Integration', () => {
       .send({ token: resetToken, newPassword: 'anotherPassword123' });
 
     expect(reuseResponse.status).toBe(400);
-    expect(reuseResponse.body.error).toBe('Token inválido o expirado');
+    expect(reuseResponse.body.error.message).toBe('Token inválido o expirado');
   });
 
   it('should reject expired or invalid token', async () => {
@@ -71,7 +71,7 @@ describe('Password Reset Routes Integration', () => {
       .post('/api/auth/password-reset/request')
       .send({ email: testUser.email });
 
-    const resetToken = requestReset.body.resetToken as string;
+    const resetToken = requestReset.body.data.resetToken as string;
     const tokenHash = hashResetToken(resetToken);
 
     await prisma.passwordResetToken.update({
@@ -84,13 +84,13 @@ describe('Password Reset Routes Integration', () => {
       .send({ token: resetToken, newPassword: 'expiredPassword123' });
 
     expect(expiredResponse.status).toBe(400);
-    expect(expiredResponse.body.error).toBe('Token inválido o expirado');
+    expect(expiredResponse.body.error.message).toBe('Token inválido o expirado');
 
     const invalidResponse = await request(app)
       .post('/api/auth/password-reset/confirm')
       .send({ token: 'totally-invalid-token', newPassword: 'whatever123' });
 
     expect(invalidResponse.status).toBe(400);
-    expect(invalidResponse.body.error).toBe('Token inválido o expirado');
+    expect(invalidResponse.body.error.message).toBe('Token inválido o expirado');
   });
 });

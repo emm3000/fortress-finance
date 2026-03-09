@@ -26,8 +26,8 @@ describe('Auth Routes Integration', () => {
     const response = await request(app).post('/api/auth/register').send(testUser);
 
     expect(response.status).toBe(201);
-    expect(response.body.user.email).toBe(testUser.email);
-    expect(response.body.token).toBeDefined();
+    expect(response.body.data.user.email).toBe(testUser.email);
+    expect(response.body.data.token).toBeDefined();
   });
 
   it('should normalize email to lowercase during registration', async () => {
@@ -38,14 +38,14 @@ describe('Auth Routes Integration', () => {
     });
 
     expect(response.status).toBe(201);
-    expect(response.body.user.email).toBe(upperUserEmail);
+    expect(response.body.data.user.email).toBe(upperUserEmail);
   });
 
   it('should not register a user with the same email (409 Conflict)', async () => {
     const response = await request(app).post('/api/auth/register').send(testUser);
 
     expect(response.status).toBe(409);
-    expect(response.body.error).toBe('El usuario ya existe');
+    expect(response.body.error.message).toBe('El usuario ya existe');
   });
 
   it('should login successfully with correct credentials', async () => {
@@ -55,8 +55,8 @@ describe('Auth Routes Integration', () => {
     });
 
     expect(response.status).toBe(200);
-    expect(response.body.token).toBeDefined();
-    expect(response.body.user.email).toBe(testUser.email);
+    expect(response.body.data.token).toBeDefined();
+    expect(response.body.data.user.email).toBe(testUser.email);
   });
 
   it('should login with uppercase variant of a registered email', async () => {
@@ -66,7 +66,7 @@ describe('Auth Routes Integration', () => {
     });
 
     expect(response.status).toBe(200);
-    expect(response.body.user.email).toBe(testUser.email);
+    expect(response.body.data.user.email).toBe(testUser.email);
   });
 
   it('should return 401 for wrong password', async () => {
@@ -76,7 +76,7 @@ describe('Auth Routes Integration', () => {
     });
 
     expect(response.status).toBe(401);
-    expect(response.body.error).toBe('Credenciales inválidas');
+    expect(response.body.error.message).toBe('Credenciales inválidas');
   });
 
   it('should fail validation for invalid email', async () => {
@@ -87,6 +87,6 @@ describe('Auth Routes Integration', () => {
     });
 
     expect(response.status).toBe(400);
-    expect(response.body.error).toBe('Validation Error');
+    expect(response.body.error.message).toBe('Validation Error');
   });
 });

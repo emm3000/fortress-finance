@@ -6,6 +6,6 @@ describe('App Basic Functional Test', () => {
   it('should return OK for the health check', async () => {
     const response = await request(app).get('/api/health');
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ status: 'OK', message: 'Servicio en línea' });
+    expect(response.body.data).toEqual({ status: 'OK', message: 'Servicio en línea' });
   });
 });

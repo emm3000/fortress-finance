@@ -14,6 +14,9 @@ const apiClient = axios.create({
   },
 });
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null;
+
 type UnauthorizedHandler = () => Promise<void> | void;
 
 let unauthorizedHandler: UnauthorizedHandler | null = null;
@@ -33,8 +36,29 @@ export const setUnauthorizedHandler = (handler: UnauthorizedHandler) => {
 
 // Interceptor to handle unauthorized errors (token expired)
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    const payload = response.data;
+    if (isRecord(payload) && "data" in payload) {
+      return {
+        ...response,
+        data: payload.data,
+      };
+    }
+    return response;
+  },
   async (error) => {
+    if (isRecord(error?.response?.data) && "error" in error.response.data) {
+      const errorPayload = error.response.data.error;
+      if (isRecord(errorPayload) && typeof errorPayload.message === "string") {
+        error.response.data = {
+          ...error.response.data,
+          error: errorPayload.message,
+          code: errorPayload.code,
+          details: errorPayload.details,
+        };
+      }
+    }
+
     if (error.response?.status === 401 && !isHandlingUnauthorized) {
       isHandlingUnauthorized = true;
       try {

@@ -1,17 +1,18 @@
 import type { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utils/jwt';
+import { sendError } from '../utils/response';
 
 export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader?.startsWith('Bearer ')) {
-    res.status(401).json({ error: 'No autorizado, token faltante' });
+    sendError(res, 401, 'No autorizado, token faltante');
     return;
   }
 
   const token = authHeader.slice(7);
   if (!token) {
-    res.status(401).json({ error: 'No autorizado, token inválido' });
+    sendError(res, 401, 'No autorizado, token inválido');
     return;
   }
 
@@ -20,6 +21,6 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
     req.user = payload;
     next();
   } catch {
-    res.status(401).json({ error: 'No autorizado, token inválido' });
+    sendError(res, 401, 'No autorizado, token inválido');
   }
 };

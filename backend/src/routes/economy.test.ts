@@ -20,8 +20,8 @@ describe('Economy Routes Integration', () => {
 
   beforeAll(async () => {
     const registerRes = await request(app).post('/api/auth/register').send(testUser);
-    token = registerRes.body.token;
-    userId = registerRes.body.user.id;
+    token = registerRes.body.data.token;
+    userId = registerRes.body.data.user.id;
 
     const items = await prisma.shopItem.findMany({ orderBy: { price: 'asc' }, take: 2 });
 
@@ -125,6 +125,6 @@ describe('Economy Routes Integration', () => {
       .send({ itemId: duplicateItemId });
 
     expect(repeatedPurchase.status).toBe(409);
-    expect(repeatedPurchase.body.error).toBe('Ya posees este objeto');
+    expect(repeatedPurchase.body.error.message).toBe('Ya posees este objeto');
   });
 });

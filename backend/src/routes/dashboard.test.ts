@@ -27,11 +27,11 @@ describe('Dashboard Routes Integration', () => {
 
   beforeAll(async () => {
     const registerRes = await request(app).post('/api/auth/register').send(testUser);
-    token = registerRes.body.token;
-    userId = registerRes.body.user.id;
+    token = registerRes.body.data.token;
+    userId = registerRes.body.data.user.id;
 
     const outsiderRes = await request(app).post('/api/auth/register').send(outsiderUser);
-    outsiderUserId = outsiderRes.body.user.id;
+    outsiderUserId = outsiderRes.body.data.user.id;
 
     const existingExpenseCategory = await prisma.category.findFirst({
       where: { type: 'EXPENSE' },
@@ -158,22 +158,22 @@ describe('Dashboard Routes Integration', () => {
       .set('Authorization', `Bearer ${token}`);
 
     expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty('period');
-    expect(response.body).toHaveProperty('totals');
-    expect(response.body).toHaveProperty('topExpenseCategories');
+    expect(response.body.data).toHaveProperty('period');
+    expect(response.body.data).toHaveProperty('totals');
+    expect(response.body.data).toHaveProperty('topExpenseCategories');
 
-    expect(response.body.period.year).toBe(2026);
-    expect(response.body.period.month).toBe(3);
+    expect(response.body.data.period.year).toBe(2026);
+    expect(response.body.data.period.month).toBe(3);
 
-    expect(response.body.totals.income).toBe(500);
-    expect(response.body.totals.expense).toBe(150);
-    expect(response.body.totals.balance).toBe(350);
+    expect(response.body.data.totals.income).toBe(500);
+    expect(response.body.data.totals.expense).toBe(150);
+    expect(response.body.data.totals.balance).toBe(350);
 
-    expect(Array.isArray(response.body.topExpenseCategories)).toBe(true);
-    expect(response.body.topExpenseCategories.length).toBeGreaterThan(0);
-    expect(response.body.topExpenseCategories[0].categoryId).toBe(expenseCategoryId);
-    expect(response.body.topExpenseCategories[0].totalSpent).toBe(150);
-    expect(response.body.topExpenseCategories[0].txCount).toBe(2);
+    expect(Array.isArray(response.body.data.topExpenseCategories)).toBe(true);
+    expect(response.body.data.topExpenseCategories.length).toBeGreaterThan(0);
+    expect(response.body.data.topExpenseCategories[0].categoryId).toBe(expenseCategoryId);
+    expect(response.body.data.topExpenseCategories[0].totalSpent).toBe(150);
+    expect(response.body.data.topExpenseCategories[0].txCount).toBe(2);
   });
 
   it('should return 401 if token is missing', async () => {
@@ -187,6 +187,6 @@ describe('Dashboard Routes Integration', () => {
       .set('Authorization', `Bearer ${token}`);
 
     expect(response.status).toBe(400);
-    expect(response.body.error).toBe('Validation Error');
+    expect(response.body.error.message).toBe('Validation Error');
   });
 });
