@@ -1,4 +1,5 @@
 import prisma from '../config/db';
+import * as castleRepository from '../repositories/castle.repository';
 import { errorCatalog } from '../utils/errorCatalog';
 
 /**
@@ -20,9 +21,7 @@ export const initializeCastle = async (userId: string) => {
  * Get the castle state for a user
  */
 export const getCastleByUserId = async (userId: string) => {
-  return await prisma.castleState.findUnique({
-    where: { userId },
-  });
+  return castleRepository.findCastleByUserId(userId);
 };
 
 export const getCastleByUserIdOrThrow = async (userId: string) => {

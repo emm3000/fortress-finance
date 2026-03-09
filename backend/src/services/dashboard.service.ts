@@ -1,4 +1,4 @@
-import prisma from '../config/db';
+import * as dashboardRepository from '../repositories/dashboard.repository';
 
 export interface MonthlyDashboardInput {
   userId: string;
@@ -48,21 +48,7 @@ const toMonthRange = (year?: number, month?: number) => {
 };
 
 const loadMonthlyTransactions = async (userId: string, from: Date, to: Date) => {
-  return prisma.transaction.findMany({
-    where: {
-      userId,
-      deletedAt: null,
-      date: {
-        gte: from,
-        lt: to,
-      },
-    },
-    select: {
-      type: true,
-      amount: true,
-      categoryId: true,
-    },
-  });
+  return dashboardRepository.findMonthlyTransactions(userId, from, to);
 };
 
 const aggregateMonthlyStats = (
@@ -121,14 +107,7 @@ const getTopExpenseCategories = (
 };
 
 const loadCategoriesById = async (categoryIds: string[]) => {
-  if (categoryIds.length === 0) {
-    return new Map<string, { id: string; name: string; icon: string }>();
-  }
-
-  const categories = await prisma.category.findMany({
-    where: { id: { in: categoryIds } },
-    select: { id: true, name: true, icon: true },
-  });
+  const categories = await dashboardRepository.findCategoriesByIds(categoryIds);
 
   return new Map(categories.map((category) => [category.id, category]));
 };

@@ -1,12 +1,9 @@
-import prisma from '../config/db';
+import * as transactionRepository from '../repositories/transaction.repository';
 import { errorCatalog } from '../utils/errorCatalog';
 import type { UpdateTransactionInput } from '../validations/transaction.validation';
 
 const getOwnedTransactionOrThrow = async (userId: string, transactionId: string) => {
-  const transaction = await prisma.transaction.findUnique({
-    where: { id: transactionId },
-    select: { id: true, userId: true, deletedAt: true },
-  });
+  const transaction = await transactionRepository.findTransactionOwnershipState(transactionId);
 
   if (!transaction || transaction.deletedAt) {
     throw errorCatalog.resource.notFound('Transacción no encontrada');
@@ -26,27 +23,21 @@ export const updateTransaction = async (
 ) => {
   await getOwnedTransactionOrThrow(userId, transactionId);
 
-  return await prisma.transaction.update({
-    where: { id: transactionId },
-    data: {
-      amount: data.amount,
-      type: data.type,
-      categoryId: data.categoryId,
-      date: data.date,
-      notes: data.notes ?? null,
-      updatedAt: new Date(),
-    },
+  return transactionRepository.updateTransactionById(transactionId, {
+    amount: data.amount,
+    type: data.type,
+    categoryId: data.categoryId,
+    date: data.date,
+    notes: data.notes ?? null,
+    updatedAt: new Date(),
   });
 };
 
 export const deleteTransaction = async (userId: string, transactionId: string) => {
   await getOwnedTransactionOrThrow(userId, transactionId);
 
-  return await prisma.transaction.update({
-    where: { id: transactionId },
-    data: {
-      deletedAt: new Date(),
-      updatedAt: new Date(),
-    },
+  return transactionRepository.updateTransactionById(transactionId, {
+    deletedAt: new Date(),
+    updatedAt: new Date(),
   });
 };

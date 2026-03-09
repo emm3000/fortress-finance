@@ -1,4 +1,5 @@
 import type { Prisma } from '@prisma/client';
+import * as syncRepository from '../../repositories/sync.repository';
 import { errorCatalog } from '../../utils/errorCatalog';
 import type { BudgetSyncInput, InventorySyncInput, TransactionSyncInput } from '../../validations/sync.validation';
 import type { SyncPushPayload } from './sync.types';
@@ -32,19 +33,14 @@ const applyTransactionPush = async (
   userId: string,
   transaction: TransactionSyncInput,
 ) => {
-  const existing = await tx.transaction.findUnique({
-    where: { id: transaction.id },
-    select: { userId: true, updatedAt: true },
-  });
+  const existing = await syncRepository.findTransactionSyncState(tx, transaction.id);
 
   if (existing && existing.userId !== userId) {
     throw errorCatalog.resource.forbidden('No autorizado para modificar esta transacción');
   }
 
   if (!existing) {
-    await tx.transaction.create({
-      data: toTransactionCreateData(userId, transaction),
-    });
+    await syncRepository.createTransactionFromSync(tx, toTransactionCreateData(userId, transaction));
     return;
   }
 
@@ -52,32 +48,24 @@ const applyTransactionPush = async (
     return;
   }
 
-  await tx.transaction.update({
-    where: { id: transaction.id },
-    data: toTransactionUpdateData(transaction),
-  });
+  await syncRepository.updateTransactionFromSync(tx, transaction.id, toTransactionUpdateData(transaction));
 };
 
 const applyBudgetPush = async (tx: Prisma.TransactionClient, userId: string, budget: BudgetSyncInput) => {
-  const existing = await tx.budget.findUnique({
-    where: { id: budget.id },
-    select: { userId: true, updatedAt: true },
-  });
+  const existing = await syncRepository.findBudgetSyncState(tx, budget.id);
 
   if (existing && existing.userId !== userId) {
     throw errorCatalog.resource.forbidden('No autorizado para modificar este presupuesto');
   }
 
   if (!existing) {
-    await tx.budget.create({
-      data: {
-        id: budget.id,
-        userId,
-        categoryId: budget.categoryId,
-        limitAmount: budget.limitAmount,
-        period: budget.period,
-        updatedAt: budget.updatedAt,
-      },
+    await syncRepository.createBudgetFromSync(tx, {
+      id: budget.id,
+      userId,
+      categoryId: budget.categoryId,
+      limitAmount: budget.limitAmount,
+      period: budget.period,
+      updatedAt: budget.updatedAt,
     });
     return;
   }
@@ -86,13 +74,10 @@ const applyBudgetPush = async (tx: Prisma.TransactionClient, userId: string, bud
     return;
   }
 
-  await tx.budget.update({
-    where: { id: budget.id },
-    data: {
-      limitAmount: budget.limitAmount,
-      period: budget.period,
-      updatedAt: budget.updatedAt,
-    },
+  await syncRepository.updateBudgetFromSync(tx, budget.id, {
+    limitAmount: budget.limitAmount,
+    period: budget.period,
+    updatedAt: budget.updatedAt,
   });
 };
 
@@ -101,10 +86,7 @@ const applyInventoryPush = async (
   userId: string,
   inventoryItem: InventorySyncInput,
 ) => {
-  const existingInventory = await tx.userInventory.findUnique({
-    where: { id: inventoryItem.id },
-    select: { userId: true, updatedAt: true },
-  });
+  const existingInventory = await syncRepository.findInventorySyncState(tx, inventoryItem.id);
 
   // Ignore unknown or non-owned inventory records to avoid leaking existence.
   if (existingInventory?.userId !== userId) {
@@ -115,12 +97,9 @@ const applyInventoryPush = async (
     return;
   }
 
-  await tx.userInventory.update({
-    where: { id: inventoryItem.id },
-    data: {
-      isEquipped: inventoryItem.isEquipped,
-      updatedAt: inventoryItem.updatedAt,
-    },
+  await syncRepository.updateInventoryFromSync(tx, inventoryItem.id, {
+    isEquipped: inventoryItem.isEquipped,
+    updatedAt: inventoryItem.updatedAt,
   });
 };
 
