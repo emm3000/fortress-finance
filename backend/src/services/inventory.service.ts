@@ -39,23 +39,23 @@ export const purchaseItem = async (userId: string, itemId: string) => {
       throw new AppError(404, 'Objeto de tienda no encontrado');
     }
 
-    // 3. Verificar balance del usuario
-    const wallet = await tx.userWallet.findUnique({
-      where: { userId },
-    });
-
-    if (!wallet || wallet.goldBalance < item.price) {
-      throw new AppError(400, 'Balance de oro insuficiente');
-    }
-
-    // 4. Ejecutar la compra (Débito + Adquisición)
-    await tx.userWallet.update({
-      where: { userId },
+    // 3. Ejecutar débito atómico solo si el saldo alcanza.
+    // Esto evita double-spending bajo concurrencia.
+    const walletDebit = await tx.userWallet.updateMany({
+      where: {
+        userId,
+        goldBalance: { gte: item.price },
+      },
       data: {
         goldBalance: { decrement: item.price },
       },
     });
 
+    if (walletDebit.count === 0) {
+      throw new AppError(400, 'Balance de oro insuficiente');
+    }
+
+    // 4. Registrar adquisición del item
     const inventoryItem = await tx.userInventory.create({
       data: {
         userId,
@@ -67,10 +67,15 @@ export const purchaseItem = async (userId: string, itemId: string) => {
       },
     });
 
+    const wallet = await tx.userWallet.findUnique({
+      where: { userId },
+      select: { goldBalance: true },
+    });
+
     return {
       message: 'Compra exitosa',
       inventoryItem,
-      newBalance: wallet.goldBalance - item.price,
+      newBalance: wallet?.goldBalance ?? 0,
     };
   });
 };
