@@ -3,10 +3,10 @@ import {
   View,
   Text,
   Pressable,
-  SafeAreaView,
   RefreshControl,
   ActivityIndicator,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { FlashList } from "@shopify/flash-list";
 import { router } from "expo-router";
 import { useTransactions } from "../../hooks/useTransactions";
@@ -38,15 +38,21 @@ export default function HistoryScreen() {
   useEffect(() => {
     async function loadCategories() {
       const data = await CategoryRepository.getAll();
-      const catMap = data.reduce((acc, cat) => ({ ...acc, [cat.id]: cat }), {});
+      const catMap: { [key: string]: Category } = {};
+      for (const cat of data) {
+        catMap[cat.id] = cat;
+      }
       setCategories(catMap);
     }
     loadCategories();
   }, []);
 
   const onRefresh = async () => {
-    await performSync();
-    await refreshTransactions();
+    try {
+      await performSync();
+    } finally {
+      await refreshTransactions();
+    }
   };
 
   return (

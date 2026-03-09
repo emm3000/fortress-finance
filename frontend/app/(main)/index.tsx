@@ -5,9 +5,9 @@ import {
   Text,
   ScrollView,
   Pressable,
-  SafeAreaView,
   RefreshControl,
 } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuthStore } from "../../store/auth.store";
 import { useCastle } from "../../hooks/useCastle";
 import { useSync } from "../../hooks/useSync";
@@ -38,6 +38,7 @@ export default function Dashboard() {
   const { performSync, isSyncing } = useSync();
   const { transactions } = useTransactions();
   const hasInitializedSync = useRef(false);
+  const insets = useSafeAreaInsets();
 
   console.log("Dashboard Rendered");
 
@@ -76,7 +77,7 @@ export default function Dashboard() {
   return (
     <SafeAreaView className="flex-1 bg-background">
       <ScrollView
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 88, 100) }}
         refreshControl={
           <RefreshControl
             refreshing={isSyncing}
@@ -200,7 +201,8 @@ export default function Dashboard() {
 
       <Link href="/(main)/new-transaction" asChild>
         <Pressable
-          className="absolute bottom-10 right-6 w-16 h-16 bg-primary rounded-full items-center justify-center shadow-lg shadow-primary/50 border-4 border-background"
+          style={{ bottom: insets.bottom + 16 }}
+          className="absolute right-6 w-16 h-16 bg-primary rounded-full items-center justify-center shadow-lg shadow-primary/50 border-4 border-background"
         >
           <TrendingDown size={32} color={theme.colors.background} />
         </Pressable>

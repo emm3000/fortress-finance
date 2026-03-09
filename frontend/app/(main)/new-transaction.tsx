@@ -9,6 +9,7 @@ import {
   Platform,
   ActivityIndicator,
 } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -40,6 +41,7 @@ export default function NewTransactionScreen() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const { user } = useAuthStore();
   const { performSync } = useSync();
+  const insets = useSafeAreaInsets();
 
   const {
     control,
@@ -113,12 +115,15 @@ export default function NewTransactionScreen() {
   };
 
   return (
-    <View className="flex-1 bg-background">
+    <SafeAreaView className="flex-1 bg-background">
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
-        <ScrollView className="px-6">
+        <ScrollView
+          className="px-6"
+          contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+        >
           {/* Header */}
           <View className="flex-row items-center py-6">
             <Pressable onPress={() => router.back()} className="p-2 -ml-2">
@@ -261,6 +266,6 @@ export default function NewTransactionScreen() {
           ) : null}
         </ScrollView>
       </KeyboardAvoidingView>
-    </View>
+    </SafeAreaView>
   );
 }
