@@ -17,7 +17,7 @@ export default function Index() {
       if (isAuthenticated) {
         router.replace("/(main)");
       } else {
-        router.replace("/(auth)/login");
+        router.replace("/(auth)/onboarding");
       }
     }
   }, [isAuthenticated, isLoading]);

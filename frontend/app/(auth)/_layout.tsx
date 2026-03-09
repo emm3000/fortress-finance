@@ -8,6 +8,7 @@ export default function AuthLayout() {
         animation: 'fade',
       }}
     >
+      <Stack.Screen name="onboarding" />
       <Stack.Screen name="login" />
       <Stack.Screen name="register" />
     </Stack>
