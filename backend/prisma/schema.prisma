@@ -64,6 +64,8 @@ model Transaction {
 
   // Composite index for efficient sync PULL queries: find all user's changes after a timestamp
   @@index([userId, updatedAt])
+  // Supports liquidation scans by user/category/type/date window
+  @@index([userId, categoryId, type, date])
   @@map("transactions")
 }
 
@@ -92,6 +94,8 @@ model Budget {
   category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@unique([userId, categoryId]) // Solo un presupuesto por categoría por usuario
+  // Supports sync pull queries by user and updatedAt cursor
+  @@index([userId, updatedAt])
   @@map("budgets")
 }
 
@@ -141,6 +145,8 @@ model UserInventory {
   item ShopItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
 
   @@unique([userId, itemId]) // No tener el mismo item dos veces
+  // Supports sync pull queries by user and updatedAt cursor
+  @@index([userId, updatedAt])
   @@map("user_inventories")
 }
 
