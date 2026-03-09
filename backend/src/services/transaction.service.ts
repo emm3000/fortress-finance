@@ -1,3 +1,5 @@
+import type { TransactionDto } from '../dto/transaction.dto';
+import { mapTransactionToDto } from '../mappers/transaction.mapper';
 import * as transactionRepository from '../repositories/transaction.repository';
 import { errorCatalog } from '../utils/errorCatalog';
 import type { UpdateTransactionInput } from '../validations/transaction.validation';
@@ -20,10 +22,10 @@ export const updateTransaction = async (
   userId: string,
   transactionId: string,
   data: UpdateTransactionInput,
-) => {
+): Promise<TransactionDto> => {
   await getOwnedTransactionOrThrow(userId, transactionId);
 
-  return transactionRepository.updateTransactionById(transactionId, {
+  const updatedTransaction = await transactionRepository.updateTransactionById(transactionId, {
     amount: data.amount,
     type: data.type,
     categoryId: data.categoryId,
@@ -31,6 +33,8 @@ export const updateTransaction = async (
     notes: data.notes ?? null,
     updatedAt: new Date(),
   });
+
+  return mapTransactionToDto(updatedTransaction);
 };
 
 export const deleteTransaction = async (userId: string, transactionId: string) => {

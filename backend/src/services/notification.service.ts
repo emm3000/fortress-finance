@@ -1,6 +1,8 @@
 import type { ExpoPushMessage } from 'expo-server-sdk';
 import { Expo } from 'expo-server-sdk';
-import prisma from '../config/db';
+import type { NotificationDto } from '../dto/notification.dto';
+import { mapNotificationsToDto } from '../mappers/notification.mapper';
+import * as notificationRepository from '../repositories/notification.repository';
 import { logger } from '../utils/logger';
 
 const expo = new Expo();
@@ -20,46 +22,20 @@ export interface SendPushOptions {
 export const registerPushToken = async (userId: string, token: string, deviceInfo?: string) => {
   const normalizedDeviceInfo = deviceInfo ?? null;
 
-  return await prisma.userPushToken.upsert({
-    where: { tokenString: token },
-    create: {
-      userId,
-      tokenString: token,
-      deviceInfo: normalizedDeviceInfo,
-    },
-    update: {
-      userId, // Re-vincular si el token cambió de usuario (raro pero posible)
-      deviceInfo: normalizedDeviceInfo,
-    },
-  });
+  return notificationRepository.upsertPushToken(userId, token, normalizedDeviceInfo);
 };
 
 /**
  * Remove a push token
  */
 export const unregisterPushToken = async (userId: string, token: string) => {
-  return await prisma.userPushToken.deleteMany({
-    where: {
-      userId,
-      tokenString: token,
-    },
-  });
+  return notificationRepository.deletePushTokenByUser(userId, token);
 };
 
-export const getUserNotifications = async (userId: string, limit = 30) => {
-  return prisma.notificationLog.findMany({
-    where: { userId },
-    orderBy: { createdAt: 'desc' },
-    take: limit,
-    select: {
-      id: true,
-      title: true,
-      body: true,
-      type: true,
-      status: true,
-      createdAt: true,
-    },
-  });
+export const getUserNotifications = async (userId: string, limit = 30): Promise<NotificationDto[]> => {
+  const notifications = await notificationRepository.findUserNotifications(userId, limit);
+
+  return mapNotificationsToDto(notifications);
 };
 
 /**
@@ -70,17 +46,12 @@ export const sendPushNotification = async (options: SendPushOptions) => {
 
   if (typeof dedupeWindowMinutes === 'number' && dedupeWindowMinutes > 0) {
     const cutoff = new Date(Date.now() - dedupeWindowMinutes * 60 * 1000);
-    const recentDuplicate = await prisma.notificationLog.findFirst({
-      where: {
-        userId,
-        type,
-        title,
-        body,
-        createdAt: {
-          gte: cutoff,
-        },
-      },
-      select: { id: true },
+    const recentDuplicate = await notificationRepository.findRecentDuplicateNotification({
+      userId,
+      type,
+      title,
+      body,
+      fromDate: cutoff,
     });
 
     if (recentDuplicate) {
@@ -89,19 +60,15 @@ export const sendPushNotification = async (options: SendPushOptions) => {
   }
 
   // 1. Obtener tokens del usuario
-  const pushTokens = await prisma.userPushToken.findMany({
-    where: { userId },
-  });
+  const pushTokens = await notificationRepository.findUserPushTokens(userId);
 
   if (pushTokens.length === 0) {
-    await prisma.notificationLog.create({
-      data: {
-        userId,
-        title,
-        body,
-        type,
-        status: 'FAILED',
-      },
+    await notificationRepository.createNotificationLog({
+      userId,
+      title,
+      body,
+      type,
+      status: 'FAILED',
     });
     return;
   }
@@ -139,14 +106,12 @@ export const sendPushNotification = async (options: SendPushOptions) => {
   }
 
   // 3. Registrar en logs (opcional, uno por intento exitoso o unificado)
-  await prisma.notificationLog.create({
-    data: {
-      userId,
-      title,
-      body,
-      type,
-      status: tickets.length > 0 ? 'SENT' : 'FAILED',
-    },
+  await notificationRepository.createNotificationLog({
+    userId,
+    title,
+    body,
+    type,
+    status: tickets.length > 0 ? 'SENT' : 'FAILED',
   });
 
   // Nota: En una app de producción real, aquí procesaríamos los 'tickets' para

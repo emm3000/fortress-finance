@@ -1,3 +1,5 @@
+import type { MonthlyDashboardSummaryDto } from '../dto/dashboard.dto';
+import { mapMonthlyDashboardToDto } from '../mappers/dashboard.mapper';
 import * as dashboardRepository from '../repositories/dashboard.repository';
 
 export interface MonthlyDashboardInput {
@@ -9,31 +11,6 @@ export interface MonthlyDashboardInput {
 interface DashboardCategoryStats {
   totalSpent: number;
   txCount: number;
-}
-
-export interface MonthlyDashboardSummary {
-  period: {
-    year: number;
-    month: number;
-    from: string;
-    to: string;
-  };
-  totals: {
-    income: number;
-    expense: number;
-    balance: number;
-  };
-  txCount: {
-    income: number;
-    expense: number;
-  };
-  topExpenseCategories: {
-    categoryId: string;
-    categoryName: string;
-    categoryIcon: string;
-    totalSpent: number;
-    txCount: number;
-  }[];
 }
 
 const toMonthRange = (year?: number, month?: number) => {
@@ -116,7 +93,7 @@ export const getMonthlyDashboard = async ({
   userId,
   year,
   month,
-}: MonthlyDashboardInput): Promise<MonthlyDashboardSummary> => {
+}: MonthlyDashboardInput): Promise<MonthlyDashboardSummaryDto> => {
   const { resolvedYear, resolvedMonth, from, to } = toMonthRange(year, month);
 
   const transactions = await loadMonthlyTransactions(userId, from, to);
@@ -128,7 +105,7 @@ export const getMonthlyDashboard = async ({
   const categoryIds = sortedExpenseCategories.map(([categoryId]) => categoryId);
   const categoriesById = await loadCategoriesById(categoryIds);
 
-  return {
+  const summary: MonthlyDashboardSummaryDto = {
     period: {
       year: resolvedYear,
       month: resolvedMonth,
@@ -155,4 +132,6 @@ export const getMonthlyDashboard = async ({
       };
     }),
   };
+
+  return mapMonthlyDashboardToDto(summary);
 };

@@ -38,5 +38,14 @@ export const upsertBudgetByUserAndCategory = async (
       limitAmount: data.limitAmount,
       period: data.period,
     },
+    include: {
+      category: {
+        select: {
+          name: true,
+          icon: true,
+          type: true,
+        },
+      },
+    },
   });
 };

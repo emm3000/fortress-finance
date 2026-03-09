@@ -1,41 +1,43 @@
 import { Prisma } from '@prisma/client';
 import prisma from '../config/db';
+import type {
+  EquippedInventoryDto,
+  InventoryItemDto,
+  PurchaseInventoryResultDto,
+} from '../dto/inventory.dto';
+import {
+  mapEquippedInventoryToDto,
+  mapInventoryListToDto,
+  mapPurchaseInventoryResultToDto,
+} from '../mappers/inventory.mapper';
+import * as inventoryRepository from '../repositories/inventory.repository';
 import { errorCatalog } from '../utils/errorCatalog';
 
 /**
  * Get user's inventory
  */
-export const getUserInventory = async (userId: string) => {
-  return await prisma.userInventory.findMany({
-    where: { userId },
-    include: {
-      item: true,
-    },
-  });
+export const getUserInventory = async (userId: string): Promise<InventoryItemDto[]> => {
+  const inventory = await inventoryRepository.findInventoryWithItemsByUser(userId);
+
+  return mapInventoryListToDto(inventory);
 };
 
 /**
  * Purchase an item from the shop
  * Reto técnico: Asegurar consistencia atómica para evitar double-spending
  */
-export const purchaseItem = async (userId: string, itemId: string) => {
+export const purchaseItem = async (userId: string, itemId: string): Promise<PurchaseInventoryResultDto> => {
   try {
-    return await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       // 1. Verificar si ya posee el item
-      const existingOwnership = await tx.userInventory.findUnique({
-        where: {
-          userId_itemId: { userId, itemId },
-        },
-      });
+      const existingOwnership = await inventoryRepository.findOwnedInventoryItem(tx, userId, itemId);
 
       if (existingOwnership) {
         throw errorCatalog.economy.itemAlreadyOwned();
       }
 
       // 2. Obtener el item y verificar precio
-      const item = await tx.shopItem.findUnique({
-        where: { id: itemId },
-      });
+      const item = await inventoryRepository.findShopItemById(tx, itemId);
 
       if (!item) {
         throw errorCatalog.economy.itemNotFound();
@@ -43,36 +45,16 @@ export const purchaseItem = async (userId: string, itemId: string) => {
 
       // 3. Ejecutar débito atómico solo si el saldo alcanza.
       // Esto evita double-spending bajo concurrencia.
-      const walletDebit = await tx.userWallet.updateMany({
-        where: {
-          userId,
-          goldBalance: { gte: item.price },
-        },
-        data: {
-          goldBalance: { decrement: item.price },
-        },
-      });
+      const walletDebit = await inventoryRepository.debitWalletIfEnough(tx, userId, item.price);
 
       if (walletDebit.count === 0) {
         throw errorCatalog.economy.insufficientBalance();
       }
 
       // 4. Registrar adquisición del item
-      const inventoryItem = await tx.userInventory.create({
-        data: {
-          userId,
-          itemId,
-          isEquipped: false,
-        },
-        include: {
-          item: true,
-        },
-      });
+      const inventoryItem = await inventoryRepository.createUserInventoryItem(tx, userId, itemId);
 
-      const wallet = await tx.userWallet.findUnique({
-        where: { userId },
-        select: { goldBalance: true },
-      });
+      const wallet = await inventoryRepository.findWalletBalanceByUser(tx, userId);
 
       return {
         message: 'Compra exitosa',
@@ -80,6 +62,8 @@ export const purchaseItem = async (userId: string, itemId: string) => {
         newBalance: wallet?.goldBalance ?? 0,
       };
     });
+
+    return mapPurchaseInventoryResultToDto(result);
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
       throw errorCatalog.economy.itemAlreadyOwned();
@@ -92,14 +76,16 @@ export const purchaseItem = async (userId: string, itemId: string) => {
 /**
  * Equip or unequip an item
  */
-export const toggleEquipItem = async (userId: string, inventoryId: string, isEquipped: boolean) => {
-  return await prisma.userInventory.update({
-    where: {
-      id: inventoryId,
-      userId, // Seguridad: asegurar que el item pertenece al usuario
-    },
-    data: {
-      isEquipped,
-    },
-  });
+export const toggleEquipItem = async (
+  userId: string,
+  inventoryId: string,
+  isEquipped: boolean,
+): Promise<EquippedInventoryDto> => {
+  const inventoryItem = await inventoryRepository.updateInventoryEquipStatus(
+    userId,
+    inventoryId,
+    isEquipped,
+  );
+
+  return mapEquippedInventoryToDto(inventoryItem);
 };
