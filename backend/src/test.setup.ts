@@ -1,13 +1,17 @@
-import { afterAll } from 'vitest';
+import { config as loadEnv } from 'dotenv';
 
-import prisma from './config/db';
-
-// Global test setup: load environment variables before any test runs
-// This mirrors how server.ts loads dotenv in production
-import 'dotenv/config';
+// Load base env, then allow .env.test to override values for tests.
+loadEnv({ path: '.env' });
+loadEnv({ path: '.env.test', override: true });
 
 // Ensure tests run with explicit test semantics for config-dependent middleware.
 process.env.NODE_ENV = 'test';
+
+const testDatabaseUrl = process.env.TEST_DATABASE_URL?.trim();
+if (testDatabaseUrl) {
+  // Force test runtime to use dedicated DB when provided.
+  process.env.DATABASE_URL = testDatabaseUrl;
+}
 
 const dbUrl = process.env.DATABASE_URL ?? '';
 const looksLikeTestDb = /(?:test|testing|_test)(?:$|[_-])/i.test(dbUrl);
@@ -23,12 +27,8 @@ if (!isCi && !looksLikeTestDb) {
   if (process.env.TEST_DB_WARNING_EMITTED !== 'true') {
     console.warn(
       '[test.setup] DATABASE_URL does not look like a test database. ' +
-        'Use a dedicated test DB to avoid accidental data loss.',
+        'Set TEST_DATABASE_URL or use .env.test with a dedicated test DB to avoid accidental data loss.',
     );
     process.env.TEST_DB_WARNING_EMITTED = 'true';
   }
 }
-
-afterAll(async () => {
-  await prisma.$disconnect();
-});
