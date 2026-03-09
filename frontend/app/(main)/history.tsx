@@ -24,6 +24,63 @@ import {
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
+const TransactionListItem = React.memo(function TransactionListItem({
+  transaction,
+  category,
+}: {
+  transaction: Transaction;
+  category?: Category;
+}) {
+  return (
+    <View
+      className="mb-4 p-4 bg-surface rounded-2xl border border-border flex-row items-center justify-between"
+    >
+      <View className="flex-row items-center flex-1">
+        <View
+          className={`w-12 h-12 rounded-full items-center justify-center ${
+            transaction.type === "EXPENSE" ? "bg-red-500/10" : "bg-green-500/10"
+          }`}
+        >
+          {transaction.type === "EXPENSE" ? (
+            <TrendingDown size={24} color="#f87171" />
+          ) : (
+            <TrendingUp size={24} color="#4ade80" />
+          )}
+        </View>
+        <View className="ml-4 flex-1">
+          <Text className="text-text font-bold text-base" numberOfLines={1}>
+            {transaction.description || category?.name || "Sin descripción"}
+          </Text>
+          <Text className="text-text-muted text-xs">
+            {format(new Date(transaction.date), "PPP", { locale: es })}
+          </Text>
+        </View>
+      </View>
+
+      <View className="items-end ml-4">
+        <Text
+          className={`font-bold text-lg ${
+            transaction.type === "EXPENSE" ? "text-red-400" : "text-green-400"
+          }`}
+        >
+          {transaction.type === "EXPENSE" ? "-" : "+"}
+          {transaction.amount}
+        </Text>
+        <View className="flex-row items-center mt-1">
+          {transaction.is_synced ? (
+            <CloudCheck size={12} color="#4ade80" />
+          ) : (
+            <CloudOff size={12} color="#666" />
+          )}
+          <Text className="text-[10px] text-gray-600 ml-1">
+            {transaction.is_synced ? "Sincronizado" : "Local"}
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+});
+
 export default function HistoryScreen() {
   const { 
     transactions, 
@@ -109,54 +166,7 @@ export default function HistoryScreen() {
             contentContainerStyle={{ paddingBottom: 40, paddingTop: 16 }}
             renderItem={({ item: t }: { item: Transaction }) => {
               const category = categories[t.category_id || ""];
-              return (
-                <View
-                  className="mb-4 p-4 bg-surface rounded-2xl border border-border flex-row items-center justify-between"
-                >
-                  <View className="flex-row items-center flex-1">
-                    <View
-                      className={`w-12 h-12 rounded-full items-center justify-center ${
-                        t.type === "EXPENSE" ? "bg-red-500/10" : "bg-green-500/10"
-                      }`}
-                    >
-                      {t.type === "EXPENSE" ? (
-                        <TrendingDown size={24} color="#f87171" />
-                      ) : (
-                        <TrendingUp size={24} color="#4ade80" />
-                      )}
-                    </View>
-                    <View className="ml-4 flex-1">
-                      <Text className="text-text font-bold text-base" numberOfLines={1}>
-                        {t.description || category?.name || "Sin descripción"}
-                      </Text>
-                      <Text className="text-text-muted text-xs">
-                        {format(new Date(t.date), "PPP", { locale: es })}
-                      </Text>
-                    </View>
-                  </View>
-                  
-                  <View className="items-end ml-4">
-                    <Text
-                      className={`font-bold text-lg ${
-                        t.type === "EXPENSE" ? "text-red-400" : "text-green-400"
-                      }`}
-                    >
-                      {t.type === "EXPENSE" ? "-" : "+"}
-                      {t.amount}
-                    </Text>
-                    <View className="flex-row items-center mt-1">
-                      {t.is_synced ? (
-                        <CloudCheck size={12} color="#4ade80" />
-                      ) : (
-                        <CloudOff size={12} color="#666" />
-                      )}
-                      <Text className="text-[10px] text-gray-600 ml-1">
-                        {t.is_synced ? "Sincronizado" : "Local"}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              );
+              return <TransactionListItem transaction={t} category={category} />;
             }}
           />
         </View>
