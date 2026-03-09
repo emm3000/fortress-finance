@@ -24,14 +24,31 @@ import { InlineError } from "../../components/feedback/inline-error";
 import { ScreenHeader } from "../../components/ui/screen-header";
 import { 
   CircleDollarSign,
-  FileText
+  FileText,
+  CalendarDays
 } from "lucide-react-native";
 import { MotiView } from "moti";
+
+const toTodayDateInput = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const toStoredIsoDate = (dateInput: string) => {
+  // Store a stable ISO value based on user-selected day (noon local avoids timezone edge cases).
+  return new Date(`${dateInput}T12:00:00`).toISOString();
+};
 
 const transactionSchema = z.object({
   amount: z.string().refine((val) => !isNaN(Number(val)) && Number(val) > 0, "Monto inválido"),
   categoryId: z.string().min(1, "Selecciona una categoría"),
-  description: z.string().max(100, "Muy larga"),
+  date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida (usa YYYY-MM-DD)"),
+  description: z.string().max(100, "Muy larga").optional(),
   type: z.enum(["INCOME", "EXPENSE"]),
 });
 
@@ -57,6 +74,7 @@ export default function NewTransactionScreen() {
       amount: "",
       description: "",
       categoryId: "",
+      date: toTodayDateInput(),
     },
   });
 
@@ -81,7 +99,7 @@ export default function NewTransactionScreen() {
         category_id: data.categoryId,
         amount: Number(data.amount),
         description: data.description || "",
-        date: new Date().toISOString(),
+        date: toStoredIsoDate(data.date),
         type: data.type,
         is_synced: 0,
       };
@@ -155,7 +173,7 @@ export default function NewTransactionScreen() {
 
           {/* Amount Input */}
           <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} delay={100}>
-            <Text className="text-text-muted mb-2 ml-1">Monto de Oro</Text>
+            <Text className="text-text-muted mb-2 ml-1">Monto de Oro (obligatorio)</Text>
             <Controller
               control={control}
               name="amount"
@@ -179,7 +197,7 @@ export default function NewTransactionScreen() {
 
           {/* Category Selector */}
           <MotiView from={{ opacity: 0, translateY: 10 }} animate={{ opacity: 1, translateY: 0 }} delay={200} className="mt-6">
-            <Text className="text-text-muted mb-2 ml-1">Categoría</Text>
+            <Text className="text-text-muted mb-2 ml-1">Categoría (obligatorio)</Text>
             <Controller
               control={control}
               name="categoryId"
@@ -209,6 +227,35 @@ export default function NewTransactionScreen() {
               )}
             />
             {errors.categoryId ? <Text className="text-red-400 text-sm mt-1 ml-1">{errors.categoryId.message}</Text> : null}
+          </MotiView>
+
+          {/* Date */}
+          <MotiView
+            from={{ opacity: 0, translateY: 10 }}
+            animate={{ opacity: 1, translateY: 0 }}
+            delay={260}
+            className="mt-6"
+          >
+            <Text className="text-text-muted mb-2 ml-1">Fecha (obligatorio)</Text>
+            <Controller
+              control={control}
+              name="date"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <View className="flex-row items-center bg-surface border border-border rounded-2xl px-4 h-14">
+                  <CalendarDays size={20} color="#666" />
+                  <TextInput
+                    className="flex-1 text-text ml-3"
+                    placeholder="YYYY-MM-DD"
+                    placeholderTextColor="#444"
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    value={value}
+                    autoCapitalize="none"
+                  />
+                </View>
+              )}
+            />
+            {errors.date ? <Text className="text-red-400 text-sm mt-1 ml-1">{errors.date.message}</Text> : null}
           </MotiView>
 
           {/* Description */}

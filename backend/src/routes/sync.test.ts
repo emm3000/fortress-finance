@@ -88,4 +88,28 @@ describe('Sync Routes Integration', () => {
 
     expect(response.status).toBe(401);
   });
+
+  it('should fail validation for invalid transaction payload', async () => {
+    const response = await request(app)
+      .post('/api/sync')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        lastSyncTimestamp: null,
+        transactions: [
+          {
+            id: uuidv4(),
+            amount: 'invalid-amount',
+            type: 'EXPENSE',
+            categoryId,
+            date: 'invalid-date',
+            notes: 'bad payload',
+            updatedAt: new Date().toISOString(),
+            deletedAt: null,
+          },
+        ],
+      });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe('Validation Error');
+  });
 });
