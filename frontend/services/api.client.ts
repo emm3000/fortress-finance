@@ -14,6 +14,11 @@ const apiClient = axios.create({
   },
 });
 
+type UnauthorizedHandler = () => Promise<void> | void;
+
+let unauthorizedHandler: UnauthorizedHandler | null = null;
+let isHandlingUnauthorized = false;
+
 export const setAuthToken = (token: string | null) => {
   if (token) {
     apiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -22,13 +27,27 @@ export const setAuthToken = (token: string | null) => {
   }
 };
 
+export const setUnauthorizedHandler = (handler: UnauthorizedHandler) => {
+  unauthorizedHandler = handler;
+};
+
 // Interceptor to handle unauthorized errors (token expired)
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
-      // Logic for token expiration could go here (e.g., logout or refresh)
-      await SecureStore.deleteItemAsync("auth_token");
+    if (error.response?.status === 401 && !isHandlingUnauthorized) {
+      isHandlingUnauthorized = true;
+      try {
+        if (unauthorizedHandler) {
+          await unauthorizedHandler();
+        } else {
+          await SecureStore.deleteItemAsync("auth_token");
+          await SecureStore.deleteItemAsync("user_data");
+          setAuthToken(null);
+        }
+      } finally {
+        isHandlingUnauthorized = false;
+      }
     }
     return Promise.reject(error);
   }

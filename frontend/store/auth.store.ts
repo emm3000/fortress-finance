@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import * as SecureStore from "expo-secure-store";
-import { setAuthToken } from "../services/api.client";
+import { setAuthToken, setUnauthorizedHandler } from "../services/api.client";
 
 interface User {
   id: string;
@@ -62,3 +62,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 }));
+
+setUnauthorizedHandler(async () => {
+  await useAuthStore.getState().logout();
+});
