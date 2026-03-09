@@ -1,7 +1,7 @@
 import prisma from '../config/db';
 import { hashPassword, comparePassword } from '../utils/password';
 import { signToken } from '../utils/jwt';
-import { RegisterBody, LoginBody } from '../validations/auth.validation';
+import type { RegisterBody, LoginBody } from '../validations/auth.validation';
 import { AppError } from '../utils/AppError';
 
 export const registerUser = async (data: RegisterBody) => {

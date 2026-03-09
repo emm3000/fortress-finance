@@ -1,6 +1,10 @@
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import * as inventoryService from '../services/inventory.service';
 import { AppError } from '../utils/AppError';
+import type { PurchaseInput, EquipInput } from '../validations/economy.validation';
+
+type PurchaseRequest = Request<Record<string, never>, unknown, PurchaseInput>;
+type EquipRequest = Request<Record<string, never>, unknown, EquipInput>;
 
 export const getMyInventory = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -14,7 +18,7 @@ export const getMyInventory = async (req: Request, res: Response, next: NextFunc
   }
 };
 
-export const purchaseItem = async (req: Request, res: Response, next: NextFunction) => {
+export const purchaseItem = async (req: PurchaseRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.userId;
     if (!userId) throw new AppError(401, 'No autorizado');
@@ -27,7 +31,7 @@ export const purchaseItem = async (req: Request, res: Response, next: NextFuncti
   }
 };
 
-export const equipItem = async (req: Request, res: Response, next: NextFunction) => {
+export const equipItem = async (req: EquipRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.userId;
     if (!userId) throw new AppError(401, 'No autorizado');

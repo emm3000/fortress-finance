@@ -1,18 +1,25 @@
-import { Request, Response, NextFunction } from 'express';
-import { ZodTypeAny, ZodError } from 'zod';
+import type { Request, Response, NextFunction } from 'express';
+import { ZodError } from 'zod';
+import type { z } from 'zod';
+
+interface ValidationResult {
+  body?: unknown;
+  query?: Record<string, unknown>;
+  params?: Record<string, string>;
+}
 
 export const validate =
-  (schema: ZodTypeAny) =>
+  (schema: z.ZodType<ValidationResult>) =>
   (req: Request, res: Response, next: NextFunction): void => {
     try {
       const parsed = schema.parse({
-        body: req.body,
-        query: req.query,
-        params: req.params,
-      }) as Record<string, unknown>;
+        body: req.body as unknown,
+        query: req.query as unknown,
+        params: req.params as unknown,
+      });
 
       // Reassign body (typically safe)
-      if (parsed.body) req.body = parsed.body;
+      if (typeof parsed.body !== 'undefined') req.body = parsed.body;
 
       // For query and params, we merge values into existing objects to avoid getter issues
       if (parsed.query) {
@@ -37,4 +44,3 @@ export const validate =
       }
     }
   };
-

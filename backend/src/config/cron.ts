@@ -14,7 +14,7 @@ export const initCronJobs = () => {
     try {
       const results = await gameEngine.runGlobalLiquidation();
       // eslint-disable-next-line no-console
-      console.log(`✅ Liquidación completada. Usuarios procesados: ${results.length}`);
+      console.log(`✅ Liquidación completada. Usuarios procesados: ${String(results.length)}`);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('❌ Error en el cron de liquidación:', error);

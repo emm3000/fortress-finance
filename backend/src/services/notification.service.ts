@@ -1,4 +1,5 @@
-import { Expo, ExpoPushMessage } from 'expo-server-sdk';
+import type { ExpoPushMessage } from 'expo-server-sdk';
+import { Expo } from 'expo-server-sdk';
 import prisma from '../config/db';
 
 const expo = new Expo();
@@ -58,7 +59,7 @@ export const sendPushNotification = async (options: SendPushOptions) => {
   for (const pushToken of pushTokens) {
     if (!Expo.isExpoPushToken(pushToken.tokenString)) {
       // eslint-disable-next-line no-console
-      console.error(`Token inválido detectado para usuario ${userId}: ${pushToken.tokenString}`);
+      console.error('Token inválido detectado para usuario', userId, pushToken.tokenString);
       continue;
     }
 

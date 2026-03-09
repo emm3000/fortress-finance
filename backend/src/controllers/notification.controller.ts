@@ -1,8 +1,12 @@
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import * as notificationService from '../services/notification.service';
 import { AppError } from '../utils/AppError';
+import type { PushTokenInput, UnregisterTokenInput } from '../validations/notification.validation';
 
-export const registerToken = async (req: Request, res: Response, next: NextFunction) => {
+type RegisterTokenRequest = Request<Record<string, never>, unknown, PushTokenInput>;
+type UnregisterTokenRequest = Request<Record<string, never>, unknown, UnregisterTokenInput>;
+
+export const registerToken = async (req: RegisterTokenRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.userId;
     if (!userId) throw new AppError(401, 'No autorizado');
@@ -16,7 +20,11 @@ export const registerToken = async (req: Request, res: Response, next: NextFunct
   }
 };
 
-export const unregisterToken = async (req: Request, res: Response, next: NextFunction) => {
+export const unregisterToken = async (
+  req: UnregisterTokenRequest,
+  res: Response,
+  next: NextFunction
+) => {
   try {
     const userId = req.user?.userId;
     if (!userId) throw new AppError(401, 'No autorizado');

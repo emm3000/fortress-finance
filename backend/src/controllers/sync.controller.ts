@@ -1,7 +1,10 @@
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import * as syncService from '../services/sync.service';
+import type { SyncBody } from '../validations/sync.validation';
 
-export const syncTransactions = async (req: Request, res: Response, next: NextFunction) => {
+type SyncRequest = Request<Record<string, never>, unknown, SyncBody>;
+
+export const syncTransactions = async (req: SyncRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.userId;
     if (!userId) {

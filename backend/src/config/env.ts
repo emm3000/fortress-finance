@@ -6,7 +6,7 @@ import { config } from 'dotenv';
 config();
 
 const envSchema = z.object({
-  DATABASE_URL: z.string().url('DATABASE_URL debe ser una URL válida'),
+  DATABASE_URL: z.url('DATABASE_URL debe ser una URL válida'),
   JWT_SECRET: z.string().min(32, 'JWT_SECRET debe tener al menos 32 caracteres'),
   PORT: z.coerce.number().default(4000),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
@@ -16,7 +16,7 @@ const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
   // eslint-disable-next-line no-console
-  console.error('❌ Variables de entorno inválidas:\n', parsed.error.format());
+  console.error('❌ Variables de entorno inválidas:\n', z.treeifyError(parsed.error));
   process.exit(1);
 }
 

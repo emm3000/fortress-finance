@@ -1,5 +1,5 @@
 import prisma from '../config/db';
-import { SyncBody } from '../validations/sync.validation';
+import type { SyncBody } from '../validations/sync.validation';
 import { AppError } from '../utils/AppError';
 
 export const synchronize = async (userId: string, data: SyncBody) => {
@@ -54,7 +54,7 @@ export const synchronize = async (userId: string, data: SyncBody) => {
     }
 
     // Budgets PUSH
-    if (budgets && budgets.length > 0) {
+    if (budgets.length > 0) {
       for (const b of budgets) {
         const existing = await tx.budget.findUnique({
           where: { id: b.id },
@@ -91,7 +91,7 @@ export const synchronize = async (userId: string, data: SyncBody) => {
     }
 
     // Inventory PUSH (Solo permitimos sincronizar isEquipped)
-    if (inventory && inventory.length > 0) {
+    if (inventory.length > 0) {
       await Promise.all(
         inventory.map((inv) =>
           tx.userInventory.update({
@@ -155,5 +155,4 @@ export const synchronize = async (userId: string, data: SyncBody) => {
 
   return result;
 };
-
 

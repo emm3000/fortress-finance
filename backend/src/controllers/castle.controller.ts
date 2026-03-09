@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import * as castleService from '../services/castle.service';
 import { AppError } from '../utils/AppError';
 

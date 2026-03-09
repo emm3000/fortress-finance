@@ -1,6 +1,9 @@
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import * as budgetService from '../services/budget.service';
 import { AppError } from '../utils/AppError';
+import type { BudgetInput } from '../validations/budget.validation';
+
+type BudgetRequest = Request<Record<string, never>, unknown, BudgetInput>;
 
 export const getBudgets = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -16,7 +19,7 @@ export const getBudgets = async (req: Request, res: Response, next: NextFunction
   }
 };
 
-export const createOrUpdateBudget = async (req: Request, res: Response, next: NextFunction) => {
+export const createOrUpdateBudget = async (req: BudgetRequest, res: Response, next: NextFunction) => {
   try {
     const userId = req.user?.userId;
     if (!userId) {

@@ -47,7 +47,7 @@ export const liquidateUser = async (userId: string, targetDate: Date = new Date(
         },
       });
 
-      const totalSpent = Number(aggregate._sum.amount || 0);
+      const totalSpent = Number(aggregate._sum.amount ?? 0);
 
       if (totalSpent > Number(budget.limitAmount)) {
         // Budget exceeded! Orc attack!
@@ -57,7 +57,7 @@ export const liquidateUser = async (userId: string, targetDate: Date = new Date(
         totalDamage += damage;
 
         events.push({
-          eventDesc: `¡Ataque de Orcos! Presupuesto excedido en categoría. Gasto: ${totalSpent}, Límite: ${budget.limitAmount}`,
+          eventDesc: `¡Ataque de Orcos! Presupuesto excedido en categoría. Gasto: ${String(totalSpent)}, Límite: ${budget.limitAmount.toString()}`,
           hpImpact: -damage,
         });
       }
@@ -95,7 +95,7 @@ export const liquidateUser = async (userId: string, targetDate: Date = new Date(
 
       // Acreditar Oro y aumentar racha
       const wallet = await tx.userWallet.findUnique({ where: { userId } });
-      const currentStreak = wallet?.streakDays || 0;
+      const currentStreak = wallet?.streakDays ?? 0;
       const newStreak = currentStreak + 1;
       
       // Recompensa: 10 base + 5 por cada día de racha (máximo 50 de bono)
@@ -110,7 +110,7 @@ export const liquidateUser = async (userId: string, targetDate: Date = new Date(
       });
 
       events.push({
-        eventDesc: `Día de paz. Racha de ${newStreak} días. +${goldReward} de oro recolectado.`,
+        eventDesc: `Día de paz. Racha de ${String(newStreak)} días. +${String(goldReward)} de oro recolectado.`,
         hpImpact: healing,
       });
     }

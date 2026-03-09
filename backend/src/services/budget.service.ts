@@ -1,5 +1,5 @@
 import prisma from '../config/db';
-import { BudgetInput } from '../validations/budget.validation';
+import type { BudgetInput } from '../validations/budget.validation';
 
 /**
  * Get all budgets for a specific user

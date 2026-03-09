@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const budgetSchema = z.object({
   body: z.object({
-    categoryId: z.string().uuid('ID de categoría inválido'),
+    categoryId: z.uuid('ID de categoría inválido'),
     limitAmount: z.number().positive('El límite debe ser un número positivo'),
     period: z.enum(['MONTHLY']).default('MONTHLY'),
   }),
