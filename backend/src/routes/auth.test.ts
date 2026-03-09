@@ -19,9 +19,7 @@ describe('Auth Routes Integration', () => {
   });
 
   it('should register a new user successfully', async () => {
-    const response = await request(app)
-      .post('/api/auth/register')
-      .send(testUser);
+    const response = await request(app).post('/api/auth/register').send(testUser);
 
     expect(response.status).toBe(201);
     expect(response.body.user.email).toBe(testUser.email);
@@ -29,21 +27,17 @@ describe('Auth Routes Integration', () => {
   });
 
   it('should not register a user with the same email (409 Conflict)', async () => {
-    const response = await request(app)
-      .post('/api/auth/register')
-      .send(testUser);
+    const response = await request(app).post('/api/auth/register').send(testUser);
 
     expect(response.status).toBe(409);
     expect(response.body.error).toBe('El usuario ya existe');
   });
 
   it('should login successfully with correct credentials', async () => {
-    const response = await request(app)
-      .post('/api/auth/login')
-      .send({
-        email: testUser.email,
-        password: testUser.password,
-      });
+    const response = await request(app).post('/api/auth/login').send({
+      email: testUser.email,
+      password: testUser.password,
+    });
 
     expect(response.status).toBe(200);
     expect(response.body.token).toBeDefined();
@@ -51,28 +45,23 @@ describe('Auth Routes Integration', () => {
   });
 
   it('should return 401 for wrong password', async () => {
-    const response = await request(app)
-      .post('/api/auth/login')
-      .send({
-        email: testUser.email,
-        password: 'wrongpassword',
-      });
+    const response = await request(app).post('/api/auth/login').send({
+      email: testUser.email,
+      password: 'wrongpassword',
+    });
 
     expect(response.status).toBe(401);
     expect(response.body.error).toBe('Credenciales inválidas');
   });
 
   it('should fail validation for invalid email', async () => {
-    const response = await request(app)
-      .post('/api/auth/register')
-      .send({
-        email: 'invalid-email',
-        password: '123',
-        name: 'T',
-      });
+    const response = await request(app).post('/api/auth/register').send({
+      email: 'invalid-email',
+      password: '123',
+      name: 'T',
+    });
 
     expect(response.status).toBe(400);
     expect(response.body.error).toBe('Validation Error');
   });
 });
-

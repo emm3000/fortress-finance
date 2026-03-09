@@ -12,7 +12,12 @@ router.get('/shop', requireAuth, shopController.getShopItems);
 
 // Inventory (owned items)
 router.get('/inventory', requireAuth, inventoryController.getMyInventory);
-router.post('/inventory/purchase', requireAuth, validate(purchaseSchema), inventoryController.purchaseItem);
+router.post(
+  '/inventory/purchase',
+  requireAuth,
+  validate(purchaseSchema),
+  inventoryController.purchaseItem,
+);
 router.post('/inventory/equip', requireAuth, validate(equipSchema), inventoryController.equipItem);
 
 export default router;

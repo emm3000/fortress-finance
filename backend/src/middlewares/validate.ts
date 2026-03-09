@@ -19,7 +19,9 @@ export const validate =
       });
 
       // Reassign body (typically safe)
-      if (typeof parsed.body !== 'undefined') req.body = parsed.body;
+      if (typeof parsed.body !== 'undefined') {
+        req.body = parsed.body;
+      }
 
       // For query and params, we merge values into existing objects to avoid getter issues
       if (parsed.query) {

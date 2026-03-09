@@ -9,7 +9,11 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
     return;
   }
 
-  const token = authHeader.split(' ')[1];
+  const token = authHeader.slice(7);
+  if (!token) {
+    res.status(401).json({ error: 'No autorizado, token inválido' });
+    return;
+  }
 
   try {
     const payload = verifyToken(token);

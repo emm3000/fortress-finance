@@ -48,7 +48,6 @@ export const registerUser = async (data: RegisterBody) => {
     return newUser;
   });
 
-
   const token = signToken({ userId: result.id });
 
   return {
@@ -60,7 +59,6 @@ export const registerUser = async (data: RegisterBody) => {
     token,
   };
 };
-
 
 export const loginUser = async (data: LoginBody) => {
   const { email, password } = data;

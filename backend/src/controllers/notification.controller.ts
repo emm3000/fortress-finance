@@ -6,10 +6,16 @@ import type { PushTokenInput, UnregisterTokenInput } from '../validations/notifi
 type RegisterTokenRequest = Request<Record<string, never>, unknown, PushTokenInput>;
 type UnregisterTokenRequest = Request<Record<string, never>, unknown, UnregisterTokenInput>;
 
-export const registerToken = async (req: RegisterTokenRequest, res: Response, next: NextFunction) => {
+export const registerToken = async (
+  req: RegisterTokenRequest,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const userId = req.user?.userId;
-    if (!userId) throw new AppError(401, 'No autorizado');
+    if (!userId) {
+      throw new AppError(401, 'No autorizado');
+    }
 
     const { token, deviceInfo } = req.body;
     await notificationService.registerPushToken(userId, token, deviceInfo);
@@ -23,11 +29,13 @@ export const registerToken = async (req: RegisterTokenRequest, res: Response, ne
 export const unregisterToken = async (
   req: UnregisterTokenRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const userId = req.user?.userId;
-    if (!userId) throw new AppError(401, 'No autorizado');
+    if (!userId) {
+      throw new AppError(401, 'No autorizado');
+    }
 
     const { token } = req.body;
     await notificationService.unregisterPushToken(userId, token);

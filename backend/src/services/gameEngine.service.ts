@@ -2,7 +2,6 @@ import prisma from '../config/db';
 import { startOfMonth, endOfMonth } from 'date-fns';
 import { sendPushNotification } from './notification.service';
 
-
 /**
  * Perform daily liquidation for a single user.
  * Calculates expense sums, compares with budgets, and impacts castle HP.
@@ -17,14 +16,18 @@ export const liquidateUser = async (userId: string, targetDate: Date = new Date(
       where: { userId },
     });
 
-    if (budgets.length === 0) return { status: 'no_budgets' };
+    if (budgets.length === 0) {
+      return { status: 'no_budgets' };
+    }
 
     // 2. Get castle state
     const castle = await tx.castleState.findUnique({
       where: { userId },
     });
 
-    if (!castle) return { status: 'no_castle' };
+    if (!castle) {
+      return { status: 'no_castle' };
+    }
 
     let totalDamage = 0;
     const events: { eventDesc: string; hpImpact: number }[] = [];
@@ -84,7 +87,7 @@ export const liquidateUser = async (userId: string, targetDate: Date = new Date(
       // No budgets exceeded! The kingdom prospers (Sanación y Oro)
       const healing = 2; // Fixed healing per day of discipline
       const newHp = Math.min(castle.maxHp, castle.hp + healing);
-      
+
       await tx.castleState.update({
         where: { userId },
         data: {
@@ -97,7 +100,7 @@ export const liquidateUser = async (userId: string, targetDate: Date = new Date(
       const wallet = await tx.userWallet.findUnique({ where: { userId } });
       const currentStreak = wallet?.streakDays ?? 0;
       const newStreak = currentStreak + 1;
-      
+
       // Recompensa: 10 base + 5 por cada día de racha (máximo 50 de bono)
       const goldReward = 10 + Math.min(50, currentStreak * 5);
 
@@ -114,7 +117,6 @@ export const liquidateUser = async (userId: string, targetDate: Date = new Date(
         hpImpact: healing,
       });
     }
-
 
     // Register events
     if (events.length > 0) {
@@ -149,10 +151,8 @@ export const liquidateUser = async (userId: string, targetDate: Date = new Date(
     }
   }
 
-
   return result;
 };
-
 
 /**
  * Batch liquidation for all users (Cron Job Entry point)
@@ -172,7 +172,6 @@ export const runGlobalLiquidation = async () => {
       console.error(`Error liquidating user ${user.id}:`, error);
       results.push({ userId: user.id, status: 'error', error });
     }
-
   }
 
   return results;

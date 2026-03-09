@@ -30,7 +30,7 @@ export const synchronize = async (userId: string, data: SyncBody) => {
               type: t.type,
               categoryId: t.categoryId,
               date: t.date,
-              notes: t.notes,
+              notes: t.notes ?? null,
               updatedAt: t.updatedAt,
               deletedAt: t.deletedAt,
             },
@@ -45,7 +45,7 @@ export const synchronize = async (userId: string, data: SyncBody) => {
             type: t.type,
             categoryId: t.categoryId,
             date: t.date,
-            notes: t.notes,
+            notes: t.notes ?? null,
             updatedAt: t.updatedAt,
             deletedAt: t.deletedAt,
           },
@@ -100,8 +100,8 @@ export const synchronize = async (userId: string, data: SyncBody) => {
               isEquipped: inv.isEquipped,
               updatedAt: inv.updatedAt,
             },
-          })
-        )
+          }),
+        ),
       );
     }
 
@@ -155,4 +155,3 @@ export const synchronize = async (userId: string, data: SyncBody) => {
 
   return result;
 };
-

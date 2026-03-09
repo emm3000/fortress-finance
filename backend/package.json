@@ -5,16 +5,23 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
     "start": "node dist/server.js",
     "test": "vitest run",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "test:watch": "vitest",
+    "lint": "eslint . --cache --cache-location .eslintcache",
+    "lint:fix": "npm run lint -- --fix",
     "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "npm run lint && npm run typecheck && npm run test",
     "prepare": "husky"
   },
   "lint-staged": {
-    "*.ts": [
+    "*.{js,mjs,cjs,ts}": [
       "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
       "prettier --write"
     ]
   },
@@ -22,6 +29,9 @@
   "author": "",
   "license": "ISC",
   "description": "",
+  "engines": {
+    "node": ">=20.11.0"
+  },
   "dependencies": {
     "@prisma/client": "^6.19.2",
     "bcrypt": "^6.0.0",

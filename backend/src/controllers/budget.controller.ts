@@ -19,7 +19,11 @@ export const getBudgets = async (req: Request, res: Response, next: NextFunction
   }
 };
 
-export const createOrUpdateBudget = async (req: BudgetRequest, res: Response, next: NextFunction) => {
+export const createOrUpdateBudget = async (
+  req: BudgetRequest,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const userId = req.user?.userId;
     if (!userId) {

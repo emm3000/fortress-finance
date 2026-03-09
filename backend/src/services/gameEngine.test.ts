@@ -46,20 +46,20 @@ describe('GameEngine Service - Liquidation', () => {
     });
 
     const category = await prisma.category.findFirst({
-        where: { type: 'EXPENSE' }
+      where: { type: 'EXPENSE' },
     });
-    
+
     if (category) {
-        categoryId = category.id;
+      categoryId = category.id;
     } else {
-        const newCat = await prisma.category.create({
-            data: {
-                name: 'Test Expense',
-                type: 'EXPENSE',
-                icon: 'test'
-            }
-        });
-        categoryId = newCat.id;
+      const newCat = await prisma.category.create({
+        data: {
+          name: 'Test Expense',
+          type: 'EXPENSE',
+          icon: 'test',
+        },
+      });
+      categoryId = newCat.id;
     }
   });
 
@@ -153,6 +153,6 @@ describe('GameEngine Service - Liquidation', () => {
 
     // 7. Verify Event Log
     const logs = await prisma.gameEventLog.findMany({ where: { userId } });
-    expect(logs.some(l => l.hpImpact > 0)).toBe(true);
+    expect(logs.some((l) => l.hpImpact > 0)).toBe(true);
   });
 });

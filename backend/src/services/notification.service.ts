@@ -16,16 +16,18 @@ export interface SendPushOptions {
  * Register or update a push token for a user
  */
 export const registerPushToken = async (userId: string, token: string, deviceInfo?: string) => {
+  const normalizedDeviceInfo = deviceInfo ?? null;
+
   return await prisma.userPushToken.upsert({
     where: { tokenString: token },
     create: {
       userId,
       tokenString: token,
-      deviceInfo,
+      deviceInfo: normalizedDeviceInfo,
     },
     update: {
       userId, // Re-vincular si el token cambió de usuario (raro pero posible)
-      deviceInfo,
+      deviceInfo: normalizedDeviceInfo,
     },
   });
 };
@@ -53,7 +55,9 @@ export const sendPushNotification = async (options: SendPushOptions) => {
     where: { userId },
   });
 
-  if (pushTokens.length === 0) return;
+  if (pushTokens.length === 0) {
+    return;
+  }
 
   const messages: ExpoPushMessage[] = [];
   for (const pushToken of pushTokens) {
@@ -97,7 +101,7 @@ export const sendPushNotification = async (options: SendPushOptions) => {
     },
   });
 
-  // Nota: En una app de producción real, aquí procesaríamos los 'tickets' para 
+  // Nota: En una app de producción real, aquí procesaríamos los 'tickets' para
   // detectar tokens que han expirado (DeviceNotRegistered) y eliminarlos de la DB.
   // Para este MVP, lanzamos y olvidamos, pero dejamos la estructura lista.
 };

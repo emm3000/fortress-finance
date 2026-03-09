@@ -1,0 +1,16 @@
+node_modules/
+dist/
+build/
+coverage/
+.eslintcache
+*.tsbuildinfo
+package-lock.json
+
+# generated / binary-ish
+src/generated/
+prisma/migrations/
+
+# env / local
+.env
+.env.*
+!.env.example

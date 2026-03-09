@@ -15,9 +15,7 @@ describe('Sync Routes Integration', () => {
 
   beforeAll(async () => {
     // 1. Registrar usuario y obtener token
-    const authRes = await request(app)
-      .post('/api/auth/register')
-      .send(testUser);
+    const authRes = await request(app).post('/api/auth/register').send(testUser);
     token = authRes.body.token;
 
     // 2. Obtener una categoría válida del seed
@@ -57,7 +55,7 @@ describe('Sync Routes Integration', () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toHaveProperty('syncTimestamp');
-    
+
     // Verificar que se guardó en DB
     const savedTx = await prisma.transaction.findUnique({ where: { id: txId } });
     expect(savedTx).toBeDefined();
@@ -67,7 +65,7 @@ describe('Sync Routes Integration', () => {
   it('should pull changes from server (PULL)', async () => {
     // Simulamos que el cliente sincronizó hace 1 hora
     const anHourAgo = new Date(Date.now() - 3600000).toISOString();
-    
+
     const response = await request(app)
       .post('/api/sync')
       .set('Authorization', `Bearer ${token}`)
@@ -83,7 +81,6 @@ describe('Sync Routes Integration', () => {
     expect(Array.isArray(response.body.changes.transactions)).toBe(true);
     expect(response.body.changes.transactions.length).toBeGreaterThan(0); // Debería traer la TX del test anterior
   });
-
 
   it('should fail if unauthorized', async () => {
     const response = await request(app)
