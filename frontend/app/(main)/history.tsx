@@ -2,7 +2,6 @@ import React, { useCallback, useMemo } from "react";
 import {
   View,
   Text,
-  Pressable,
   RefreshControl,
   ActivityIndicator,
 } from "react-native";
@@ -16,8 +15,8 @@ import { Transaction } from "../../db/transaction.repository";
 import { Category } from "../../db/category.repository";
 import { EmptyState } from "../../components/feedback/empty-state";
 import { LoadingState } from "../../components/feedback/loading-state";
+import { ScreenHeader } from "../../components/ui/screen-header";
 import {
-  ArrowLeft,
   TrendingDown,
   TrendingUp,
   History,
@@ -126,19 +125,11 @@ export default function HistoryScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      {/* Header */}
-      <View className="px-6 py-4 flex-row items-center border-b border-border">
-        <Pressable
-          onPress={() => router.back()}
-          accessibilityRole="button"
-          accessibilityLabel="Volver"
-          accessibilityHint="Regresa al dashboard"
-          className="p-2 -ml-2"
-        >
-          <ArrowLeft size={24} color="#FFD700" />
-        </Pressable>
-        <Text className="text-text text-xl font-bold ml-2">Crónicas de Guerra</Text>
-      </View>
+      <ScreenHeader
+        title="Crónicas de Guerra"
+        onBack={() => router.back()}
+        backAccessibilityHint="Regresa al dashboard"
+      />
 
       {isTransactionsLoading && transactions.length === 0 ? (
         <LoadingState message="Cargando crónicas..." />

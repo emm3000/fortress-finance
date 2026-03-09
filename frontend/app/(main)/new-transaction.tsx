@@ -21,8 +21,8 @@ import { TransactionRepository } from "../../db/transaction.repository";
 import { useSync } from "../../hooks/useSync";
 import { useAuthStore } from "../../store/auth.store";
 import { InlineError } from "../../components/feedback/inline-error";
+import { ScreenHeader } from "../../components/ui/screen-header";
 import { 
-  ArrowLeft, 
   CircleDollarSign,
   FileText
 } from "lucide-react-native";
@@ -112,21 +112,14 @@ export default function NewTransactionScreen() {
           className="px-6"
           contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
         >
-          {/* Header */}
-          <View className="flex-row items-center py-6">
-            <Pressable
-              onPress={() => router.back()}
-              accessibilityRole="button"
-              accessibilityLabel="Volver"
-              accessibilityHint="Regresa al dashboard"
-              className="p-2 -ml-2"
-            >
-              <ArrowLeft size={24} color="#FFD700" />
-            </Pressable>
-            <Text className="text-text text-xl font-bold ml-2">
-              {transactionType === "EXPENSE" ? "Registrar Batalla" : "Botín de Guerra"}
-            </Text>
-          </View>
+          <ScreenHeader
+            title={transactionType === "EXPENSE" ? "Registrar Batalla" : "Botín de Guerra"}
+            onBack={() => router.back()}
+            backAccessibilityHint="Regresa al dashboard"
+            size="lg"
+            bordered={false}
+            withHorizontalPadding={false}
+          />
 
           {/* Type Toggle */}
           <View className="flex-row bg-surface rounded-2xl p-1 mb-8 border border-border">
