@@ -1,19 +1,14 @@
 import type { TransactionDto } from '../dto/transaction.dto';
 import { mapTransactionToDto } from '../mappers/transaction.mapper';
 import * as transactionRepository from '../repositories/transaction.repository';
-import { errorCatalog } from '../utils/errorCatalog';
+import { assertExists, assertNotDeleted, assertOwnedByUser } from '../utils/domainAssertions';
 import type { UpdateTransactionInput } from '../validations/transaction.validation';
 
 const getOwnedTransactionOrThrow = async (userId: string, transactionId: string) => {
   const transaction = await transactionRepository.findTransactionOwnershipState(transactionId);
-
-  if (!transaction || transaction.deletedAt) {
-    throw errorCatalog.resource.notFound('Transacción no encontrada');
-  }
-
-  if (transaction.userId !== userId) {
-    throw errorCatalog.resource.forbidden('No autorizado para modificar esta transacción');
-  }
+  assertExists(transaction, 'Transacción no encontrada');
+  assertNotDeleted(transaction.deletedAt, 'Transacción no encontrada');
+  assertOwnedByUser(transaction.userId, userId, 'No autorizado para modificar esta transacción');
 
   return transaction;
 };

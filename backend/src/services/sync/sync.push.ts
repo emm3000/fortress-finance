@@ -1,6 +1,6 @@
 import type { Prisma } from '@prisma/client';
 import * as syncRepository from '../../repositories/sync.repository';
-import { errorCatalog } from '../../utils/errorCatalog';
+import { assertOwnedByUser } from '../../utils/domainAssertions';
 import type { BudgetSyncInput, InventorySyncInput, TransactionSyncInput } from '../../validations/sync.validation';
 import type { SyncPushPayload } from './sync.types';
 
@@ -35,8 +35,8 @@ const applyTransactionPush = async (
 ) => {
   const existing = await syncRepository.findTransactionSyncState(tx, transaction.id);
 
-  if (existing && existing.userId !== userId) {
-    throw errorCatalog.resource.forbidden('No autorizado para modificar esta transacción');
+  if (existing) {
+    assertOwnedByUser(existing.userId, userId, 'No autorizado para modificar esta transacción');
   }
 
   if (!existing) {
@@ -54,8 +54,8 @@ const applyTransactionPush = async (
 const applyBudgetPush = async (tx: Prisma.TransactionClient, userId: string, budget: BudgetSyncInput) => {
   const existing = await syncRepository.findBudgetSyncState(tx, budget.id);
 
-  if (existing && existing.userId !== userId) {
-    throw errorCatalog.resource.forbidden('No autorizado para modificar este presupuesto');
+  if (existing) {
+    assertOwnedByUser(existing.userId, userId, 'No autorizado para modificar este presupuesto');
   }
 
   if (!existing) {

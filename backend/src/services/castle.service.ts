@@ -1,6 +1,6 @@
 import prisma from '../config/db';
 import * as castleRepository from '../repositories/castle.repository';
-import { errorCatalog } from '../utils/errorCatalog';
+import { assertExists } from '../utils/domainAssertions';
 
 /**
  * Initialize a castle for a new user
@@ -26,9 +26,7 @@ export const getCastleByUserId = async (userId: string) => {
 
 export const getCastleByUserIdOrThrow = async (userId: string) => {
   const castle = await getCastleByUserId(userId);
-  if (!castle) {
-    throw errorCatalog.resource.notFound('Castillo no encontrado para este usuario');
-  }
+  assertExists(castle, 'Castillo no encontrado para este usuario');
 
   return castle;
 };
