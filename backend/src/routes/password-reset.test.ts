@@ -24,7 +24,7 @@ describe('Password Reset Routes Integration', () => {
     });
 
     if (user) {
-      await prisma.$executeRaw`DELETE FROM password_reset_tokens WHERE user_id = ${user.id}::uuid`;
+      await prisma.passwordResetToken.deleteMany({ where: { userId: user.id } });
       await prisma.user.delete({ where: { id: user.id } });
     }
   });
@@ -74,11 +74,10 @@ describe('Password Reset Routes Integration', () => {
     const resetToken = requestReset.body.resetToken as string;
     const tokenHash = hashResetToken(resetToken);
 
-    await prisma.$executeRaw`
-      UPDATE password_reset_tokens
-      SET expires_at = NOW() - INTERVAL '5 minutes'
-      WHERE token_hash = ${tokenHash}
-    `;
+    await prisma.passwordResetToken.update({
+      where: { tokenHash },
+      data: { expiresAt: new Date(Date.now() - 5 * 60 * 1000) },
+    });
 
     const expiredResponse = await request(app)
       .post('/api/auth/password-reset/confirm')

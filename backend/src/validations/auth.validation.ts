@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const registerSchema = z.object({
   body: z.object({
     email: z.email('Email inválido'),
-    password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
+    password: z.string().min(10, 'La contraseña debe tener al menos 10 caracteres'),
     name: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   }),
 });
@@ -24,7 +24,7 @@ export const requestPasswordResetSchema = z.object({
 export const confirmPasswordResetSchema = z.object({
   body: z.object({
     token: z.string().min(10, 'Token inválido'),
-    newPassword: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
+    newPassword: z.string().min(10, 'La contraseña debe tener al menos 10 caracteres'),
   }),
 });
 

@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 describe('Sync Routes Integration', () => {
   let token: string;
+  let userId: string;
   let categoryId: string;
   const testUser = {
     email: `sync-test-${Date.now()}@example.com`,
@@ -17,6 +18,7 @@ describe('Sync Routes Integration', () => {
     // 1. Registrar usuario y obtener token
     const authRes = await request(app).post('/api/auth/register').send(testUser);
     token = authRes.body.token;
+    userId = authRes.body.user.id as string;
 
     // 2. Obtener una categoría válida del seed
     const cat = await prisma.category.findFirst();
@@ -230,6 +232,157 @@ describe('Sync Routes Integration', () => {
     const storedTx = await prisma.transaction.findUnique({ where: { id: txId } });
     expect(Number(storedTx?.amount)).toBe(120);
     expect(storedTx?.notes).toBe('newest state');
+  });
+
+  it('should apply incoming transaction updates when updatedAt is exactly equal', async () => {
+    const txId = uuidv4();
+    const sameTimestamp = new Date().toISOString();
+
+    await request(app)
+      .post('/api/sync')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        lastSyncTimestamp: null,
+        transactions: [
+          {
+            id: txId,
+            amount: 100,
+            type: 'EXPENSE',
+            categoryId,
+            date: sameTimestamp,
+            notes: 'first state',
+            updatedAt: sameTimestamp,
+            deletedAt: null,
+          },
+        ],
+      });
+
+    const tieUpdate = await request(app)
+      .post('/api/sync')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        lastSyncTimestamp: null,
+        transactions: [
+          {
+            id: txId,
+            amount: 55,
+            type: 'EXPENSE',
+            categoryId,
+            date: sameTimestamp,
+            notes: 'tie state',
+            updatedAt: sameTimestamp,
+            deletedAt: null,
+          },
+        ],
+      });
+
+    expect(tieUpdate.status).toBe(200);
+
+    const storedTx = await prisma.transaction.findUnique({ where: { id: txId } });
+    expect(Number(storedTx?.amount)).toBe(55);
+    expect(storedTx?.notes).toBe('tie state');
+  });
+
+  it('should ignore older budget/inventory updates and accept equal timestamp updates', async () => {
+    const budgetId = uuidv4();
+    const baseTimestamp = new Date();
+    const baseIso = baseTimestamp.toISOString();
+    const olderIso = new Date(baseTimestamp.getTime() - 60 * 1000).toISOString();
+    const shopItem = await prisma.shopItem.findFirst();
+
+    if (!shopItem) {
+      throw new Error('No shop item found for inventory sync test');
+    }
+
+    const inventory = await prisma.userInventory.create({
+      data: {
+        userId,
+        itemId: shopItem.id,
+        isEquipped: false,
+        updatedAt: baseTimestamp,
+      },
+    });
+
+    const setupSync = await request(app)
+      .post('/api/sync')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        lastSyncTimestamp: null,
+        transactions: [],
+        budgets: [
+          {
+            id: budgetId,
+            categoryId,
+            limitAmount: 200,
+            period: 'MONTHLY',
+            updatedAt: baseIso,
+          },
+        ],
+      });
+
+    expect(setupSync.status).toBe(200);
+
+    const stalePush = await request(app)
+      .post('/api/sync')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        lastSyncTimestamp: null,
+        transactions: [],
+        budgets: [
+          {
+            id: budgetId,
+            categoryId,
+            limitAmount: 50,
+            period: 'MONTHLY',
+            updatedAt: olderIso,
+          },
+        ],
+        inventory: [
+          {
+            id: inventory.id,
+            isEquipped: true,
+            updatedAt: olderIso,
+          },
+        ],
+      });
+
+    expect(stalePush.status).toBe(200);
+
+    const budgetAfterStale = await prisma.budget.findUnique({ where: { id: budgetId } });
+    const inventoryAfterStale = await prisma.userInventory.findUnique({ where: { id: inventory.id } });
+    expect(Number(budgetAfterStale?.limitAmount)).toBe(200);
+    expect(inventoryAfterStale?.isEquipped).toBe(false);
+
+    const tiePush = await request(app)
+      .post('/api/sync')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        lastSyncTimestamp: null,
+        transactions: [],
+        budgets: [
+          {
+            id: budgetId,
+            categoryId,
+            limitAmount: 180,
+            period: 'MONTHLY',
+            updatedAt: baseIso,
+          },
+        ],
+        inventory: [
+          {
+            id: inventory.id,
+            isEquipped: true,
+            updatedAt: baseIso,
+          },
+        ],
+      });
+
+    expect(tiePush.status).toBe(200);
+
+    const budgetAfterTie = await prisma.budget.findUnique({ where: { id: budgetId } });
+    const inventoryAfterTie = await prisma.userInventory.findUnique({ where: { id: inventory.id } });
+    expect(Number(budgetAfterTie?.limitAmount)).toBe(180);
+    expect(inventoryAfterTie?.isEquipped).toBe(true);
   });
 
   it('should recover and sync successfully after a previous failed sync attempt', async () => {
