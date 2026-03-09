@@ -1,6 +1,7 @@
 import type { MonthlyDashboardSummaryDto } from '../dto/dashboard.dto';
 import { mapMonthlyDashboardToDto } from '../mappers/dashboard.mapper';
 import * as dashboardRepository from '../repositories/dashboard.repository';
+import { getUtcMonthRange } from '../utils/dateRanges';
 
 export interface MonthlyDashboardInput {
   userId: string;
@@ -12,17 +13,6 @@ interface DashboardCategoryStats {
   totalSpent: number;
   txCount: number;
 }
-
-const toMonthRange = (year?: number, month?: number) => {
-  const now = new Date();
-  const resolvedYear = year ?? now.getUTCFullYear();
-  const resolvedMonth = month ?? now.getUTCMonth() + 1;
-
-  const from = new Date(Date.UTC(resolvedYear, resolvedMonth - 1, 1));
-  const to = new Date(Date.UTC(resolvedYear, resolvedMonth, 1));
-
-  return { resolvedYear, resolvedMonth, from, to };
-};
 
 const loadMonthlyTransactions = async (userId: string, from: Date, to: Date) => {
   return dashboardRepository.findMonthlyTransactions(userId, from, to);
@@ -94,7 +84,7 @@ export const getMonthlyDashboard = async ({
   year,
   month,
 }: MonthlyDashboardInput): Promise<MonthlyDashboardSummaryDto> => {
-  const { resolvedYear, resolvedMonth, from, to } = toMonthRange(year, month);
+  const { resolvedYear, resolvedMonth, from, to } = getUtcMonthRange(year, month);
 
   const transactions = await loadMonthlyTransactions(userId, from, to);
   const { incomeTotal, expenseTotal, incomeTxCount, expenseTxCount, expenseByCategory } =

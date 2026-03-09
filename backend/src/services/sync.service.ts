@@ -1,6 +1,7 @@
 import prisma from '../config/db';
 import type { SyncResultDto } from '../dto/sync.dto';
 import { mapSyncResultToDto } from '../mappers/sync.mapper';
+import { nowIsoTimestamp } from '../utils/time';
 import type { SyncBody } from '../validations/sync.validation';
 import { pullServerChanges } from './sync/sync.pull';
 import { applyPushChanges } from './sync/sync.push';
@@ -16,7 +17,7 @@ export const synchronize = async (userId: string, data: SyncBody): Promise<SyncR
     const changes = await pullServerChanges(tx, userId, lastSyncTimestamp);
 
     return {
-      syncTimestamp: new Date().toISOString(),
+      syncTimestamp: nowIsoTimestamp(),
       changes,
     };
   });

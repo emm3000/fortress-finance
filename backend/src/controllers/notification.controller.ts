@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import * as notificationService from '../services/notification.service';
 import { asyncHandler } from '../utils/asyncHandler';
 import { getUserIdOrThrow } from '../utils/http';
+import { parseBoundedInt } from '../utils/pagination';
 import { sendOk } from '../utils/response';
 import type {
   PushTokenInput,
@@ -30,7 +31,7 @@ export const unregisterToken = asyncHandler(async (req: UnregisterTokenRequest, 
 export const listNotifications = asyncHandler(async (req: Request, res: Response) => {
   const userId = getUserIdOrThrow(req, 'No autorizado');
   const rawLimit = (req.query as { limit?: unknown }).limit;
-  const limit = typeof rawLimit === 'number' ? rawLimit : Number(rawLimit ?? 30);
+  const limit = parseBoundedInt(rawLimit, { fallback: 30, min: 1, max: 100 });
   const notifications = await notificationService.getUserNotifications(userId, limit);
 
   sendOk(res, notifications);
