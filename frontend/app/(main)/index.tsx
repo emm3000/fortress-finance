@@ -12,6 +12,7 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { useAuthStore } from "../../store/auth.store";
 import { useCastle } from "../../hooks/useCastle";
 import { useSync } from "../../hooks/useSync";
+import { useSyncQueueStatus } from "../../hooks/useSyncQueueStatus";
 import { useTransactions } from "../../hooks/useTransactions";
 import { useMonthlyDashboard } from "../../hooks/useMonthlyDashboard";
 import { theme } from "../../constants/theme";
@@ -42,6 +43,7 @@ export default function Dashboard() {
   const logout = useAuthStore((state) => state.logout);
   const { castle } = useCastle();
   const { performSync, isSyncing } = useSync();
+  const { data: syncQueueStatus } = useSyncQueueStatus();
   const { transactions } = useTransactions();
   const { data: monthlyDashboard } = useMonthlyDashboard();
   const hasInitializedSync = useRef(false);
@@ -93,6 +95,19 @@ export default function Dashboard() {
           />
         }
       >
+        {(syncQueueStatus?.pendingCount ?? 0) > 0 || (syncQueueStatus?.failedCount ?? 0) > 0 ? (
+          <View className="mx-6 mt-3 p-3 rounded-xl border border-border bg-surface">
+            <Text className="text-text text-xs">
+              {`Sync pendiente: ${String(syncQueueStatus?.pendingCount ?? 0)} · Fallidos: ${String(syncQueueStatus?.failedCount ?? 0)}`}
+            </Text>
+            {syncQueueStatus?.failedCount ? (
+              <Text className="text-red-400 text-[11px] mt-1">
+                {syncQueueStatus.lastError || "Hay operaciones en reintento automático."}
+              </Text>
+            ) : null}
+          </View>
+        ) : null}
+
         {/* Header */}
         <View className="px-6 py-4 flex-row justify-between items-center">
           <View>

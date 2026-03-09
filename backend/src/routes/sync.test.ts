@@ -181,4 +181,54 @@ describe('Sync Routes Integration', () => {
     expect(pulledTx).toBeDefined();
     expect(pulledTx.deletedAt).toBeTruthy();
   });
+
+  it('should ignore incoming transaction updates older than server updatedAt', async () => {
+    const txId = uuidv4();
+    const newerTimestamp = new Date().toISOString();
+    const olderTimestamp = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+
+    await request(app)
+      .post('/api/sync')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        lastSyncTimestamp: null,
+        transactions: [
+          {
+            id: txId,
+            amount: 120,
+            type: 'EXPENSE',
+            categoryId,
+            date: newerTimestamp,
+            notes: 'newest state',
+            updatedAt: newerTimestamp,
+            deletedAt: null,
+          },
+        ],
+      });
+
+    const outdatedPush = await request(app)
+      .post('/api/sync')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        lastSyncTimestamp: null,
+        transactions: [
+          {
+            id: txId,
+            amount: 40,
+            type: 'EXPENSE',
+            categoryId,
+            date: olderTimestamp,
+            notes: 'outdated state',
+            updatedAt: olderTimestamp,
+            deletedAt: null,
+          },
+        ],
+      });
+
+    expect(outdatedPush.status).toBe(200);
+
+    const storedTx = await prisma.transaction.findUnique({ where: { id: txId } });
+    expect(Number(storedTx?.amount)).toBe(120);
+    expect(storedTx?.notes).toBe('newest state');
+  });
 });

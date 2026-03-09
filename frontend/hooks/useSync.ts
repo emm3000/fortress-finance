@@ -48,9 +48,13 @@ export const useSync = () => {
       if (result.hasCategoriesUpdate) {
         queryClient.invalidateQueries({ queryKey: ["categories", userId] });
       }
+      queryClient.invalidateQueries({ queryKey: ["sync-queue-status", userId] });
     },
     onError: (error) => {
       console.error("Sync error:", error);
+      if (userId) {
+        queryClient.invalidateQueries({ queryKey: ["sync-queue-status", userId] });
+      }
     },
   });
   const { mutateAsync, isPending, error } = syncMutation;

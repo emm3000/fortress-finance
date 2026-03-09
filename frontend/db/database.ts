@@ -90,11 +90,29 @@ export const initDatabase = async () => {
          value TEXT NOT NULL
       );
 
+      -- Sync Operations Queue (Offline-first retries with backoff)
+      CREATE TABLE IF NOT EXISTS sync_operations (
+        id TEXT PRIMARY KEY NOT NULL,
+        user_id TEXT NOT NULL,
+        entity_type TEXT NOT NULL,
+        entity_id TEXT NOT NULL,
+        operation TEXT NOT NULL,
+        payload TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'PENDING', -- PENDING | FAILED
+        attempts INTEGER NOT NULL DEFAULT 0,
+        next_retry_at TEXT,
+        last_error TEXT,
+        created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user_id, entity_type, entity_id)
+      );
+
       -- Performance Indexes
       CREATE INDEX IF NOT EXISTS idx_transactions_user_date ON transactions(user_id, date DESC);
       CREATE INDEX IF NOT EXISTS idx_transactions_sync ON transactions(is_synced);
       CREATE INDEX IF NOT EXISTS idx_transactions_user_sync ON transactions(user_id, is_synced);
       CREATE INDEX IF NOT EXISTS idx_transactions_user_deleted_date ON transactions(user_id, deleted_at, date DESC);
+      CREATE INDEX IF NOT EXISTS idx_sync_operations_user_status_retry ON sync_operations(user_id, status, next_retry_at);
     `);
 
     await ensureTransactionsColumns(db);

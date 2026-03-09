@@ -14,7 +14,7 @@ export const synchronize = async (userId: string, data: SyncBody) => {
       for (const t of transactions) {
         const existing = await tx.transaction.findUnique({
           where: { id: t.id },
-          select: { userId: true },
+          select: { userId: true, updatedAt: true },
         });
 
         if (existing && existing.userId !== userId) {
@@ -38,6 +38,12 @@ export const synchronize = async (userId: string, data: SyncBody) => {
           continue;
         }
 
+        const existingUpdatedAt = existing.updatedAt.getTime();
+        const incomingUpdatedAt = t.updatedAt.getTime();
+        if (incomingUpdatedAt < existingUpdatedAt) {
+          continue;
+        }
+
         await tx.transaction.update({
           where: { id: t.id },
           data: {
@@ -58,7 +64,7 @@ export const synchronize = async (userId: string, data: SyncBody) => {
       for (const b of budgets) {
         const existing = await tx.budget.findUnique({
           where: { id: b.id },
-          select: { userId: true },
+          select: { userId: true, updatedAt: true },
         });
 
         if (existing && existing.userId !== userId) {
@@ -79,6 +85,12 @@ export const synchronize = async (userId: string, data: SyncBody) => {
           continue;
         }
 
+        const existingUpdatedAt = existing.updatedAt.getTime();
+        const incomingUpdatedAt = b.updatedAt.getTime();
+        if (incomingUpdatedAt < existingUpdatedAt) {
+          continue;
+        }
+
         await tx.budget.update({
           where: { id: b.id },
           data: {
@@ -94,13 +106,23 @@ export const synchronize = async (userId: string, data: SyncBody) => {
     if (inventory.length > 0) {
       await Promise.all(
         inventory.map((inv) =>
-          tx.userInventory.update({
-            where: { id: inv.id, userId }, // Verificamos userId por seguridad
-            data: {
-              isEquipped: inv.isEquipped,
-              updatedAt: inv.updatedAt,
+          tx.userInventory.findUnique({ where: { id: inv.id }, select: { userId: true, updatedAt: true } }).then(
+            async (existingInventory) => {
+              if (existingInventory?.userId !== userId) {
+                return;
+              }
+              if (inv.updatedAt.getTime() < existingInventory.updatedAt.getTime()) {
+                return;
+              }
+              await tx.userInventory.update({
+                where: { id: inv.id },
+                data: {
+                  isEquipped: inv.isEquipped,
+                  updatedAt: inv.updatedAt,
+                },
+              });
             },
-          }),
+          ),
         ),
       );
     }

@@ -1,4 +1,5 @@
 import { getDatabase } from "./database";
+import { SyncQueueRepository } from "./syncQueue.repository";
 
 export interface Transaction {
   id: string;
@@ -56,6 +57,22 @@ export const TransactionRepository = {
       updatedAt,
       transaction.deleted_at ?? null
     );
+    await SyncQueueRepository.upsertOperation({
+      userId: transaction.user_id,
+      entityType: "TRANSACTION",
+      entityId: transaction.id,
+      operation: "UPSERT",
+      payload: {
+        id: transaction.id,
+        amount: transaction.amount,
+        type: transaction.type,
+        categoryId: transaction.category_id,
+        date: transaction.date,
+        notes: transaction.description,
+        updatedAt,
+        deletedAt: transaction.deleted_at ?? null,
+      },
+    });
     return transaction;
   },
 
@@ -120,10 +137,34 @@ export const TransactionRepository = {
       id,
       userId
     );
+    await SyncQueueRepository.upsertOperation({
+      userId,
+      entityType: "TRANSACTION",
+      entityId: id,
+      operation: "UPSERT",
+      payload: {
+        id,
+        amount: input.amount,
+        type: input.type,
+        categoryId: input.category_id,
+        date: input.date,
+        notes: input.description,
+        updatedAt,
+        deletedAt: null,
+      },
+    });
   },
 
   async softDelete(id: string, userId: string) {
     const db = await getDatabase();
+    const existing = await db.getFirstAsync<Transaction>(
+      "SELECT * FROM transactions WHERE id = ? AND user_id = ? LIMIT 1",
+      id,
+      userId
+    );
+
+    if (!existing) return;
+
     const now = new Date().toISOString();
     await db.runAsync(
       `UPDATE transactions
@@ -134,6 +175,22 @@ export const TransactionRepository = {
       id,
       userId
     );
+    await SyncQueueRepository.upsertOperation({
+      userId,
+      entityType: "TRANSACTION",
+      entityId: id,
+      operation: "DELETE",
+      payload: {
+        id,
+        amount: existing.amount,
+        type: existing.type,
+        categoryId: existing.category_id,
+        date: existing.date,
+        notes: existing.description,
+        updatedAt: now,
+        deletedAt: now,
+      },
+    });
   },
 
   async upsertManyFromRemote(remoteTransactions: RemoteTransaction[]) {
