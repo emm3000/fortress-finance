@@ -19,11 +19,12 @@ export const useTransactions = () => {
       if (!user?.id) return [];
       return await TransactionRepository.getAll(user.id, limit, pageParam);
     },
-    getNextPageParam: (lastPage, allPages) => {
+    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
       // If the last page has fewer items than the limit, we've reached the end
       if (lastPage.length < limit) return undefined;
-      // Otherwise, the next offset is the total number of items fetched so far
-      return allPages.flat().length;
+      // Keep pagination O(1): next offset = current offset + items in last page.
+      const currentOffset = typeof lastPageParam === "number" ? lastPageParam : 0;
+      return currentOffset + lastPage.length;
     },
     enabled: !!user?.id,
     initialPageParam: 0,
