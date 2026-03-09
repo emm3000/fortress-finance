@@ -8,7 +8,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { AlertTriangle, CheckCircle2, Coins, Pencil, ShieldAlert } from 'lucide-react-native';
 import { ScreenHeader } from '../../components/ui/screen-header';
 import { InlineError } from '../../components/feedback/inline-error';
@@ -57,6 +57,7 @@ export default function BudgetsScreen() {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const { data: categories = [] } = useCategories();
+  const { categoryName } = useLocalSearchParams<{ categoryName?: string | string[] }>();
   const {
     data: budgets = [],
     isLoading: isLoadingBudgets,
@@ -69,6 +70,19 @@ export default function BudgetsScreen() {
     () => categories.filter((category) => category.type === 'EXPENSE'),
     [categories],
   );
+
+  React.useEffect(() => {
+    const categoryNameParam =
+      typeof categoryName === 'string' ? categoryName.trim().toLowerCase() : '';
+    if (!categoryNameParam) return;
+
+    const matchedCategory = expenseCategories.find(
+      (category) => category.name.trim().toLowerCase() === categoryNameParam,
+    );
+    if (matchedCategory) {
+      setCategoryId(matchedCategory.id);
+    }
+  }, [categoryName, expenseCategories]);
 
   const progressByCategory = useMemo(() => {
     const map: Record<string, number> = {};

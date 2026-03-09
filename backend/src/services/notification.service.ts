@@ -45,6 +45,22 @@ export const unregisterPushToken = async (userId: string, token: string) => {
   });
 };
 
+export const getUserNotifications = async (userId: string, limit = 30) => {
+  return prisma.notificationLog.findMany({
+    where: { userId },
+    orderBy: { createdAt: 'desc' },
+    take: limit,
+    select: {
+      id: true,
+      title: true,
+      body: true,
+      type: true,
+      status: true,
+      createdAt: true,
+    },
+  });
+};
+
 /**
  * Send push notification to all devices of a user
  */

@@ -1,10 +1,15 @@
 import type { Request, Response, NextFunction } from 'express';
 import * as notificationService from '../services/notification.service';
 import { AppError } from '../utils/AppError';
-import type { PushTokenInput, UnregisterTokenInput } from '../validations/notification.validation';
+import type {
+  NotificationListQuery,
+  PushTokenInput,
+  UnregisterTokenInput,
+} from '../validations/notification.validation';
 
 type RegisterTokenRequest = Request<Record<string, never>, unknown, PushTokenInput>;
 type UnregisterTokenRequest = Request<Record<string, never>, unknown, UnregisterTokenInput>;
+type NotificationListRequest = Request<Record<string, never>, unknown, unknown, NotificationListQuery>;
 
 export const registerToken = async (
   req: RegisterTokenRequest,
@@ -41,6 +46,27 @@ export const unregisterToken = async (
     await notificationService.unregisterPushToken(userId, token);
 
     res.status(200).json({ message: 'Token eliminado exitosamente' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const listNotifications = async (
+  req: NotificationListRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.user?.userId;
+    if (!userId) {
+      throw new AppError(401, 'No autorizado');
+    }
+
+    const limitCandidate: unknown = req.query.limit;
+    const limit = typeof limitCandidate === 'number' ? limitCandidate : Number(limitCandidate ?? 30);
+    const notifications = await notificationService.getUserNotifications(userId, limit);
+
+    res.status(200).json(notifications);
   } catch (error) {
     next(error);
   }

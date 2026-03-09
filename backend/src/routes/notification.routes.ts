@@ -2,10 +2,20 @@ import { Router } from 'express';
 import * as notificationController from '../controllers/notification.controller';
 import { requireAuth } from '../middlewares/requireAuth';
 import { validate } from '../middlewares/validate';
-import { pushTokenSchema, unregisterTokenSchema } from '../validations/notification.validation';
+import {
+  notificationListQuerySchema,
+  pushTokenSchema,
+  unregisterTokenSchema,
+} from '../validations/notification.validation';
 
 const router = Router();
 
+router.get(
+  '/',
+  requireAuth,
+  validate(notificationListQuerySchema),
+  notificationController.listNotifications,
+);
 router.post(
   '/register',
   requireAuth,

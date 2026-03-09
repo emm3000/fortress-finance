@@ -27,6 +27,7 @@ import {
   Wallet,
   PiggyBank,
   BarChart3,
+  Bell,
 } from "lucide-react-native";
 import { MotiView } from "moti";
 
@@ -98,20 +99,32 @@ export default function Dashboard() {
             <Text className="text-text-muted text-sm">Bienvenido, Guerrero</Text>
             <Text className="text-text text-2xl font-bold">{user?.name}</Text>
           </View>
-          <Pressable
-            onPress={onRefresh}
-            disabled={isSyncing}
-            accessibilityRole="button"
-            accessibilityLabel="Sincronizar datos"
-            accessibilityHint="Actualiza los datos locales con el servidor"
-            className="bg-surface p-3 rounded-full border border-border"
-          >
-            <RefreshCw
-              size={20}
-              color={theme.colors.primary.DEFAULT}
-              className={isSyncing ? "animate-spin" : ""}
-            />
-          </Pressable>
+          <View className="flex-row items-center gap-2">
+            <Link href="/(main)/alerts" asChild>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Abrir centro de alertas"
+                accessibilityHint="Muestra las alertas de presupuestos y recompensas"
+                className="bg-surface p-3 rounded-full border border-border"
+              >
+                <Bell size={20} color={theme.colors.primary.DEFAULT} />
+              </Pressable>
+            </Link>
+            <Pressable
+              onPress={onRefresh}
+              disabled={isSyncing}
+              accessibilityRole="button"
+              accessibilityLabel="Sincronizar datos"
+              accessibilityHint="Actualiza los datos locales con el servidor"
+              className="bg-surface p-3 rounded-full border border-border"
+            >
+              <RefreshCw
+                size={20}
+                color={theme.colors.primary.DEFAULT}
+                className={isSyncing ? "animate-spin" : ""}
+              />
+            </Pressable>
+          </View>
         </View>
 
         {/* Castle Status Card */}
