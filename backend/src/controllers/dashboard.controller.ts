@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import * as dashboardService from '../services/dashboard.service';
 import { asyncHandler } from '../utils/asyncHandler';
 import { getUserIdOrThrow } from '../utils/http';
+import { sendOk } from '../utils/response';
 import type { MonthlyDashboardQuery } from '../validations/dashboard.validation';
 
 export const getMonthlyDashboard = asyncHandler(async (req: Request, res: Response) => {
@@ -13,5 +14,5 @@ export const getMonthlyDashboard = asyncHandler(async (req: Request, res: Respon
     ...(typeof month === 'number' ? { month } : {}),
   });
 
-  res.status(200).json(summary);
+  sendOk(res, summary);
 });

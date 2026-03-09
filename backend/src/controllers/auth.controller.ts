@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import * as authService from '../services/auth.service';
 import { asyncHandler } from '../utils/asyncHandler';
+import { sendCreated, sendOk } from '../utils/response';
 import type {
   ConfirmPasswordResetBody,
   LoginBody,
@@ -15,24 +16,24 @@ type ConfirmPasswordResetRequest = Request<Record<string, never>, unknown, Confi
 
 export const register = asyncHandler(async (req: RegisterRequest, res: Response) => {
   const result = await authService.registerUser(req.body);
-  res.status(201).json(result);
+  sendCreated(res, result);
 });
 
 export const login = asyncHandler(async (req: LoginRequest, res: Response) => {
   const result = await authService.loginUser(req.body);
-  res.status(200).json(result);
+  sendOk(res, result);
 });
 
 export const requestPasswordReset = asyncHandler(
   async (req: RequestPasswordResetRequest, res: Response) => {
     const result = await authService.requestPasswordReset(req.body);
-    res.status(200).json(result);
+    sendOk(res, result);
   },
 );
 
 export const confirmPasswordReset = asyncHandler(
   async (req: ConfirmPasswordResetRequest, res: Response) => {
     const result = await authService.confirmPasswordReset(req.body);
-    res.status(200).json(result);
+    sendOk(res, result);
   },
 );

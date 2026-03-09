@@ -3,6 +3,7 @@ import * as castleService from '../services/castle.service';
 import { asyncHandler } from '../utils/asyncHandler';
 import { errorCatalog } from '../utils/errorCatalog';
 import { getUserIdOrThrow } from '../utils/http';
+import { sendOk } from '../utils/response';
 
 export const getCastleState = asyncHandler(async (req: Request, res: Response) => {
   const userId = getUserIdOrThrow(req);
@@ -10,5 +11,5 @@ export const getCastleState = asyncHandler(async (req: Request, res: Response) =
   if (!castle) {
     throw errorCatalog.resource.notFound('Castillo no encontrado para este usuario');
   }
-  res.status(200).json(castle);
+  sendOk(res, castle);
 });

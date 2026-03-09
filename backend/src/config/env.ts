@@ -14,6 +14,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   CORS_ORIGINS: z.string().default(''),
   ENABLE_CRON: z.coerce.boolean().default(false),
+  API_RESPONSE_ENVELOPE: z.coerce.boolean().default(false),
 });
 
 const parsed = envSchema.safeParse(process.env);

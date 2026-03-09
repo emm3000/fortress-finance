@@ -3,6 +3,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { AppError } from '../utils/AppError';
 import { env } from '../config/env';
 import { logger } from '../utils/logger';
+import { sendError } from '../utils/response';
 
 export const errorHandler = (
   err: unknown,
@@ -27,7 +28,9 @@ export const errorHandler = (
       logger.warn('App error (client)', logMeta);
     }
 
-    res.status(err.statusCode).json({ error: err.message });
+    sendError(res, err.statusCode, err.message, {
+      ...(err.code ? { code: err.code } : {}),
+    });
     return;
   }
 
@@ -41,10 +44,10 @@ export const errorHandler = (
 
     // Handling Prisma specific errors
     if (err.code === 'P2002') {
-      res.status(409).json({ error: 'Conflicto de datos. Ya existe un registro con esos valores.' });
+      sendError(res, 409, 'Conflicto de datos. Ya existe un registro con esos valores.');
       return;
     }
-    res.status(400).json({ error: 'Solicitud inválida por conflicto en base de datos.' });
+    sendError(res, 400, 'Solicitud inválida por conflicto en base de datos.');
     return;
   }
 
@@ -56,9 +59,9 @@ export const errorHandler = (
   });
 
   if (isProduction) {
-    res.status(500).json({ error: 'Internal Server Error' });
+    sendError(res, 500, 'Internal Server Error');
     return;
   }
 
-  res.status(500).json({ error: 'Internal Server Error', message: errorMessage });
+  sendError(res, 500, 'Internal Server Error', { details: { message: errorMessage } });
 };
