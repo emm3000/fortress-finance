@@ -1,9 +1,39 @@
 import prisma from '../config/db';
 
-interface MonthlyDashboardInput {
+export interface MonthlyDashboardInput {
   userId: string;
   year?: number;
   month?: number;
+}
+
+interface DashboardCategoryStats {
+  totalSpent: number;
+  txCount: number;
+}
+
+export interface MonthlyDashboardSummary {
+  period: {
+    year: number;
+    month: number;
+    from: string;
+    to: string;
+  };
+  totals: {
+    income: number;
+    expense: number;
+    balance: number;
+  };
+  txCount: {
+    income: number;
+    expense: number;
+  };
+  topExpenseCategories: {
+    categoryId: string;
+    categoryName: string;
+    categoryIcon: string;
+    totalSpent: number;
+    txCount: number;
+  }[];
 }
 
 const toMonthRange = (year?: number, month?: number) => {
@@ -17,10 +47,8 @@ const toMonthRange = (year?: number, month?: number) => {
   return { resolvedYear, resolvedMonth, from, to };
 };
 
-export const getMonthlyDashboard = async ({ userId, year, month }: MonthlyDashboardInput) => {
-  const { resolvedYear, resolvedMonth, from, to } = toMonthRange(year, month);
-
-  const transactions = await prisma.transaction.findMany({
+const loadMonthlyTransactions = async (userId: string, from: Date, to: Date) => {
+  return prisma.transaction.findMany({
     where: {
       userId,
       deletedAt: null,
@@ -35,12 +63,22 @@ export const getMonthlyDashboard = async ({ userId, year, month }: MonthlyDashbo
       categoryId: true,
     },
   });
+};
 
+const aggregateMonthlyStats = (
+  transactions: Awaited<ReturnType<typeof loadMonthlyTransactions>>,
+): {
+  incomeTotal: number;
+  expenseTotal: number;
+  incomeTxCount: number;
+  expenseTxCount: number;
+  expenseByCategory: Map<string, DashboardCategoryStats>;
+} => {
   let incomeTotal = 0;
   let expenseTotal = 0;
   let incomeTxCount = 0;
   let expenseTxCount = 0;
-  const expenseByCategory = new Map<string, { totalSpent: number; txCount: number }>();
+  const expenseByCategory = new Map<string, DashboardCategoryStats>();
 
   for (const tx of transactions) {
     const amount = Number(tx.amount);
@@ -65,20 +103,51 @@ export const getMonthlyDashboard = async ({ userId, year, month }: MonthlyDashbo
     });
   }
 
-  const sortedExpenseCategories = [...expenseByCategory.entries()]
+  return {
+    incomeTotal,
+    expenseTotal,
+    incomeTxCount,
+    expenseTxCount,
+    expenseByCategory,
+  };
+};
+
+const getTopExpenseCategories = (
+  expenseByCategory: Map<string, DashboardCategoryStats>,
+): [string, DashboardCategoryStats][] => {
+  return [...expenseByCategory.entries()]
     .sort((a, b) => b[1].totalSpent - a[1].totalSpent)
     .slice(0, 5);
+};
+
+const loadCategoriesById = async (categoryIds: string[]) => {
+  if (categoryIds.length === 0) {
+    return new Map<string, { id: string; name: string; icon: string }>();
+  }
+
+  const categories = await prisma.category.findMany({
+    where: { id: { in: categoryIds } },
+    select: { id: true, name: true, icon: true },
+  });
+
+  return new Map(categories.map((category) => [category.id, category]));
+};
+
+export const getMonthlyDashboard = async ({
+  userId,
+  year,
+  month,
+}: MonthlyDashboardInput): Promise<MonthlyDashboardSummary> => {
+  const { resolvedYear, resolvedMonth, from, to } = toMonthRange(year, month);
+
+  const transactions = await loadMonthlyTransactions(userId, from, to);
+  const { incomeTotal, expenseTotal, incomeTxCount, expenseTxCount, expenseByCategory } =
+    aggregateMonthlyStats(transactions);
+
+  const sortedExpenseCategories = getTopExpenseCategories(expenseByCategory);
 
   const categoryIds = sortedExpenseCategories.map(([categoryId]) => categoryId);
-  const categories =
-    categoryIds.length > 0
-      ? await prisma.category.findMany({
-          where: { id: { in: categoryIds } },
-          select: { id: true, name: true, icon: true },
-        })
-      : [];
-
-  const categoriesById = new Map(categories.map((category) => [category.id, category]));
+  const categoriesById = await loadCategoriesById(categoryIds);
 
   return {
     period: {
