@@ -1,9 +1,16 @@
 import type { Request, Response, NextFunction } from 'express';
 import * as authService from '../services/auth.service';
-import type { RegisterBody, LoginBody } from '../validations/auth.validation';
+import type {
+  ConfirmPasswordResetBody,
+  LoginBody,
+  RegisterBody,
+  RequestPasswordResetBody,
+} from '../validations/auth.validation';
 
 type RegisterRequest = Request<Record<string, never>, unknown, RegisterBody>;
 type LoginRequest = Request<Record<string, never>, unknown, LoginBody>;
+type RequestPasswordResetRequest = Request<Record<string, never>, unknown, RequestPasswordResetBody>;
+type ConfirmPasswordResetRequest = Request<Record<string, never>, unknown, ConfirmPasswordResetBody>;
 
 export const register = async (req: RegisterRequest, res: Response, next: NextFunction) => {
   try {
@@ -17,6 +24,32 @@ export const register = async (req: RegisterRequest, res: Response, next: NextFu
 export const login = async (req: LoginRequest, res: Response, next: NextFunction) => {
   try {
     const result = await authService.loginUser(req.body);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const requestPasswordReset = async (
+  req: RequestPasswordResetRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const result = await authService.requestPasswordReset(req.body);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const confirmPasswordReset = async (
+  req: ConfirmPasswordResetRequest,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const result = await authService.confirmPasswordReset(req.body);
     res.status(200).json(result);
   } catch (error) {
     next(error);

@@ -15,5 +15,20 @@ export const loginSchema = z.object({
   }),
 });
 
+export const requestPasswordResetSchema = z.object({
+  body: z.object({
+    email: z.email('Email inválido'),
+  }),
+});
+
+export const confirmPasswordResetSchema = z.object({
+  body: z.object({
+    token: z.string().min(10, 'Token inválido'),
+    newPassword: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
+  }),
+});
+
 export type RegisterBody = z.infer<typeof registerSchema>['body'];
 export type LoginBody = z.infer<typeof loginSchema>['body'];
+export type RequestPasswordResetBody = z.infer<typeof requestPasswordResetSchema>['body'];
+export type ConfirmPasswordResetBody = z.infer<typeof confirmPasswordResetSchema>['body'];

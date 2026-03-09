@@ -105,6 +105,18 @@ export default function LoginScreen() {
 
         <InlineError message={submitError} />
 
+        <View className="items-center mt-2">
+          <Link href="/(auth)/forgot-password" asChild>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Recuperar contraseña"
+              accessibilityHint="Abre el flujo para restablecer tu contraseña"
+            >
+              <Text className="text-primary text-sm font-medium">Olvidé mi contraseña</Text>
+            </Pressable>
+          </Link>
+        </View>
+
         <View className="flex-row justify-center mt-6">
           <Text className="text-text-muted">¿Eres nuevo recluta? </Text>
           <Link href="/(auth)/register" asChild>
