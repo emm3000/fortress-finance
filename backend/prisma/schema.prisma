@@ -53,6 +53,7 @@ model User {
   pushTokens    UserPushToken[]
   notifications NotificationLog[]
   preferences   UserPreference?
+  initialCategories UserInitialCategory[]
 
   @@map("users")
 }
@@ -66,6 +67,7 @@ model Category {
   updatedAt    DateTime        @updatedAt @map("updated_at") @db.Timestamptz
   transactions Transaction[]
   budgets      Budget[]
+  initialForUsers UserInitialCategory[]
 
   @@unique([name, type])
   @@map("categories")
@@ -211,4 +213,17 @@ model UserPreference {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_preferences")
+}
+
+model UserInitialCategory {
+  userId     String   @map("user_id") @db.Uuid
+  categoryId String   @map("category_id") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([userId, categoryId])
+  @@index([userId])
+  @@map("user_initial_categories")
 }

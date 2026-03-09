@@ -40,6 +40,28 @@ describe('Onboarding Routes Integration', () => {
     expect(stored).not.toBeNull();
     expect(stored?.currency).toBe('USD');
     expect(Number(stored?.monthlyIncomeGoal ?? 0)).toBe(3500.5);
+
+    const initialCategories = await prisma.userInitialCategory.findMany({
+      where: { userId },
+    });
+    expect(initialCategories.length).toBeGreaterThan(0);
+  });
+
+  it('should not duplicate initial categories on subsequent updates', async () => {
+    const firstCount = await prisma.userInitialCategory.count({ where: { userId } });
+
+    const response = await request(app)
+      .post('/api/onboarding/preferences')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        currency: 'EUR',
+        monthlyIncomeGoal: 4200,
+      });
+
+    expect(response.status).toBe(200);
+
+    const secondCount = await prisma.userInitialCategory.count({ where: { userId } });
+    expect(secondCount).toBe(firstCount);
   });
 
   it('should return 401 if user is not authenticated', async () => {
