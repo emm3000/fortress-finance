@@ -27,6 +27,11 @@ type RemoteTransaction = {
   deletedAt: string | null;
 };
 
+interface MonthlyCategorySpend {
+  categoryId: string;
+  totalSpent: number;
+}
+
 /**
  * Repository for Transaction operations in SQLite.
  * Follows the Offline-First pattern.
@@ -163,6 +168,35 @@ export const TransactionRepository = {
         );
       }
     });
+  },
+
+  async getMonthlyExpenseByCategory(
+    userId: string,
+    year: number,
+    month: number
+  ): Promise<MonthlyCategorySpend[]> {
+    const db = await getDatabase();
+    const start = new Date(Date.UTC(year, month - 1, 1)).toISOString();
+    const end = new Date(Date.UTC(year, month, 1)).toISOString();
+
+    const rows = await db.getAllAsync<{ categoryId: string; totalSpent: number }>(
+      `SELECT category_id AS categoryId, SUM(amount) AS totalSpent
+       FROM transactions
+       WHERE user_id = ?
+         AND type = 'EXPENSE'
+         AND deleted_at IS NULL
+         AND date >= ?
+         AND date < ?
+       GROUP BY category_id`,
+      userId,
+      start,
+      end
+    );
+
+    return rows.map((row) => ({
+      categoryId: row.categoryId,
+      totalSpent: Number(row.totalSpent ?? 0),
+    }));
   },
 
   /**

@@ -170,6 +170,16 @@ export default function Dashboard() {
           <View className="flex-row items-center mb-4">
             <BarChart3 size={18} color={theme.colors.primary.DEFAULT} />
             <Text className="text-text text-lg font-bold ml-2">Resumen del Mes</Text>
+            <Link href="/(main)/budgets" asChild>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Ir a presupuestos"
+                accessibilityHint="Abre la pantalla para crear y editar presupuestos"
+                className="ml-auto px-3 py-2 rounded-lg border border-border"
+              >
+                <Text className="text-primary text-xs font-semibold">Presupuestos</Text>
+              </Pressable>
+            </Link>
           </View>
 
           <View className="flex-row gap-3">
