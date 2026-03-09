@@ -1,5 +1,5 @@
 import type { Request } from 'express';
-import { AppError } from './AppError';
+import { errorCatalog } from './errorCatalog';
 
 export const getUserIdOrThrow = (
   req: Request,
@@ -7,7 +7,7 @@ export const getUserIdOrThrow = (
 ): string => {
   const userId = req.user?.userId;
   if (!userId) {
-    throw new AppError(401, message);
+    throw errorCatalog.auth.unauthorized(message);
   }
   return userId;
 };
@@ -19,7 +19,7 @@ export const getStringParamOrThrow = (
 ): string => {
   const value = req.params[paramName];
   if (typeof value !== 'string' || value.length === 0) {
-    throw new AppError(400, message);
+    throw errorCatalog.request.invalidParam(message);
   }
   return value;
 };

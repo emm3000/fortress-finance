@@ -12,19 +12,33 @@ export const errorHandler = (
 ): void => {
   const isProduction = env.NODE_ENV === 'production';
 
-  logger.error('Unhandled API error', {
-    path: req.path,
-    method: req.method,
-    error: err,
-  });
-
   // Handle semantic application errors (401, 409, etc.)
   if (err instanceof AppError) {
+    const logMeta = {
+      path: req.path,
+      method: req.method,
+      statusCode: err.statusCode,
+      code: err.code ?? null,
+      message: err.message,
+    };
+    if (err.statusCode >= 500) {
+      logger.error('App error (server)', logMeta);
+    } else {
+      logger.warn('App error (client)', logMeta);
+    }
+
     res.status(err.statusCode).json({ error: err.message });
     return;
   }
 
   if (err instanceof PrismaClientKnownRequestError) {
+    logger.warn('Prisma known request error', {
+      path: req.path,
+      method: req.method,
+      prismaCode: err.code,
+      message: err.message,
+    });
+
     // Handling Prisma specific errors
     if (err.code === 'P2002') {
       res.status(409).json({ error: 'Conflicto de datos. Ya existe un registro con esos valores.' });
@@ -35,6 +49,12 @@ export const errorHandler = (
   }
 
   const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+  logger.error('Unhandled API error', {
+    path: req.path,
+    method: req.method,
+    error: err,
+  });
+
   if (isProduction) {
     res.status(500).json({ error: 'Internal Server Error' });
     return;

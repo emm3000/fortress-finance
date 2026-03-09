@@ -3,7 +3,6 @@ import * as notificationService from '../services/notification.service';
 import { asyncHandler } from '../utils/asyncHandler';
 import { getUserIdOrThrow } from '../utils/http';
 import type {
-  NotificationListQuery,
   PushTokenInput,
   UnregisterTokenInput,
 } from '../validations/notification.validation';

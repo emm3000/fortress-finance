@@ -8,8 +8,8 @@ import type {
   RegisterBody,
   RequestPasswordResetBody,
 } from '../validations/auth.validation';
-import { AppError } from '../utils/AppError';
 import { env } from '../config/env';
+import { errorCatalog } from '../utils/errorCatalog';
 
 const PASSWORD_RESET_TTL_MINUTES = 60;
 
@@ -24,7 +24,7 @@ export const registerUser = async (data: RegisterBody) => {
   });
 
   if (existingUser) {
-    throw new AppError(409, 'El usuario ya existe');
+    throw errorCatalog.auth.userExists();
   }
 
   const passwordHash = await hashPassword(password);
@@ -81,13 +81,13 @@ export const loginUser = async (data: LoginBody) => {
   });
 
   if (!user) {
-    throw new AppError(401, 'Credenciales inválidas');
+    throw errorCatalog.auth.invalidCredentials();
   }
 
   const isPasswordMatch = await comparePassword(password, user.passwordHash);
 
   if (!isPasswordMatch) {
-    throw new AppError(401, 'Credenciales inválidas');
+    throw errorCatalog.auth.invalidCredentials();
   }
 
   const token = signToken({ userId: user.id });
@@ -157,11 +157,11 @@ export const confirmPasswordReset = async (data: ConfirmPasswordResetBody) => {
   });
 
   if (!storedToken) {
-    throw new AppError(400, 'Token inválido o expirado');
+    throw errorCatalog.auth.resetTokenInvalidOrExpired();
   }
 
   if (storedToken.usedAt !== null || storedToken.expiresAt.getTime() <= Date.now()) {
-    throw new AppError(400, 'Token inválido o expirado');
+    throw errorCatalog.auth.resetTokenInvalidOrExpired();
   }
 
   const newPasswordHash = await hashPassword(data.newPassword);
@@ -181,7 +181,7 @@ export const confirmPasswordReset = async (data: ConfirmPasswordResetBody) => {
     });
 
     if (tokenUsage.count === 0) {
-      throw new AppError(400, 'Token inválido o expirado');
+      throw errorCatalog.auth.resetTokenInvalidOrExpired();
     }
 
     await tx.user.update({

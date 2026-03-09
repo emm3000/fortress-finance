@@ -1,5 +1,5 @@
 import prisma from '../config/db';
-import { AppError } from '../utils/AppError';
+import { errorCatalog } from '../utils/errorCatalog';
 import type { UpdateTransactionInput } from '../validations/transaction.validation';
 
 const getOwnedTransactionOrThrow = async (userId: string, transactionId: string) => {
@@ -9,11 +9,11 @@ const getOwnedTransactionOrThrow = async (userId: string, transactionId: string)
   });
 
   if (!transaction || transaction.deletedAt) {
-    throw new AppError(404, 'Transacción no encontrada');
+    throw errorCatalog.resource.notFound('Transacción no encontrada');
   }
 
   if (transaction.userId !== userId) {
-    throw new AppError(403, 'No autorizado para modificar esta transacción');
+    throw errorCatalog.resource.forbidden('No autorizado para modificar esta transacción');
   }
 
   return transaction;

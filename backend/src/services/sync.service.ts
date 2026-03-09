@@ -6,7 +6,7 @@ import type {
   SyncBody,
   TransactionSyncInput,
 } from '../validations/sync.validation';
-import { AppError } from '../utils/AppError';
+import { errorCatalog } from '../utils/errorCatalog';
 
 const isIncomingOlder = (incoming: Date, current: Date) => incoming.getTime() < current.getTime();
 
@@ -21,7 +21,7 @@ const applyTransactionPush = async (
   });
 
   if (existing && existing.userId !== userId) {
-    throw new AppError(403, 'No autorizado para modificar esta transacción');
+    throw errorCatalog.resource.forbidden('No autorizado para modificar esta transacción');
   }
 
   if (!existing) {
@@ -66,7 +66,7 @@ const applyBudgetPush = async (tx: Prisma.TransactionClient, userId: string, bud
   });
 
   if (existing && existing.userId !== userId) {
-    throw new AppError(403, 'No autorizado para modificar este presupuesto');
+    throw errorCatalog.resource.forbidden('No autorizado para modificar este presupuesto');
   }
 
   if (!existing) {

@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
 import prisma from '../config/db';
-import { AppError } from '../utils/AppError';
+import { errorCatalog } from '../utils/errorCatalog';
 
 /**
  * Get user's inventory
@@ -29,7 +29,7 @@ export const purchaseItem = async (userId: string, itemId: string) => {
       });
 
       if (existingOwnership) {
-        throw new AppError(409, 'Ya posees este objeto');
+        throw errorCatalog.economy.itemAlreadyOwned();
       }
 
       // 2. Obtener el item y verificar precio
@@ -38,7 +38,7 @@ export const purchaseItem = async (userId: string, itemId: string) => {
       });
 
       if (!item) {
-        throw new AppError(404, 'Objeto de tienda no encontrado');
+        throw errorCatalog.economy.itemNotFound();
       }
 
       // 3. Ejecutar débito atómico solo si el saldo alcanza.
@@ -54,7 +54,7 @@ export const purchaseItem = async (userId: string, itemId: string) => {
       });
 
       if (walletDebit.count === 0) {
-        throw new AppError(400, 'Balance de oro insuficiente');
+        throw errorCatalog.economy.insufficientBalance();
       }
 
       // 4. Registrar adquisición del item
@@ -82,7 +82,7 @@ export const purchaseItem = async (userId: string, itemId: string) => {
     });
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-      throw new AppError(409, 'Ya posees este objeto');
+      throw errorCatalog.economy.itemAlreadyOwned();
     }
 
     throw error;
