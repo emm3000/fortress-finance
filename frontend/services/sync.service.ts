@@ -4,11 +4,21 @@ import { CategoryRepository } from "../db/category.repository";
 import { CastleRepository } from "../db/castle.repository";
 import { SyncMetaRepository } from "../db/syncMeta.repository";
 
+const CATEGORY_SYNC_META_KEY = "categories_last_sync";
+const CATEGORY_SYNC_TTL_MS = 1000 * 60 * 60 * 6;
+
+export type FullSyncResult = {
+  status: "success";
+  syncTimestamp: string;
+  hasTransactionsUpdates: boolean;
+  hasCastleUpdate: boolean;
+};
+
 export const SyncService = {
   /**
    * Main synchronization flow: PUSH unsynced and PULL changes.
    */
-  async fullSync(userId: string) {
+  async fullSync(userId: string): Promise<FullSyncResult> {
     try {
       // 1. Get local pending transactions (PUSH)
       const pendingTransactions = await TransactionRepository.getPendingSync(userId);
@@ -66,7 +76,12 @@ export const SyncService = {
         throw dbError;
       }
 
-      return { status: "success", syncTimestamp };
+      return {
+        status: "success",
+        syncTimestamp,
+        hasTransactionsUpdates: pendingTransactions.length > 0,
+        hasCastleUpdate: !!castleChange,
+      };
     } catch (error) {
       console.error("Sync failed:", error);
       throw error;
@@ -78,9 +93,20 @@ export const SyncService = {
    */
   async syncCategories() {
     try {
+      const lastCategoriesSync = await SyncMetaRepository.get(CATEGORY_SYNC_META_KEY);
+      const lastCategoriesSyncAt = lastCategoriesSync ? Date.parse(lastCategoriesSync) : NaN;
+      const isCategoriesFresh =
+        Number.isFinite(lastCategoriesSyncAt) &&
+        Date.now() - lastCategoriesSyncAt < CATEGORY_SYNC_TTL_MS;
+
+      if (isCategoriesFresh) {
+        return [];
+      }
+
       const response = await apiClient.get("/categories");
       const categories = response.data;
       await CategoryRepository.upsertMany(categories);
+      await SyncMetaRepository.set(CATEGORY_SYNC_META_KEY, new Date().toISOString());
       return categories;
     } catch (error) {
       console.error("Category sync failed:", error);

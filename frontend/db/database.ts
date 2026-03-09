@@ -73,6 +73,7 @@ export const initDatabase = async () => {
       -- Performance Indexes
       CREATE INDEX IF NOT EXISTS idx_transactions_user_date ON transactions(user_id, date DESC);
       CREATE INDEX IF NOT EXISTS idx_transactions_sync ON transactions(is_synced);
+      CREATE INDEX IF NOT EXISTS idx_transactions_user_sync ON transactions(user_id, is_synced);
     `);
 
     dbInstance = db;

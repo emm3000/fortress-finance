@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  InteractionManager,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -15,7 +16,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import * as Crypto from "expo-crypto";
-import { CategoryRepository, Category } from "../../db/category.repository";
+import { useCategories } from "../../hooks/useCategories";
 import { TransactionRepository } from "../../db/transaction.repository";
 import { useSync } from "../../hooks/useSync";
 import { useAuthStore } from "../../store/auth.store";
@@ -37,11 +38,10 @@ const transactionSchema = z.object({
 type TransactionFormData = z.infer<typeof transactionSchema>;
 
 export default function NewTransactionScreen() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const { user } = useAuthStore();
   const { performSync } = useSync();
+  const { data: categories = [], isLoading: isCategoriesLoading } = useCategories();
   const insets = useSafeAreaInsets();
 
   const {
@@ -61,15 +61,10 @@ export default function NewTransactionScreen() {
   });
 
   const transactionType = watch("type");
-
-  useEffect(() => {
-    async function loadCategories() {
-      const data = await CategoryRepository.getAll();
-      setCategories(data);
-      setIsLoading(false);
-    }
-    loadCategories();
-  }, []);
+  const categoriesForType = useMemo(
+    () => categories.filter((c) => c.type === transactionType),
+    [categories, transactionType]
+  );
 
   const onSubmit = async (data: TransactionFormData) => {
     setSubmitError(null);
@@ -92,10 +87,14 @@ export default function NewTransactionScreen() {
       };
 
       await TransactionRepository.create(newTransaction);
-      
-      // Sync in background and return
-      performSync().catch(console.error);
       router.back();
+
+      // Defer background sync until UI interactions/transitions finish.
+      InteractionManager.runAfterInteractions(() => {
+        performSync().catch(() => {
+          // Errors are surfaced through the sync hook/UI state when relevant.
+        });
+      });
     } catch (error: any) {
       const message = error?.response?.data?.message || "No se pudo guardar la transacción. Intenta nuevamente.";
       setSubmitError(message);
@@ -193,12 +192,10 @@ export default function NewTransactionScreen() {
               name="categoryId"
               render={({ field: { value } }) => (
                 <View className="flex-row flex-wrap gap-2">
-                  {isLoading ? (
+                  {isCategoriesLoading ? (
                     <ActivityIndicator color="#FFD700" />
                   ) : (
-                    categories
-                      .filter((c) => c.type === transactionType)
-                      .map((cat) => (
+                    categoriesForType.map((cat) => (
                         <Pressable
                           key={cat.id}
                           onPress={() => setValue("categoryId", cat.id)}

@@ -4,19 +4,19 @@ import { CastleRepository, CastleState } from "../db/castle.repository";
 import { useAuthStore } from "../store/auth.store";
 
 export const useCastle = () => {
-  const user = useAuthStore((state) => state.user);
+  const userId = useAuthStore((state) => state.user?.id);
 
   const {
     data,
     isLoading,
     refetch,
   } = useQuery<CastleState | null>({
-    queryKey: ["castle", user?.id],
+    queryKey: ["castle", userId],
     queryFn: async () => {
-      if (!user) return null;
-      return await CastleRepository.get(user.id);
+      if (!userId) return null;
+      return await CastleRepository.get(userId);
     },
-    enabled: !!user?.id,
+    enabled: !!userId,
   });
 
   const refreshCastle = useCallback(async () => {

@@ -6,6 +6,7 @@ import {
   ScrollView,
   Pressable,
   RefreshControl,
+  InteractionManager,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuthStore } from "../../store/auth.store";
@@ -34,7 +35,7 @@ const STATUS_COLORS: Record<string, string> = {
 export default function Dashboard() {
   const user = useAuthStore((state) => state.user);
   const logout = useAuthStore((state) => state.logout);
-  const { castle, refreshCastle } = useCastle();
+  const { castle } = useCastle();
   const { performSync, isSyncing } = useSync();
   const { transactions } = useTransactions();
   const hasInitializedSync = useRef(false);
@@ -46,24 +47,20 @@ export default function Dashboard() {
     if (hasInitializedSync.current) return;
     hasInitializedSync.current = true;
 
-    let mounted = true;
-    performSync()
-      .then(() => {
-        if (mounted) refreshCastle();
-      })
-      .catch((error) => console.error("Initial Sync Failed:", error));
-      
-    return () => { mounted = false; };
-  }, [performSync, refreshCastle]);
+    const task = InteractionManager.runAfterInteractions(() => {
+      performSync().catch((error) => console.error("Initial Sync Failed:", error));
+    });
+
+    return () => task.cancel();
+  }, [performSync]);
 
   const onRefresh = useCallback(async () => {
     try {
       await performSync();
-      await refreshCastle();
     } catch (error) {
        console.error("Refresh failed:", error);
     }
-  }, [performSync, refreshCastle]);
+  }, [performSync]);
 
   const hpPercentage = React.useMemo(() => {
     if (!hpMax) return 0;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -11,8 +11,9 @@ import { FlashList } from "@shopify/flash-list";
 import { router } from "expo-router";
 import { useTransactions } from "../../hooks/useTransactions";
 import { useSync } from "../../hooks/useSync";
+import { useCategories } from "../../hooks/useCategories";
 import { Transaction } from "../../db/transaction.repository";
-import { CategoryRepository, Category } from "../../db/category.repository";
+import { Category } from "../../db/category.repository";
 import { EmptyState } from "../../components/feedback/empty-state";
 import { LoadingState } from "../../components/feedback/loading-state";
 import {
@@ -33,6 +34,11 @@ const TransactionListItem = React.memo(function TransactionListItem({
   transaction: Transaction;
   category?: Category;
 }) {
+  const formattedDate = useMemo(
+    () => format(new Date(transaction.date), "PPP", { locale: es }),
+    [transaction.date]
+  );
+
   return (
     <View
       className="mb-4 p-4 bg-surface rounded-2xl border border-border flex-row items-center justify-between"
@@ -53,9 +59,7 @@ const TransactionListItem = React.memo(function TransactionListItem({
           <Text className="text-text font-bold text-base" numberOfLines={1}>
             {transaction.description || category?.name || "Sin descripción"}
           </Text>
-          <Text className="text-text-muted text-xs">
-            {format(new Date(transaction.date), "PPP", { locale: es })}
-          </Text>
+          <Text className="text-text-muted text-xs">{formattedDate}</Text>
         </View>
       </View>
 
@@ -92,27 +96,33 @@ export default function HistoryScreen() {
     fetchNextPage
   } = useTransactions();
   const { performSync, isSyncing } = useSync();
-  const [categories, setCategories] = useState<{ [key: string]: Category }>({});
+  const { data: categories = [] } = useCategories();
 
-  useEffect(() => {
-    async function loadCategories() {
-      const data = await CategoryRepository.getAll();
-      const catMap: { [key: string]: Category } = {};
-      for (const cat of data) {
-        catMap[cat.id] = cat;
-      }
-      setCategories(catMap);
+  const categoriesById = useMemo(() => {
+    const map: Record<string, Category> = {};
+    for (const cat of categories) {
+      map[cat.id] = cat;
     }
-    loadCategories();
-  }, []);
+    return map;
+  }, [categories]);
 
-  const onRefresh = async () => {
+  const onRefresh = useCallback(async () => {
     try {
       await performSync();
     } finally {
       await refreshTransactions();
     }
-  };
+  }, [performSync, refreshTransactions]);
+
+  const keyExtractor = useCallback((item: Transaction) => item.id, []);
+
+  const renderItem = useCallback(
+    ({ item }: { item: Transaction }) => {
+      const category = categoriesById[item.category_id || ""];
+      return <TransactionListItem transaction={item} category={category} />;
+    },
+    [categoriesById]
+  );
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -134,9 +144,9 @@ export default function HistoryScreen() {
         <LoadingState message="Cargando crónicas..." />
       ) : (
         <View className="flex-1 px-6">
-          <FlashList
+          <FlashList<Transaction>
             data={transactions}
-            keyExtractor={(item: Transaction) => item.id}
+            keyExtractor={keyExtractor}
             // @ts-expect-error - FlashList requires estimatedItemSize but TS type strictness is failing here
             estimatedItemSize={90}
             refreshControl={
@@ -163,10 +173,7 @@ export default function HistoryScreen() {
               ) : null
             }
             contentContainerStyle={{ paddingBottom: 40, paddingTop: 16 }}
-            renderItem={({ item: t }: { item: Transaction }) => {
-              const category = categories[t.category_id || ""];
-              return <TransactionListItem transaction={t} category={category} />;
-            }}
+            renderItem={renderItem}
           />
         </View>
       )}

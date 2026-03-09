@@ -1,9 +1,10 @@
+import { useCallback, useMemo } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { TransactionRepository } from "../db/transaction.repository";
 import { useAuthStore } from "../store/auth.store";
 
 export const useTransactions = () => {
-  const user = useAuthStore((state) => state.user);
+  const userId = useAuthStore((state) => state.user?.id);
   const limit = 20;
 
   const {
@@ -14,10 +15,10 @@ export const useTransactions = () => {
     fetchNextPage,
     refetch,
   } = useInfiniteQuery({
-    queryKey: ['transactions', user?.id],
+    queryKey: ["transactions", userId],
     queryFn: async ({ pageParam = 0 }) => {
-      if (!user?.id) return [];
-      return await TransactionRepository.getAll(user.id, limit, pageParam);
+      if (!userId) return [];
+      return await TransactionRepository.getAll(userId, limit, pageParam);
     },
     getNextPageParam: (lastPage, _allPages, lastPageParam) => {
       // If the last page has fewer items than the limit, we've reached the end
@@ -26,21 +27,24 @@ export const useTransactions = () => {
       const currentOffset = typeof lastPageParam === "number" ? lastPageParam : 0;
       return currentOffset + lastPage.length;
     },
-    enabled: !!user?.id,
+    enabled: !!userId,
     initialPageParam: 0,
   });
 
-  // Flatten the pages for easy consumption by components
-  const transactions = data?.pages.flat() || [];
+  const transactions = useMemo(() => data?.pages.flat() ?? [], [data?.pages]);
+  const refreshTransactions = useCallback(() => refetch(), [refetch]);
+  const fetchMoreTransactions = useCallback(() => {
+    if (hasNextPage) {
+      fetchNextPage();
+    }
+  }, [fetchNextPage, hasNextPage]);
 
   return {
     transactions,
     isLoading,
     isFetchingNextPage,
     hasMore: !!hasNextPage,
-    refreshTransactions: () => refetch(),
-    fetchNextPage: () => {
-      if (hasNextPage) fetchNextPage();
-    },
+    refreshTransactions,
+    fetchNextPage: fetchMoreTransactions,
   };
 };

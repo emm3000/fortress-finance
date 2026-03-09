@@ -1,7 +1,11 @@
 import { useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { SyncService } from "../services/sync.service";
+import { FullSyncResult, SyncService } from "../services/sync.service";
 import { useAuthStore } from "../store/auth.store";
+
+type SyncMutationResult = FullSyncResult & {
+  hasCategoriesUpdate: boolean;
+};
 
 /**
  * Hook to manage the synchronization process in the UI using React Query.
@@ -11,36 +15,56 @@ export const useSync = () => {
   const userId = useAuthStore((state) => state.user?.id);
   const queryClient = useQueryClient();
 
-  const syncMutation = useMutation({
+  const syncMutation = useMutation<SyncMutationResult>({
     mutationFn: async () => {
-      if (!isAuthenticated || !userId) return;
+      if (!isAuthenticated || !userId) {
+        return {
+          status: "success",
+          syncTimestamp: "",
+          hasTransactionsUpdates: false,
+          hasCastleUpdate: false,
+          hasCategoriesUpdate: false,
+        };
+      }
       // First, ensure we have categories
-      await SyncService.syncCategories();
+      const syncedCategories = await SyncService.syncCategories();
       // Then perform the full data sync
-      await SyncService.fullSync(userId);
+      const fullSyncResult = await SyncService.fullSync(userId);
+      return {
+        ...fullSyncResult,
+        hasCategoriesUpdate: syncedCategories.length > 0,
+      };
     },
-    onSuccess: () => {
-      // Invalidate relevant queries when sync completes to refresh UI
-      queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      queryClient.invalidateQueries({ queryKey: ['castle'] }); 
+    onSuccess: (result) => {
+      if (!userId) return;
+      if (result.hasTransactionsUpdates) {
+        queryClient.invalidateQueries({ queryKey: ["transactions", userId] });
+      }
+      if (result.hasCastleUpdate) {
+        queryClient.invalidateQueries({ queryKey: ["castle", userId] });
+      }
+      if (result.hasCategoriesUpdate) {
+        queryClient.invalidateQueries({ queryKey: ["categories", userId] });
+      }
     },
     onError: (error) => {
       console.error("Sync error:", error);
-    }
+    },
   });
+  const { mutateAsync, isPending, error } = syncMutation;
 
   const performSync = useCallback(async () => {
-    if (!isAuthenticated || !userId || syncMutation.isPending) return;
+    if (!isAuthenticated || !userId || isPending) return;
     try {
-      await syncMutation.mutateAsync();
+      await mutateAsync();
     } catch {
        // Handled in onError
     }
-  }, [isAuthenticated, userId, syncMutation]);
+  }, [isAuthenticated, isPending, mutateAsync, userId]);
 
   return {
     performSync,
-    isSyncing: syncMutation.isPending,
-    lastSyncError: syncMutation.error ? (syncMutation.error as Error).message : null,
+    isSyncing: isPending,
+    lastSyncError: error ? (error as Error).message : null,
   };
 };
