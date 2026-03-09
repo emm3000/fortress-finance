@@ -32,9 +32,12 @@ export const registerPushToken = async (userId: string, token: string, deviceInf
 /**
  * Remove a push token
  */
-export const unregisterPushToken = async (token: string) => {
+export const unregisterPushToken = async (userId: string, token: string) => {
   return await prisma.userPushToken.deleteMany({
-    where: { tokenString: token },
+    where: {
+      userId,
+      tokenString: token,
+    },
   });
 };
 

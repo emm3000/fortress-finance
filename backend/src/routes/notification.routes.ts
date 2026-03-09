@@ -7,6 +7,11 @@ import { pushTokenSchema, unregisterTokenSchema } from '../validations/notificat
 const router = Router();
 
 router.post('/register', requireAuth, validate(pushTokenSchema), notificationController.registerToken);
-router.post('/unregister', validate(unregisterTokenSchema), notificationController.unregisterToken);
+router.post(
+  '/unregister',
+  requireAuth,
+  validate(unregisterTokenSchema),
+  notificationController.unregisterToken
+);
 
 export default router;

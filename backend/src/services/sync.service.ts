@@ -1,5 +1,6 @@
 import prisma from '../config/db';
 import { SyncBody } from '../validations/sync.validation';
+import { AppError } from '../utils/AppError';
 
 export const synchronize = async (userId: string, data: SyncBody) => {
   const { lastSyncTimestamp, transactions, budgets, inventory } = data;
@@ -10,11 +11,19 @@ export const synchronize = async (userId: string, data: SyncBody) => {
 
     // Transactions PUSH
     if (transactions.length > 0) {
-      await Promise.all(
-        transactions.map((t) =>
-          tx.transaction.upsert({
-            where: { id: t.id },
-            create: {
+      for (const t of transactions) {
+        const existing = await tx.transaction.findUnique({
+          where: { id: t.id },
+          select: { userId: true },
+        });
+
+        if (existing && existing.userId !== userId) {
+          throw new AppError(403, 'No autorizado para modificar esta transacción');
+        }
+
+        if (!existing) {
+          await tx.transaction.create({
+            data: {
               id: t.id,
               userId,
               amount: t.amount,
@@ -25,27 +34,40 @@ export const synchronize = async (userId: string, data: SyncBody) => {
               updatedAt: t.updatedAt,
               deletedAt: t.deletedAt,
             },
-            update: {
-              amount: t.amount,
-              type: t.type,
-              categoryId: t.categoryId,
-              date: t.date,
-              notes: t.notes,
-              updatedAt: t.updatedAt,
-              deletedAt: t.deletedAt,
-            },
-          })
-        )
-      );
+          });
+          continue;
+        }
+
+        await tx.transaction.update({
+          where: { id: t.id },
+          data: {
+            amount: t.amount,
+            type: t.type,
+            categoryId: t.categoryId,
+            date: t.date,
+            notes: t.notes,
+            updatedAt: t.updatedAt,
+            deletedAt: t.deletedAt,
+          },
+        });
+      }
     }
 
     // Budgets PUSH
     if (budgets && budgets.length > 0) {
-      await Promise.all(
-        budgets.map((b) =>
-          tx.budget.upsert({
-            where: { id: b.id },
-            create: {
+      for (const b of budgets) {
+        const existing = await tx.budget.findUnique({
+          where: { id: b.id },
+          select: { userId: true },
+        });
+
+        if (existing && existing.userId !== userId) {
+          throw new AppError(403, 'No autorizado para modificar este presupuesto');
+        }
+
+        if (!existing) {
+          await tx.budget.create({
+            data: {
               id: b.id,
               userId,
               categoryId: b.categoryId,
@@ -53,14 +75,19 @@ export const synchronize = async (userId: string, data: SyncBody) => {
               period: b.period,
               updatedAt: b.updatedAt,
             },
-            update: {
-              limitAmount: b.limitAmount,
-              period: b.period,
-              updatedAt: b.updatedAt,
-            },
-          })
-        )
-      );
+          });
+          continue;
+        }
+
+        await tx.budget.update({
+          where: { id: b.id },
+          data: {
+            limitAmount: b.limitAmount,
+            period: b.period,
+            updatedAt: b.updatedAt,
+          },
+        });
+      }
     }
 
     // Inventory PUSH (Solo permitimos sincronizar isEquipped)
@@ -128,6 +155,5 @@ export const synchronize = async (userId: string, data: SyncBody) => {
 
   return result;
 };
-
 
 

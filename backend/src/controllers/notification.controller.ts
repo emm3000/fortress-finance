@@ -18,8 +18,11 @@ export const registerToken = async (req: Request, res: Response, next: NextFunct
 
 export const unregisterToken = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const userId = req.user?.userId;
+    if (!userId) throw new AppError(401, 'No autorizado');
+
     const { token } = req.body;
-    await notificationService.unregisterPushToken(token);
+    await notificationService.unregisterPushToken(userId, token);
 
     res.status(200).json({ message: 'Token eliminado exitosamente' });
   } catch (error) {
