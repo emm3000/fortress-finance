@@ -13,12 +13,10 @@ export const useSync = () => {
   const syncMutation = useMutation({
     mutationFn: async () => {
       if (!isAuthenticated) return;
-      console.log("useSync: Actually starting sync process...");
       // First, ensure we have categories
       await SyncService.syncCategories();
       // Then perform the full data sync
       await SyncService.fullSync();
-      console.log("Synchronization complete! 🔄");
     },
     onSuccess: () => {
       // Invalidate relevant queries when sync completes to refresh UI

@@ -14,6 +14,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { AuthService } from "../../services/auth.service";
+import { InlineError } from "../../components/feedback/inline-error";
 import { ShieldCheck, Mail, Lock } from "lucide-react-native";
 
 const loginSchema = z.object({
@@ -143,11 +144,7 @@ export default function LoginScreen() {
               )}
             </Pressable>
 
-            {submitError ? (
-              <Text className="text-red-400 text-sm mt-3 text-center">
-                {submitError}
-              </Text>
-            ) : null}
+            <InlineError message={submitError} />
 
             <View className="flex-row justify-center mt-6">
               <Text className="text-text-muted">¿Eres nuevo recluta? </Text>

@@ -13,6 +13,8 @@ import { useTransactions } from "../../hooks/useTransactions";
 import { useSync } from "../../hooks/useSync";
 import { Transaction } from "../../db/transaction.repository";
 import { CategoryRepository, Category } from "../../db/category.repository";
+import { EmptyState } from "../../components/feedback/empty-state";
+import { LoadingState } from "../../components/feedback/loading-state";
 import {
   ArrowLeft,
   TrendingDown,
@@ -129,9 +131,7 @@ export default function HistoryScreen() {
       </View>
 
       {isTransactionsLoading && transactions.length === 0 ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#FFD700" />
-        </View>
+        <LoadingState message="Cargando crónicas..." />
       ) : (
         <View className="flex-1 px-6">
           <FlashList
@@ -149,12 +149,11 @@ export default function HistoryScreen() {
             onEndReached={fetchNextPage}
             onEndReachedThreshold={0.5}
             ListEmptyComponent={
-              <View className="items-center justify-center py-20">
-                <History size={64} color="#444" />
-                <Text className="text-text-muted mt-4 text-center">
-                  Aún no hay batallas registradas en el pergamino.
-                </Text>
-              </View>
+              <EmptyState
+                icon={<History size={64} color="#444" />}
+                title="Sin batallas registradas"
+                description="Aún no hay movimientos en tu pergamino."
+              />
             }
             ListFooterComponent={
               isFetchingNextPage ? (

@@ -19,6 +19,7 @@ import { CategoryRepository, Category } from "../../db/category.repository";
 import { TransactionRepository } from "../../db/transaction.repository";
 import { useSync } from "../../hooks/useSync";
 import { useAuthStore } from "../../store/auth.store";
+import { InlineError } from "../../components/feedback/inline-error";
 import { 
   ArrowLeft, 
   CircleDollarSign,
@@ -262,11 +263,7 @@ export default function NewTransactionScreen() {
             )}
           </Pressable>
 
-          {submitError ? (
-            <Text className="text-red-400 text-sm -mt-6 mb-8 text-center">
-              {submitError}
-            </Text>
-          ) : null}
+          <InlineError message={submitError} className="-mt-6 mb-8 text-center" />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
