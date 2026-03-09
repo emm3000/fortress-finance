@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, useRef } from "react";
 import { Link } from "expo-router";
 import {
   View,
@@ -37,10 +37,14 @@ export default function Dashboard() {
   const { castle, refreshCastle } = useCastle();
   const { performSync, isSyncing } = useSync();
   const { transactions } = useTransactions();
+  const hasInitializedSync = useRef(false);
 
   console.log("Dashboard Rendered");
 
   useEffect(() => {
+    if (hasInitializedSync.current) return;
+    hasInitializedSync.current = true;
+
     console.log("Dashboard: Mounting and Running Initial Sync");
     let mounted = true;
     performSync()
@@ -50,7 +54,7 @@ export default function Dashboard() {
       .catch((error) => console.error("Initial Sync Failed:", error));
       
     return () => { mounted = false; };
-  }, []); // Run once on mount to avoid infinite loops from hook re-renders
+  }, [performSync, refreshCastle]);
 
   const onRefresh = useCallback(async () => {
     try {
@@ -88,7 +92,7 @@ export default function Dashboard() {
             <Text className="text-text text-2xl font-bold">{user?.name}</Text>
           </View>
           <Pressable
-            onPress={performSync}
+            onPress={onRefresh}
             disabled={isSyncing}
             className="bg-surface p-3 rounded-full border border-border"
           >
