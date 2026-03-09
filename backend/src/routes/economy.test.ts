@@ -9,6 +9,7 @@ describe('Economy Routes Integration', () => {
   let userId: string;
   let cheaperItemId: string;
   let expensiveItemId: string;
+  let duplicateItemId: string;
   const createdItemIds: string[] = [];
 
   const testUser = {
@@ -53,6 +54,19 @@ describe('Economy Routes Integration', () => {
       cheaperItemId = items[0].id;
       expensiveItemId = items[1].id;
     }
+
+    const duplicateItem = await prisma.shopItem.create({
+      data: {
+        id: uuidv4(),
+        name: `Test Item Duplicate ${Date.now().toString()}`,
+        price: 120,
+        assetUrl: 'test_duplicate.png',
+        type: 'TEST',
+      },
+    });
+
+    duplicateItemId = duplicateItem.id;
+    createdItemIds.push(duplicateItem.id);
   });
 
   afterAll(async () => {
@@ -61,8 +75,6 @@ describe('Economy Routes Integration', () => {
     if (createdItemIds.length > 0) {
       await prisma.shopItem.deleteMany({ where: { id: { in: createdItemIds } } });
     }
-
-    await prisma.$disconnect();
   });
 
   it('should allow only one purchase under concurrent requests when balance is insufficient for both', async () => {
@@ -92,5 +104,27 @@ describe('Economy Routes Integration', () => {
 
     const inventoryCount = await prisma.userInventory.count({ where: { userId } });
     expect(inventoryCount).toBe(1);
+  });
+
+  it('should return 409 when purchasing an already owned item', async () => {
+    await prisma.userWallet.update({
+      where: { userId },
+      data: { goldBalance: 1000 },
+    });
+
+    const firstPurchase = await request(app)
+      .post('/api/economy/inventory/purchase')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ itemId: duplicateItemId });
+
+    expect(firstPurchase.status).toBe(201);
+
+    const repeatedPurchase = await request(app)
+      .post('/api/economy/inventory/purchase')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ itemId: duplicateItemId });
+
+    expect(repeatedPurchase.status).toBe(409);
+    expect(repeatedPurchase.body.error).toBe('Ya posees este objeto');
   });
 });

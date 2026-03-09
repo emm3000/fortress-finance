@@ -16,6 +16,27 @@ enum TransactionType {
   EXPENSE
 }
 
+enum CastleStatus {
+  HEALTHY
+  UNDER_ATTACK
+  RUINS
+}
+
+enum BudgetPeriod {
+  MONTHLY
+}
+
+enum NotificationType {
+  ATTACK
+  REWARD
+  SHOP
+}
+
+enum NotificationStatus {
+  SENT
+  FAILED
+}
+
 model User {
   id            String            @id @default(uuid()) @db.Uuid
   email         String            @unique
@@ -45,6 +66,7 @@ model Category {
   transactions Transaction[]
   budgets      Budget[]
 
+  @@unique([name, type])
   @@map("categories")
 }
 
@@ -74,7 +96,7 @@ model CastleState {
   level     Int      @default(1)
   hp        Int      @default(100)
   maxHp     Int      @default(100) @map("max_hp")
-  status    String   @default("HEALTHY") // "HEALTHY", "UNDER_ATTACK", "RUINS"
+  status    CastleStatus @default(HEALTHY)
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -87,7 +109,7 @@ model Budget {
   userId      String   @map("user_id") @db.Uuid
   categoryId  String   @map("category_id") @db.Uuid
   limitAmount Decimal  @map("limit_amount") @db.Decimal(10, 2)
-  period      String   @default("MONTHLY") // "MONTHLY"
+  period      BudgetPeriod @default(MONTHLY)
   updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -168,8 +190,8 @@ model NotificationLog {
   userId    String   @map("user_id") @db.Uuid
   title     String
   body      String
-  type      String // "ATTACK", "REWARD", "SHOP"
-  status    String   @default("SENT") // "SENT", "FAILED"
+  type      NotificationType
+  status    NotificationStatus @default(SENT)
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

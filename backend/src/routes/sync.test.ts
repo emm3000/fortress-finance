@@ -27,7 +27,6 @@ describe('Sync Routes Integration', () => {
     // Limpieza
     await prisma.transaction.deleteMany({ where: { user: { email: testUser.email } } });
     await prisma.user.deleteMany({ where: { email: testUser.email } });
-    await prisma.$disconnect();
   });
 
   it('should synchronize transactions (PUSH)', async () => {

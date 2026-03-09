@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterAll } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import prisma from '../config/db';
 import * as gameEngine from './gameEngine.service';
 import { hashPassword } from '../utils/password';
@@ -61,10 +61,6 @@ describe('GameEngine Service - Liquidation', () => {
       });
       categoryId = newCat.id;
     }
-  });
-
-  afterAll(async () => {
-    await prisma.$disconnect();
   });
 
   it('should damage castle if budget is exceeded', async () => {

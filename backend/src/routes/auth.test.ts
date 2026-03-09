@@ -20,7 +20,6 @@ describe('Auth Routes Integration', () => {
         },
       },
     });
-    await prisma.$disconnect();
   });
 
   it('should register a new user successfully', async () => {

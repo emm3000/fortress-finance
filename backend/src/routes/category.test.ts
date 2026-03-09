@@ -21,7 +21,6 @@ describe('Category Routes Integration', () => {
     await prisma.user.deleteMany({
       where: { email: testUser.email },
     });
-    await prisma.$disconnect();
   });
 
   it('should get all categories if authenticated', async () => {

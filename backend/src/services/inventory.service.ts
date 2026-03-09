@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import prisma from '../config/db';
 import { AppError } from '../utils/AppError';
 
@@ -18,66 +19,74 @@ export const getUserInventory = async (userId: string) => {
  * Reto técnico: Asegurar consistencia atómica para evitar double-spending
  */
 export const purchaseItem = async (userId: string, itemId: string) => {
-  return await prisma.$transaction(async (tx) => {
-    // 1. Verificar si ya posee el item
-    const existingOwnership = await tx.userInventory.findUnique({
-      where: {
-        userId_itemId: { userId, itemId },
-      },
-    });
+  try {
+    return await prisma.$transaction(async (tx) => {
+      // 1. Verificar si ya posee el item
+      const existingOwnership = await tx.userInventory.findUnique({
+        where: {
+          userId_itemId: { userId, itemId },
+        },
+      });
 
-    if (existingOwnership) {
-      throw new AppError(400, 'Ya posees este objeto');
+      if (existingOwnership) {
+        throw new AppError(409, 'Ya posees este objeto');
+      }
+
+      // 2. Obtener el item y verificar precio
+      const item = await tx.shopItem.findUnique({
+        where: { id: itemId },
+      });
+
+      if (!item) {
+        throw new AppError(404, 'Objeto de tienda no encontrado');
+      }
+
+      // 3. Ejecutar débito atómico solo si el saldo alcanza.
+      // Esto evita double-spending bajo concurrencia.
+      const walletDebit = await tx.userWallet.updateMany({
+        where: {
+          userId,
+          goldBalance: { gte: item.price },
+        },
+        data: {
+          goldBalance: { decrement: item.price },
+        },
+      });
+
+      if (walletDebit.count === 0) {
+        throw new AppError(400, 'Balance de oro insuficiente');
+      }
+
+      // 4. Registrar adquisición del item
+      const inventoryItem = await tx.userInventory.create({
+        data: {
+          userId,
+          itemId,
+          isEquipped: false,
+        },
+        include: {
+          item: true,
+        },
+      });
+
+      const wallet = await tx.userWallet.findUnique({
+        where: { userId },
+        select: { goldBalance: true },
+      });
+
+      return {
+        message: 'Compra exitosa',
+        inventoryItem,
+        newBalance: wallet?.goldBalance ?? 0,
+      };
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      throw new AppError(409, 'Ya posees este objeto');
     }
 
-    // 2. Obtener el item y verificar precio
-    const item = await tx.shopItem.findUnique({
-      where: { id: itemId },
-    });
-
-    if (!item) {
-      throw new AppError(404, 'Objeto de tienda no encontrado');
-    }
-
-    // 3. Ejecutar débito atómico solo si el saldo alcanza.
-    // Esto evita double-spending bajo concurrencia.
-    const walletDebit = await tx.userWallet.updateMany({
-      where: {
-        userId,
-        goldBalance: { gte: item.price },
-      },
-      data: {
-        goldBalance: { decrement: item.price },
-      },
-    });
-
-    if (walletDebit.count === 0) {
-      throw new AppError(400, 'Balance de oro insuficiente');
-    }
-
-    // 4. Registrar adquisición del item
-    const inventoryItem = await tx.userInventory.create({
-      data: {
-        userId,
-        itemId,
-        isEquipped: false,
-      },
-      include: {
-        item: true,
-      },
-    });
-
-    const wallet = await tx.userWallet.findUnique({
-      where: { userId },
-      select: { goldBalance: true },
-    });
-
-    return {
-      message: 'Compra exitosa',
-      inventoryItem,
-      newBalance: wallet?.goldBalance ?? 0,
-    };
-  });
+    throw error;
+  }
 };
 
 /**

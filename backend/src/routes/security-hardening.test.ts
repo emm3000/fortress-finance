@@ -48,7 +48,6 @@ describe('Security Hardening Integration', () => {
         },
       },
     });
-    await prisma.$disconnect();
   });
 
   it('should block cross-user transaction overwrite attempts in sync', async () => {

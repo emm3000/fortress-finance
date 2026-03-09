@@ -1,3 +1,7 @@
+import { afterAll } from 'vitest';
+
+import prisma from './config/db';
+
 // Global test setup: load environment variables before any test runs
 // This mirrors how server.ts loads dotenv in production
 import 'dotenv/config';
@@ -24,3 +28,7 @@ if (!isCi && !looksLikeTestDb) {
     process.env.TEST_DB_WARNING_EMITTED = 'true';
   }
 }
+
+afterAll(async () => {
+  await prisma.$disconnect();
+});
