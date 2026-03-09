@@ -7,6 +7,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { Link, router } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
@@ -23,20 +24,26 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginScreen() {
+  const [submitError, setSubmitError] = React.useState<string | null>(null);
+
   const {
     control,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
   });
 
   const onSubmit = async (data: LoginFormData) => {
+    setSubmitError(null);
+
     try {
       await AuthService.login(data);
       router.replace("/(main)");
     } catch (error: any) {
-      console.error(error.response?.data?.message || "Error al iniciar sesión");
+      const message = error?.response?.data?.message || "No se pudo iniciar sesión. Intenta nuevamente.";
+      setSubmitError(message);
+      console.error(message);
     }
   };
 
@@ -119,12 +126,25 @@ export default function LoginScreen() {
 
             <Pressable
               onPress={handleSubmit(onSubmit)}
-              className="bg-primary h-14 rounded-xl items-center justify-center mt-8 active:opacity-80"
+              disabled={isSubmitting}
+              className={`bg-primary h-14 rounded-xl items-center justify-center mt-8 active:opacity-80 ${
+                isSubmitting ? "opacity-60" : ""
+              }`}
             >
-              <Text className="text-background font-bold text-lg">
-                Entrar al Reino
-              </Text>
+              {isSubmitting ? (
+                <ActivityIndicator color="#0F0F0F" />
+              ) : (
+                <Text className="text-background font-bold text-lg">
+                  Entrar al Reino
+                </Text>
+              )}
             </Pressable>
+
+            {submitError ? (
+              <Text className="text-red-400 text-sm mt-3 text-center">
+                {submitError}
+              </Text>
+            ) : null}
 
             <View className="flex-row justify-center mt-6">
               <Text className="text-text-muted">¿Eres nuevo recluta? </Text>

@@ -37,6 +37,7 @@ type TransactionFormData = z.infer<typeof transactionSchema>;
 export default function NewTransactionScreen() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const { user } = useAuthStore();
   const { performSync } = useSync();
 
@@ -45,7 +46,7 @@ export default function NewTransactionScreen() {
     handleSubmit,
     setValue,
     watch,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<TransactionFormData>({
     resolver: zodResolver(transactionSchema),
     defaultValues: {
@@ -68,7 +69,12 @@ export default function NewTransactionScreen() {
   }, []);
 
   const onSubmit = async (data: TransactionFormData) => {
-    if (!user) return;
+    setSubmitError(null);
+
+    if (!user) {
+      setSubmitError("Tu sesión no está disponible. Inicia sesión nuevamente.");
+      return;
+    }
 
     try {
       const newTransaction = {
@@ -99,7 +105,9 @@ export default function NewTransactionScreen() {
       // Sync in background and return
       performSync().catch(console.error);
       router.back();
-    } catch (error) {
+    } catch (error: any) {
+      const message = error?.response?.data?.message || "No se pudo guardar la transacción. Intenta nuevamente.";
+      setSubmitError(message);
       console.error("Failed to save transaction:", error);
     }
   };
@@ -125,6 +133,7 @@ export default function NewTransactionScreen() {
           <View className="flex-row bg-surface rounded-2xl p-1 mb-8 border border-border">
             <Pressable
               onPress={() => setValue("type", "EXPENSE")}
+              disabled={isSubmitting}
               className={`flex-1 py-3 rounded-xl items-center ${
                 transactionType === "EXPENSE" ? "bg-red-500/20 border border-red-500/50" : ""
               }`}
@@ -135,6 +144,7 @@ export default function NewTransactionScreen() {
             </Pressable>
             <Pressable
               onPress={() => setValue("type", "INCOME")}
+              disabled={isSubmitting}
               className={`flex-1 py-3 rounded-xl items-center ${
                 transactionType === "INCOME" ? "bg-green-500/20 border border-green-500/50" : ""
               }`}
@@ -186,6 +196,7 @@ export default function NewTransactionScreen() {
                         <Pressable
                           key={cat.id}
                           onPress={() => setValue("categoryId", cat.id)}
+                          disabled={isSubmitting}
                           className={`px-4 py-2 rounded-full border ${
                             value === cat.id
                               ? "bg-primary/20 border-primary"
@@ -229,14 +240,25 @@ export default function NewTransactionScreen() {
           {/* Submit Button */}
           <Pressable
             onPress={handleSubmit(onSubmit)}
+            disabled={isSubmitting}
             className={`h-16 rounded-2xl items-center justify-center mt-12 mb-10 ${
               transactionType === "EXPENSE" ? "bg-red-600" : "bg-green-600"
-            }`}
+            } ${isSubmitting ? "opacity-60" : ""}`}
           >
-            <Text className="text-text font-bold text-lg">
-              {transactionType === "EXPENSE" ? "Confirmar Gasto" : "Asegurar Botín"}
-            </Text>
+            {isSubmitting ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text className="text-text font-bold text-lg">
+                {transactionType === "EXPENSE" ? "Confirmar Gasto" : "Asegurar Botín"}
+              </Text>
+            )}
           </Pressable>
+
+          {submitError ? (
+            <Text className="text-red-400 text-sm -mt-6 mb-8 text-center">
+              {submitError}
+            </Text>
+          ) : null}
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
