@@ -10,6 +10,7 @@ describe('GameEngine Service - Liquidation', () => {
   beforeEach(async () => {
     // Cleanup - Solo lo que pertenece al usuario de prueba o tablas de log
     await prisma.gameEventLog.deleteMany();
+    await prisma.notificationLog.deleteMany();
     await prisma.budget.deleteMany();
     await prisma.transaction.deleteMany();
     await prisma.castleState.deleteMany();
@@ -150,5 +151,68 @@ describe('GameEngine Service - Liquidation', () => {
     // 7. Verify Event Log
     const logs = await prisma.gameEventLog.findMany({ where: { userId } });
     expect(logs.some((l) => l.hpImpact > 0)).toBe(true);
+  });
+
+  it('should notify warning when spending reaches 80% of budget', async () => {
+    await prisma.budget.create({
+      data: {
+        userId,
+        categoryId,
+        limitAmount: 100,
+        period: 'MONTHLY',
+      },
+    });
+
+    await prisma.transaction.create({
+      data: {
+        userId,
+        categoryId,
+        amount: 85,
+        type: 'EXPENSE',
+        date: new Date(),
+      },
+    });
+
+    await gameEngine.liquidateUser(userId);
+
+    const notifications = await prisma.notificationLog.findMany({
+      where: { userId, type: 'ATTACK' },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    expect(notifications.length).toBe(1);
+    expect(notifications[0].title).toContain('Presupuesto en riesgo');
+  });
+
+  it('should avoid duplicated threshold notifications inside dedupe window', async () => {
+    await prisma.budget.create({
+      data: {
+        userId,
+        categoryId,
+        limitAmount: 100,
+        period: 'MONTHLY',
+      },
+    });
+
+    await prisma.transaction.create({
+      data: {
+        userId,
+        categoryId,
+        amount: 120,
+        type: 'EXPENSE',
+        date: new Date(),
+      },
+    });
+
+    await gameEngine.liquidateUser(userId);
+    await gameEngine.liquidateUser(userId);
+
+    const notifications = await prisma.notificationLog.findMany({
+      where: { userId, type: 'ATTACK' },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    expect(notifications.length).toBe(1);
+    expect(notifications[0].title).toContain('Presupuesto excedido');
   });
 });

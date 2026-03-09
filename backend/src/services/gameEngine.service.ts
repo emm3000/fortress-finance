@@ -14,6 +14,13 @@ export const liquidateUser = async (userId: string, targetDate: Date = new Date(
     // 1. Get user's budgets
     const budgets = await tx.budget.findMany({
       where: { userId },
+      include: {
+        category: {
+          select: {
+            name: true,
+          },
+        },
+      },
     });
 
     if (budgets.length === 0) {
@@ -31,6 +38,7 @@ export const liquidateUser = async (userId: string, targetDate: Date = new Date(
 
     let totalDamage = 0;
     const events: { eventDesc: string; hpImpact: number }[] = [];
+    const budgetAlerts: { title: string; body: string; type: 'ATTACK' }[] = [];
 
     // 3. Check each budget
     for (const budget of budgets) {
@@ -51,10 +59,13 @@ export const liquidateUser = async (userId: string, targetDate: Date = new Date(
       });
 
       const totalSpent = Number(aggregate._sum.amount ?? 0);
+      const limitAmount = Number(budget.limitAmount);
+      const ratio = limitAmount > 0 ? totalSpent / limitAmount : 0;
+      const categoryName = budget.category.name;
 
-      if (totalSpent > Number(budget.limitAmount)) {
+      if (ratio >= 1) {
         // Budget exceeded! Orc attack!
-        const excess = totalSpent - Number(budget.limitAmount);
+        const excess = totalSpent - limitAmount;
         // Basic damage logic: 5 HP + 1 HP for every 10 units exceeded (tweak as needed)
         const damage = 5 + Math.floor(excess / 10);
         totalDamage += damage;
@@ -62,6 +73,21 @@ export const liquidateUser = async (userId: string, targetDate: Date = new Date(
         events.push({
           eventDesc: `¡Ataque de Orcos! Presupuesto excedido en categoría. Gasto: ${String(totalSpent)}, Límite: ${budget.limitAmount.toString()}`,
           hpImpact: -damage,
+        });
+
+        budgetAlerts.push({
+          title: `🚨 Presupuesto excedido: ${categoryName}`,
+          body: `Ya consumiste ${String(totalSpent)} de ${String(limitAmount)} en esta categoría.`,
+          type: 'ATTACK',
+        });
+        continue;
+      }
+
+      if (ratio >= 0.8) {
+        budgetAlerts.push({
+          title: `⚠️ Presupuesto en riesgo: ${categoryName}`,
+          body: `Vas al ${String(Math.floor(ratio * 100))}% (${String(totalSpent)} de ${String(limitAmount)}).`,
+          type: 'ATTACK',
         });
       }
     }
@@ -129,19 +155,24 @@ export const liquidateUser = async (userId: string, targetDate: Date = new Date(
       });
     }
 
-    return { status: 'success', totalDamage, eventsCount: events.length };
+    return { status: 'success', totalDamage, eventsCount: events.length, budgetAlerts };
   });
 
   // Enviar notificaciones fuera de la transacción para no bloquearla
   if (result.status === 'success' && typeof result.totalDamage === 'number') {
-    if (result.totalDamage > 0) {
-      await sendPushNotification({
-        userId,
-        title: '🏰 ¡Tu fortaleza está bajo ataque!',
-        body: 'Has excedido tus presupuestos y los orcos han dañado tu castillo. ¡Vuelve a la app para verlo!',
-        type: 'ATTACK',
-      });
-    } else {
+    if (Array.isArray(result.budgetAlerts) && result.budgetAlerts.length > 0) {
+      for (const alert of result.budgetAlerts) {
+        await sendPushNotification({
+          userId,
+          title: alert.title,
+          body: alert.body,
+          type: alert.type,
+          dedupeWindowMinutes: 12 * 60,
+        });
+      }
+    }
+
+    if (result.totalDamage <= 0 && result.budgetAlerts.length === 0) {
       await sendPushNotification({
         userId,
         title: '🛡️ Tu reino prospera',

@@ -10,6 +10,7 @@ export interface SendPushOptions {
   body: string;
   type: 'ATTACK' | 'REWARD' | 'SHOP';
   data?: object;
+  dedupeWindowMinutes?: number;
 }
 
 /**
@@ -48,7 +49,27 @@ export const unregisterPushToken = async (userId: string, token: string) => {
  * Send push notification to all devices of a user
  */
 export const sendPushNotification = async (options: SendPushOptions) => {
-  const { userId, title, body, type, data } = options;
+  const { userId, title, body, type, data, dedupeWindowMinutes } = options;
+
+  if (typeof dedupeWindowMinutes === 'number' && dedupeWindowMinutes > 0) {
+    const cutoff = new Date(Date.now() - dedupeWindowMinutes * 60 * 1000);
+    const recentDuplicate = await prisma.notificationLog.findFirst({
+      where: {
+        userId,
+        type,
+        title,
+        body,
+        createdAt: {
+          gte: cutoff,
+        },
+      },
+      select: { id: true },
+    });
+
+    if (recentDuplicate) {
+      return;
+    }
+  }
 
   // 1. Obtener tokens del usuario
   const pushTokens = await prisma.userPushToken.findMany({
@@ -56,6 +77,15 @@ export const sendPushNotification = async (options: SendPushOptions) => {
   });
 
   if (pushTokens.length === 0) {
+    await prisma.notificationLog.create({
+      data: {
+        userId,
+        title,
+        body,
+        type,
+        status: 'FAILED',
+      },
+    });
     return;
   }
 
