@@ -4,6 +4,7 @@ import app from '../app';
 import prisma from '../config/db';
 
 describe('Auth Routes Integration', () => {
+  const upperUserEmail = `upper-${Date.now().toString()}@example.com`;
   const testUser = {
     email: `test-${Date.now()}@example.com`,
     password: 'password123',
@@ -13,7 +14,11 @@ describe('Auth Routes Integration', () => {
   afterAll(async () => {
     // Limpieza: Borrar el usuario de prueba
     await prisma.user.deleteMany({
-      where: { email: testUser.email },
+      where: {
+        email: {
+          in: [testUser.email, upperUserEmail],
+        },
+      },
     });
     await prisma.$disconnect();
   });
@@ -24,6 +29,17 @@ describe('Auth Routes Integration', () => {
     expect(response.status).toBe(201);
     expect(response.body.user.email).toBe(testUser.email);
     expect(response.body.token).toBeDefined();
+  });
+
+  it('should normalize email to lowercase during registration', async () => {
+    const response = await request(app).post('/api/auth/register').send({
+      email: upperUserEmail.toUpperCase(),
+      password: 'password123',
+      name: 'Upper User',
+    });
+
+    expect(response.status).toBe(201);
+    expect(response.body.user.email).toBe(upperUserEmail);
   });
 
   it('should not register a user with the same email (409 Conflict)', async () => {
@@ -41,6 +57,16 @@ describe('Auth Routes Integration', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.token).toBeDefined();
+    expect(response.body.user.email).toBe(testUser.email);
+  });
+
+  it('should login with uppercase variant of a registered email', async () => {
+    const response = await request(app).post('/api/auth/login').send({
+      email: testUser.email.toUpperCase(),
+      password: testUser.password,
+    });
+
+    expect(response.status).toBe(200);
     expect(response.body.user.email).toBe(testUser.email);
   });
 
