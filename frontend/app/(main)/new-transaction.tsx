@@ -20,6 +20,7 @@ import { useCategories } from "../../hooks/useCategories";
 import { TransactionRepository } from "../../db/transaction.repository";
 import { useSync } from "../../hooks/useSync";
 import { useAuthStore } from "../../store/auth.store";
+import { AnalyticsService } from "../../services/analytics.service";
 import { InlineError } from "../../components/feedback/inline-error";
 import { ScreenHeader } from "../../components/ui/screen-header";
 import { 
@@ -105,6 +106,14 @@ export default function NewTransactionScreen() {
       };
 
       await TransactionRepository.create(newTransaction);
+      AnalyticsService.track("transaction_created", {
+        userId: user.id,
+        type: data.type,
+        amount: Number(data.amount),
+        categoryId: data.categoryId,
+        date: data.date,
+      });
+
       router.back();
 
       // Defer background sync until UI interactions/transitions finish.
@@ -114,7 +123,9 @@ export default function NewTransactionScreen() {
         });
       });
     } catch (error: any) {
-      const message = error?.response?.data?.message || "No se pudo guardar la transacción. Intenta nuevamente.";
+      const message =
+        error?.response?.data?.message ||
+        "No se pudo guardar la transacción. Se revirtió el intento y no se aplicaron cambios.";
       setSubmitError(message);
       console.error("Failed to save transaction:", error);
     }
