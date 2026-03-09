@@ -7,6 +7,7 @@ config();
 
 const envSchema = z.object({
   DATABASE_URL: z.url('DATABASE_URL debe ser una URL válida'),
+  TEST_DATABASE_URL: z.url('TEST_DATABASE_URL debe ser una URL válida').optional(),
   JWT_SECRET: z.string().min(32, 'JWT_SECRET debe tener al menos 32 caracteres'),
   PORT: z.coerce.number().default(4000),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),

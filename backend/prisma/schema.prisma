@@ -52,6 +52,7 @@ model User {
   inventory     UserInventory[]
   pushTokens    UserPushToken[]
   notifications NotificationLog[]
+  preferences   UserPreference?
 
   @@map("users")
 }
@@ -198,4 +199,16 @@ model NotificationLog {
 
   @@index([userId, createdAt])
   @@map("notification_logs")
+}
+
+model UserPreference {
+  userId            String   @id @map("user_id") @db.Uuid
+  currency          String   @db.Char(3)
+  monthlyIncomeGoal Decimal  @map("monthly_income_goal") @db.Decimal(12, 2)
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
 }

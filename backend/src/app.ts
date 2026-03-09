@@ -11,6 +11,7 @@ import budgetRoutes from './routes/budget.routes';
 import castleRoutes from './routes/castle.routes';
 import economyRoutes from './routes/economy.routes';
 import notificationRoutes from './routes/notification.routes';
+import onboardingRoutes from './routes/onboarding.routes';
 import { requireAuth } from './middlewares/requireAuth';
 import { errorHandler } from './middlewares/errorHandler';
 import { env } from './config/env';
@@ -60,6 +61,7 @@ app.use('/api/budgets', budgetRoutes);
 app.use('/api/castle', castleRoutes);
 app.use('/api/economy', economyRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/onboarding', onboardingRoutes);
 
 // Ruta base
 app.get('/api/health', (req: Request, res: Response) => {
