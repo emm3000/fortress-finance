@@ -231,4 +231,55 @@ describe('Sync Routes Integration', () => {
     expect(Number(storedTx?.amount)).toBe(120);
     expect(storedTx?.notes).toBe('newest state');
   });
+
+  it('should recover and sync successfully after a previous failed sync attempt', async () => {
+    const txId = uuidv4();
+    const nowIso = new Date().toISOString();
+
+    const failedAttempt = await request(app)
+      .post('/api/sync')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        lastSyncTimestamp: null,
+        transactions: [
+          {
+            id: txId,
+            amount: 'invalid',
+            type: 'EXPENSE',
+            categoryId,
+            date: 'invalid-date',
+            notes: 'bad payload',
+            updatedAt: nowIso,
+            deletedAt: null,
+          },
+        ],
+      });
+
+    expect(failedAttempt.status).toBe(400);
+
+    const recoveredAttempt = await request(app)
+      .post('/api/sync')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        lastSyncTimestamp: null,
+        transactions: [
+          {
+            id: txId,
+            amount: 77.25,
+            type: 'EXPENSE',
+            categoryId,
+            date: nowIso,
+            notes: 'recovered payload',
+            updatedAt: nowIso,
+            deletedAt: null,
+          },
+        ],
+      });
+
+    expect(recoveredAttempt.status).toBe(200);
+
+    const storedTx = await prisma.transaction.findUnique({ where: { id: txId } });
+    expect(storedTx).toBeDefined();
+    expect(Number(storedTx?.amount)).toBe(77.25);
+  });
 });
