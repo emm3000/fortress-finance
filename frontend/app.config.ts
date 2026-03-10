@@ -5,12 +5,47 @@ import type { ExpoConfig } from "expo/config";
 
 const localGoogleServicesPath = path.join(__dirname, "google-services.json");
 const envGoogleServicesPath = process.env.GOOGLE_SERVICES_JSON;
+const sentryOrg = process.env.SENTRY_ORG?.trim();
+const sentryProject = process.env.SENTRY_PROJECT?.trim();
+const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN?.trim();
+const hasSentryBuildCredentials =
+  Boolean(sentryOrg) && Boolean(sentryProject) && Boolean(sentryAuthToken);
 const googleServicesPath =
   envGoogleServicesPath && fs.existsSync(envGoogleServicesPath)
     ? envGoogleServicesPath
     : fs.existsSync(localGoogleServicesPath)
       ? "./google-services.json"
       : undefined;
+const plugins: NonNullable<ExpoConfig["plugins"]> = [
+  "expo-router",
+  [
+    "expo-splash-screen",
+    {
+      image: "./assets/images/splash-icon.png",
+      imageWidth: 200,
+      resizeMode: "contain",
+      backgroundColor: "#ffffff",
+      dark: {
+        backgroundColor: "#000000",
+      },
+    },
+  ],
+  "expo-sqlite",
+  "expo-secure-store",
+  "expo-notifications",
+  "expo-web-browser",
+  "expo-font",
+];
+
+if (hasSentryBuildCredentials) {
+  plugins.push([
+    "@sentry/react-native",
+    {
+      organization: sentryOrg,
+      project: sentryProject,
+    },
+  ]);
+}
 
 const config: ExpoConfig = {
   name: "frontend",
@@ -42,27 +77,7 @@ const config: ExpoConfig = {
     output: "static",
     favicon: "./assets/images/favicon.png",
   },
-  plugins: [
-    "expo-router",
-    [
-      "expo-splash-screen",
-      {
-        image: "./assets/images/splash-icon.png",
-        imageWidth: 200,
-        resizeMode: "contain",
-        backgroundColor: "#ffffff",
-        dark: {
-          backgroundColor: "#000000",
-        },
-      },
-    ],
-    "expo-sqlite",
-    "expo-secure-store",
-    "expo-notifications",
-    "expo-web-browser",
-    "expo-font",
-    "@sentry/react-native",
-  ],
+  plugins,
   experiments: {
     typedRoutes: true,
     reactCompiler: true,
