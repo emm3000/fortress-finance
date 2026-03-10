@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { FullSyncResult, SyncService } from "../services/sync.service";
 import { useAuthStore } from "../store/auth.store";
+import { useNetworkStore } from "../store/network.store";
 
 type SyncMutationResult = FullSyncResult & {
   hasCategoriesUpdate: boolean;
@@ -13,6 +14,7 @@ type SyncMutationResult = FullSyncResult & {
 export const useSync = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const userId = useAuthStore((state) => state.user?.id);
+  const isOnline = useNetworkStore((state) => state.isOnline);
   const queryClient = useQueryClient();
 
   const syncMutation = useMutation<SyncMutationResult>({
@@ -24,7 +26,12 @@ export const useSync = () => {
           hasTransactionsUpdates: false,
           hasCastleUpdate: false,
           hasCategoriesUpdate: false,
+          pendingQueueCount: 0,
+          failedQueueCount: 0,
         };
+      }
+      if (!isOnline) {
+        throw new Error("Sin conexion a internet");
       }
       // First, ensure we have categories
       const syncedCategories = await SyncService.syncCategories();
@@ -60,13 +67,13 @@ export const useSync = () => {
   const { mutateAsync, isPending, error } = syncMutation;
 
   const performSync = useCallback(async () => {
-    if (!isAuthenticated || !userId || isPending) return;
+    if (!isAuthenticated || !userId || isPending || !isOnline) return;
     try {
       await mutateAsync();
     } catch {
        // Handled in onError
     }
-  }, [isAuthenticated, isPending, mutateAsync, userId]);
+  }, [isAuthenticated, isOnline, isPending, mutateAsync, userId]);
 
   return {
     performSync,

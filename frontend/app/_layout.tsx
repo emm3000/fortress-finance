@@ -7,6 +7,8 @@ import { ThemeProvider, DarkTheme, DefaultTheme } from '@react-navigation/native
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
 import { initDatabase } from '../db/database';
+import { OfflineBanner } from "../components/feedback/offline-banner";
+import { useNetworkStore } from "../store/network.store";
 import "../global.css";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -16,7 +18,12 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60, // 1 minute
-      retry: 2,
+      retry: (failureCount) => {
+        if (!useNetworkStore.getState().isOnline) {
+          return false;
+        }
+        return failureCount < 2;
+      },
     },
   },
 });
@@ -25,10 +32,13 @@ export default function RootLayout() {
   const [dbInitialized, setDbInitialized] = useState(false);
   const [dbError, setDbError] = useState<Error | null>(null);
   const { colorScheme } = useColorScheme();
+  const initializeNetwork = useNetworkStore((state) => state.initialize);
 
   useEffect(() => {
     async function prepare() {
+      let teardownNetwork = () => {};
       try {
+        teardownNetwork = await initializeNetwork();
         await initDatabase();
         setDbInitialized(true);
       } catch (error) {
@@ -37,10 +47,17 @@ export default function RootLayout() {
       } finally {
         await SplashScreen.hideAsync();
       }
+
+      return teardownNetwork;
     }
-    
-    prepare();
-  }, []);
+
+    const teardownPromise = prepare();
+    return () => {
+      teardownPromise
+        .then((teardown) => teardown?.())
+        .catch(() => {});
+    };
+  }, [initializeNetwork]);
 
   if (dbError) {
     return (
@@ -68,6 +85,7 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider value={navTheme}>
         <StatusBar style="auto" />
+        <OfflineBanner />
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="index" />
           <Stack.Screen name="(main)" />

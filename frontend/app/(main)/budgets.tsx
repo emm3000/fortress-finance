@@ -115,12 +115,14 @@ export default function BudgetsScreen() {
       setAmount('');
       setCategoryId('');
     } catch (error: unknown) {
-      const message =
+      const responseMessage =
         error && typeof error === 'object' && 'response' in error
           ? (error as { response?: { data?: { error?: string } } }).response?.data?.error
           : null;
+      const fallbackMessage =
+        error instanceof Error ? error.message : 'No se pudo guardar el presupuesto.';
 
-      setSubmitError(message ?? 'No se pudo guardar el presupuesto.');
+      setSubmitError(responseMessage ?? fallbackMessage);
     }
   };
 
