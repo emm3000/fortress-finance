@@ -10,3 +10,4 @@ node_modules/
 skills-lock.json
 docs/deployment.md
 docs/mvp-status.md
+frontend/google-services.json
