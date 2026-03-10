@@ -193,6 +193,27 @@ describe('Security Hardening Integration', () => {
     expect(response.status).toBe(401);
   });
 
+  it('should reject tokens for users that no longer exist', async () => {
+    const disposableUser = {
+      email: `security-disposable-${Date.now().toString()}@example.com`,
+      password: 'password123',
+      name: 'Disposable User',
+    };
+
+    const registerRes = await request(app).post('/api/auth/register').send(disposableUser);
+    const deletedUserId = registerRes.body.data.user.id as string;
+    const deletedUserToken = registerRes.body.data.token as string;
+
+    await prisma.user.delete({ where: { id: deletedUserId } });
+
+    const response = await request(app)
+      .get('/api/categories')
+      .set('Authorization', `Bearer ${deletedUserToken}`);
+
+    expect(response.status).toBe(401);
+    expect(response.body.error.message).toBe('No autorizado, token inválido o usuario inexistente');
+  });
+
   it('sanity check: each test user has a distinct account', async () => {
     expect(user1Id).not.toBe(user2Id);
   });

@@ -1,8 +1,9 @@
 import type { Request, Response, NextFunction } from 'express';
+import prisma from '../config/db';
 import { verifyToken } from '../utils/jwt';
 import { sendError } from '../utils/response';
 
-export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
+export const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader?.startsWith('Bearer ')) {
@@ -18,6 +19,16 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
 
   try {
     const payload = verifyToken(token);
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { id: true },
+    });
+
+    if (!user) {
+      sendError(res, 401, 'No autorizado, token inválido o usuario inexistente');
+      return;
+    }
+
     req.user = payload;
     next();
   } catch {
