@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react-native";
 import { Stack } from "expo-router";
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
@@ -9,7 +10,7 @@ import { useColorScheme } from 'nativewind';
 import { initDatabase } from '../db/database';
 import { OfflineBanner } from "../components/feedback/offline-banner";
 import { GlobalErrorBoundary } from "../components/feedback/global-error-boundary";
-import { initializeMonitoring } from "../services/monitoring.service";
+import { captureException, initializeMonitoring } from "../services/monitoring.service";
 import { useNetworkStore } from "../store/network.store";
 import "../global.css";
 
@@ -31,7 +32,7 @@ const queryClient = new QueryClient({
   },
 });
 
-export default function RootLayout() {
+function RootLayout() {
   const [dbInitialized, setDbInitialized] = useState(false);
   const [dbError, setDbError] = useState<Error | null>(null);
   const { colorScheme } = useColorScheme();
@@ -46,6 +47,7 @@ export default function RootLayout() {
         setDbInitialized(true);
       } catch (error) {
         console.error("Layout: Database initialization failed", error);
+        captureException(error, { phase: "root_layout_prepare" });
         setDbError(error instanceof Error ? error : new Error(String(error)));
       } finally {
         await SplashScreen.hideAsync();
@@ -100,3 +102,5 @@ export default function RootLayout() {
     </GlobalErrorBoundary>
   );
 }
+
+export default Sentry.wrap(RootLayout);

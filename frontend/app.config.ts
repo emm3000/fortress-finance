@@ -8,6 +8,11 @@ const envGoogleServicesPath = process.env.GOOGLE_SERVICES_JSON;
 const sentryOrg = process.env.SENTRY_ORG?.trim();
 const sentryProject = process.env.SENTRY_PROJECT?.trim();
 const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN?.trim();
+const appEnvironment =
+  process.env.APP_ENV?.trim() ||
+  process.env.EAS_BUILD_PROFILE?.trim() ||
+  process.env.NODE_ENV?.trim() ||
+  "development";
 const hasSentryBuildCredentials =
   Boolean(sentryOrg) && Boolean(sentryProject) && Boolean(sentryAuthToken);
 const googleServicesPath =
@@ -84,6 +89,7 @@ const config: ExpoConfig = {
   },
   extra: {
     router: {},
+    appEnv: appEnvironment,
     eas: {
       projectId: "c0f025de-5a47-40dd-8cd6-76edb7572479",
     },

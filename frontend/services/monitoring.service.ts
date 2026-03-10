@@ -2,6 +2,10 @@ import * as Sentry from "@sentry/react-native";
 import Constants from "expo-constants";
 
 const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN?.trim();
+const APP_ENV =
+  Constants.expoConfig?.extra?.appEnv ??
+  process.env.EXPO_PUBLIC_APP_ENV?.trim() ??
+  (__DEV__ ? "development" : "production");
 
 let initialized = false;
 
@@ -13,7 +17,7 @@ export const initializeMonitoring = () => {
   Sentry.init({
     dsn: SENTRY_DSN,
     enabled: !__DEV__,
-    environment: Constants.expoConfig?.extra?.eas?.projectId ? "production" : "development",
+    environment: APP_ENV,
     tracesSampleRate: __DEV__ ? 0 : 0.2,
   });
 
