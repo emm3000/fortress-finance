@@ -15,6 +15,7 @@ import { LabeledInput } from "../../components/ui/labeled-input";
 import { AsyncButton } from "../../components/ui/async-button";
 import { ShieldCheck, Mail, Lock } from "lucide-react-native";
 import { getApiErrorMessage } from "../../utils/api-error";
+import { captureException } from "../../services/monitoring.service";
 
 const loginSchema = z.object({
   email: z.string().email("Correo inválido"),
@@ -45,6 +46,11 @@ export default function LoginScreen() {
         error,
         "No se pudo iniciar sesión. Intenta nuevamente."
       );
+      captureException(error, {
+        screen: "login",
+        action: "auth_login_submit",
+        uiMessage: message,
+      });
       setSubmitError(message);
       console.error(message);
     }

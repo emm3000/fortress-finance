@@ -15,6 +15,7 @@ import { LabeledInput } from "../../components/ui/labeled-input";
 import { AsyncButton } from "../../components/ui/async-button";
 import { UserPlus, Mail, Lock, User } from "lucide-react-native";
 import { getApiErrorMessage } from "../../utils/api-error";
+import { captureException } from "../../services/monitoring.service";
 
 const registerSchema = z.object({
   name: z.string().min(2, "Mínimo 2 caracteres"),
@@ -46,6 +47,11 @@ export default function RegisterScreen() {
         error,
         "No se pudo completar el registro. Intenta nuevamente."
       );
+      captureException(error, {
+        screen: "register",
+        action: "auth_register_submit",
+        uiMessage: message,
+      });
       setSubmitError(message);
       console.error(message);
     }

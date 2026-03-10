@@ -11,6 +11,7 @@ import { AuthScreenShell } from '../../components/layout/auth-screen-shell';
 import { LabeledInput } from '../../components/ui/labeled-input';
 import { AsyncButton } from '../../components/ui/async-button';
 import { getApiErrorMessage } from '../../utils/api-error';
+import { captureException } from '../../services/monitoring.service';
 
 const resetSchema = z
   .object({
@@ -60,7 +61,13 @@ export default function ResetPasswordScreen() {
         router.replace('/(auth)/login');
       }, 800);
     } catch (error: unknown) {
-      setSubmitError(getApiErrorMessage(error, 'No se pudo restablecer la contraseña.'));
+      const message = getApiErrorMessage(error, 'No se pudo restablecer la contraseña.');
+      captureException(error, {
+        screen: 'reset-password',
+        action: 'auth_confirm_password_reset',
+        uiMessage: message,
+      });
+      setSubmitError(message);
     }
   };
 

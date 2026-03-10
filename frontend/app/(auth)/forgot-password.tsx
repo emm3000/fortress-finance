@@ -11,6 +11,7 @@ import { AuthScreenShell } from '../../components/layout/auth-screen-shell';
 import { LabeledInput } from '../../components/ui/labeled-input';
 import { AsyncButton } from '../../components/ui/async-button';
 import { getApiErrorMessage } from '../../utils/api-error';
+import { captureException } from '../../services/monitoring.service';
 
 const forgotSchema = z.object({
   email: z.string().email('Correo inválido'),
@@ -45,7 +46,13 @@ export default function ForgotPasswordScreen() {
         });
       }
     } catch (error: unknown) {
-      setSubmitError(getApiErrorMessage(error, 'No se pudo procesar la solicitud.'));
+      const message = getApiErrorMessage(error, 'No se pudo procesar la solicitud.');
+      captureException(error, {
+        screen: 'forgot-password',
+        action: 'auth_request_password_reset',
+        uiMessage: message,
+      });
+      setSubmitError(message);
     }
   };
 
