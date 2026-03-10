@@ -22,6 +22,16 @@
         "buildType": "app-bundle"
       }
     },
+    "qa-apk": {
+      "distribution": "internal",
+      "env": {
+        "APP_ENV": "qa",
+        "EXPO_PUBLIC_APP_ENV": "qa"
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    },
     "preview": {
       "distribution": "internal",
       "env": {
