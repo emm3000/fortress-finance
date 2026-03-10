@@ -7,7 +7,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { AlertTriangle, CheckCircle2, Coins, Pencil, ShieldAlert } from 'lucide-react-native';
 import { ScreenHeader } from '../../components/ui/screen-header';
@@ -53,6 +53,7 @@ const STATUS_UI: Record<
 };
 
 export default function BudgetsScreen() {
+  const insets = useSafeAreaInsets();
   const [categoryId, setCategoryId] = useState('');
   const [amount, setAmount] = useState('');
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -128,7 +129,10 @@ export default function BudgetsScreen() {
         backAccessibilityHint='Regresa al dashboard'
       />
 
-      <ScrollView className='px-6' contentContainerStyle={{ paddingBottom: 24 }}>
+      <ScrollView
+        className='px-6'
+        contentContainerStyle={{ paddingBottom: Math.max(insets.bottom + 24, 32) }}
+      >
         <View className='mt-4 p-4 bg-surface border border-border rounded-2xl'>
           <Text className='text-text font-semibold text-base'>Crear o editar presupuesto</Text>
           <Text className='text-text-muted text-xs mt-1'>

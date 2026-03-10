@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Bell, ShieldAlert, ShieldCheck, Store } from 'lucide-react-native';
 import { ScreenHeader } from '../../components/ui/screen-header';
@@ -14,6 +14,7 @@ const iconByType: Record<'ATTACK' | 'REWARD' | 'SHOP', React.ReactNode> = {
 };
 
 export default function AlertsScreen() {
+  const insets = useSafeAreaInsets();
   const { data: notifications = [], isLoading } = useNotifications();
 
   return (
@@ -24,7 +25,10 @@ export default function AlertsScreen() {
         backAccessibilityHint='Regresa al dashboard'
       />
 
-      <ScrollView className='px-6' contentContainerStyle={{ paddingBottom: 24, paddingTop: 16 }}>
+      <ScrollView
+        className='px-6'
+        contentContainerStyle={{ paddingTop: 16, paddingBottom: Math.max(insets.bottom + 24, 32) }}
+      >
         {isLoading ? (
           <View className='py-10 items-center'>
             <ActivityIndicator color='#FFD700' />

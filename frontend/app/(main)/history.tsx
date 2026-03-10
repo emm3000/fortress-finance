@@ -7,7 +7,7 @@ import {
   Pressable,
   Alert,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { FlashList } from "@shopify/flash-list";
 import { router } from "expo-router";
 import { useTransactions } from "../../hooks/useTransactions";
@@ -117,6 +117,7 @@ const TransactionListItem = React.memo(function TransactionListItem({
 });
 
 export default function HistoryScreen() {
+  const insets = useSafeAreaInsets();
   const userId = useAuthStore((state) => state.user?.id);
   const { 
     transactions, 
@@ -240,7 +241,10 @@ export default function HistoryScreen() {
                 </View>
               ) : null
             }
-            contentContainerStyle={{ paddingBottom: 40, paddingTop: 16 }}
+            contentContainerStyle={{
+              paddingTop: 16,
+              paddingBottom: Math.max(insets.bottom + 24, 40),
+            }}
             renderItem={renderItem}
           />
         </View>

@@ -2,6 +2,7 @@ import React from "react";
 import { Pressable, Text, View } from "react-native";
 import { router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Shield, Coins, BellRing } from "lucide-react-native";
 import { OnboardingService } from "../../services/onboarding.service";
 
@@ -35,6 +36,7 @@ const DEFAULT_ONBOARDING_PREFERENCES = {
 };
 
 export default function OnboardingScreen() {
+  const insets = useSafeAreaInsets();
   const [stepIndex, setStepIndex] = React.useState(0);
   const currentStep = STEPS[stepIndex];
   const isLastStep = stepIndex === STEPS.length - 1;
@@ -60,7 +62,8 @@ export default function OnboardingScreen() {
   };
 
   return (
-    <View className="flex-1 bg-background px-6 py-10">
+    <SafeAreaView className="flex-1 bg-background" edges={["top", "bottom"]}>
+      <View className="flex-1 px-6" style={{ paddingTop: 16 }}>
       <View className="items-end">
         <Pressable
           onPress={() => void handleSkip()}
@@ -92,7 +95,7 @@ export default function OnboardingScreen() {
         </View>
       </View>
 
-      <View className="gap-3">
+      <View className="gap-3" style={{ paddingBottom: Math.max(insets.bottom + 12, 20) }}>
         <Pressable
           onPress={() => void handleNext()}
           className="items-center rounded-2xl bg-primary px-4 py-4"
@@ -117,6 +120,7 @@ export default function OnboardingScreen() {
           <Text className="font-semibold text-text">Crear cuenta</Text>
         </Pressable>
       </View>
-    </View>
+      </View>
+    </SafeAreaView>
   );
 }
