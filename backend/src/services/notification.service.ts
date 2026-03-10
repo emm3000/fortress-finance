@@ -59,7 +59,7 @@ export const sendPushNotification = async (options: SendPushOptions) => {
     }
   }
 
-  // 1. Obtener tokens del usuario
+  // 1. Fetch user push tokens
   const pushTokens = await notificationRepository.findUserPushTokens(userId);
 
   if (pushTokens.length === 0) {
@@ -92,7 +92,7 @@ export const sendPushNotification = async (options: SendPushOptions) => {
     });
   }
 
-  // 2. Enviar notificaciones en batches (Expo recomienda batches)
+  // 2. Send notifications in batches (Expo recommends batching)
   const chunks = expo.chunkPushNotifications(messages);
   const tickets = [];
 
@@ -105,7 +105,7 @@ export const sendPushNotification = async (options: SendPushOptions) => {
     }
   }
 
-  // 3. Registrar en logs (opcional, uno por intento exitoso o unificado)
+  // 3. Persist notification log (single consolidated record)
   await notificationRepository.createNotificationLog({
     userId,
     title,
@@ -114,7 +114,7 @@ export const sendPushNotification = async (options: SendPushOptions) => {
     status: tickets.length > 0 ? 'SENT' : 'FAILED',
   });
 
-  // Nota: En una app de producción real, aquí procesaríamos los 'tickets' para
-  // detectar tokens que han expirado (DeviceNotRegistered) y eliminarlos de la DB.
-  // Para este MVP, lanzamos y olvidamos, pero dejamos la estructura lista.
+  // Note: In a production setup, process tickets to detect expired tokens
+  // (DeviceNotRegistered) and delete them from the database.
+  // For this MVP we fire-and-forget, but the structure is prepared.
 };

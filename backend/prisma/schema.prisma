@@ -134,7 +134,7 @@ model Budget {
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, categoryId]) // Solo un presupuesto por categoría por usuario
+  @@unique([userId, categoryId]) // Only one budget per category per user
   // Supports sync pull queries by user and updatedAt cursor
   @@index([userId, updatedAt])
   @@map("budgets")

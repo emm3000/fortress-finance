@@ -12,7 +12,7 @@ describe('Auth Routes Integration', () => {
   };
 
   afterAll(async () => {
-    // Limpieza: Borrar el usuario de prueba
+    // Cleanup: remove test users
     await prisma.user.deleteMany({
       where: {
         email: {

@@ -105,7 +105,7 @@ export const liquidateUser = async (userId: string, targetDate: Date = new Date(
 
     // 4. Update Castle, Wallet and Logs
     if (totalDamage > 0) {
-      // Impacto en el Castillo
+      // Castle impact
       const newHp = Math.max(0, castle.hp - totalDamage);
       await tx.castleState.update({
         where: { userId },
@@ -115,13 +115,13 @@ export const liquidateUser = async (userId: string, targetDate: Date = new Date(
         },
       });
 
-      // Impacto en la Racha (se pierde la racha por exceder presupuestos)
+      // Streak impact (streak is reset when budgets are exceeded)
       await tx.userWallet.update({
         where: { userId },
         data: { streakDays: 0 },
       });
     } else {
-      // No budgets exceeded! The kingdom prospers (Sanación y Oro)
+      // No budgets exceeded! The kingdom prospers (healing and gold)
       const healing = 2; // Fixed healing per day of discipline
       const newHp = Math.min(castle.maxHp, castle.hp + healing);
 
@@ -133,12 +133,12 @@ export const liquidateUser = async (userId: string, targetDate: Date = new Date(
         },
       });
 
-      // Acreditar Oro y aumentar racha
+      // Credit gold and increase streak
       const wallet = await tx.userWallet.findUnique({ where: { userId } });
       const currentStreak = wallet?.streakDays ?? 0;
       const newStreak = currentStreak + 1;
 
-      // Recompensa: 10 base + 5 por cada día de racha (máximo 50 de bono)
+      // Reward formula: 10 base + 5 per streak day (max bonus 50)
       const goldReward = 10 + Math.min(50, currentStreak * 5);
 
       await tx.userWallet.update({
@@ -169,7 +169,7 @@ export const liquidateUser = async (userId: string, targetDate: Date = new Date(
     return { status: 'success', totalDamage, eventsCount: events.length, budgetAlerts };
   });
 
-  // Enviar notificaciones fuera de la transacción para no bloquearla
+  // Send notifications outside the transaction to avoid blocking it
   if (result.status === 'success' && typeof result.totalDamage === 'number') {
     if (Array.isArray(result.budgetAlerts) && result.budgetAlerts.length > 0) {
       for (const alert of result.budgetAlerts) {

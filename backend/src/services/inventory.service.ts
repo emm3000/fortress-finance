@@ -24,34 +24,34 @@ export const getUserInventory = async (userId: string): Promise<InventoryItemDto
 
 /**
  * Purchase an item from the shop
- * Reto técnico: Asegurar consistencia atómica para evitar double-spending
+ * Technical focus: enforce atomic consistency to prevent double-spending
  */
 export const purchaseItem = async (userId: string, itemId: string): Promise<PurchaseInventoryResultDto> => {
   try {
     const result = await prisma.$transaction(async (tx) => {
-      // 1. Verificar si ya posee el item
+      // 1. Check whether user already owns this item
       const existingOwnership = await inventoryRepository.findOwnedInventoryItem(tx, userId, itemId);
 
       if (existingOwnership) {
         throw errorCatalog.economy.itemAlreadyOwned();
       }
 
-      // 2. Obtener el item y verificar precio
+      // 2. Fetch item and validate price
       const item = await inventoryRepository.findShopItemById(tx, itemId);
 
       if (!item) {
         throw errorCatalog.economy.itemNotFound();
       }
 
-      // 3. Ejecutar débito atómico solo si el saldo alcanza.
-      // Esto evita double-spending bajo concurrencia.
+      // 3. Perform atomic debit only when balance is sufficient.
+      // This prevents double-spending under concurrent requests.
       const walletDebit = await inventoryRepository.debitWalletIfEnough(tx, userId, item.price);
 
       if (walletDebit.count === 0) {
         throw errorCatalog.economy.insufficientBalance();
       }
 
-      // 4. Registrar adquisición del item
+      // 4. Persist inventory acquisition
       const inventoryItem = await inventoryRepository.createUserInventoryItem(tx, userId, itemId);
 
       const wallet = await inventoryRepository.findWalletBalanceByUser(tx, userId);

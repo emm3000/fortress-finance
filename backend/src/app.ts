@@ -88,7 +88,7 @@ app.get('/api/me', requireAuth, (req: Request, res: Response) => {
   sendOk(res, { user: req.user });
 });
 
-// Middleware genérico para manejo de errores
+// Global error-handling middleware
 app.use(errorHandler);
 
 export default app;

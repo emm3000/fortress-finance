@@ -15,18 +15,18 @@ describe('Sync Routes Integration', () => {
   };
 
   beforeAll(async () => {
-    // 1. Registrar usuario y obtener token
+    // 1. Register user and obtain auth token
     const authRes = await request(app).post('/api/auth/register').send(testUser);
     token = authRes.body.data.token;
     userId = authRes.body.data.user.id as string;
 
-    // 2. Obtener una categoría válida del seed
+    // 2. Load a valid seeded category
     const cat = await prisma.category.findFirst();
     categoryId = cat!.id;
   });
 
   afterAll(async () => {
-    // Limpieza
+    // Cleanup
     await prisma.transaction.deleteMany({ where: { user: { email: testUser.email } } });
     await prisma.user.deleteMany({ where: { email: testUser.email } });
   });
@@ -57,14 +57,14 @@ describe('Sync Routes Integration', () => {
     expect(response.status).toBe(200);
     expect(response.body.data).toHaveProperty('syncTimestamp');
 
-    // Verificar que se guardó en DB
+    // Verify transaction was saved in DB
     const savedTx = await prisma.transaction.findUnique({ where: { id: txId } });
     expect(savedTx).toBeDefined();
     expect(Number(savedTx?.amount)).toBe(50.5);
   });
 
   it('should pull changes from server (PULL)', async () => {
-    // Simulamos que el cliente sincronizó hace 1 hora
+    // Simulate a client that last synced one hour ago
     const anHourAgo = new Date(Date.now() - 3600000).toISOString();
 
     const response = await request(app)
@@ -80,7 +80,7 @@ describe('Sync Routes Integration', () => {
     expect(response.body.data.changes).toHaveProperty('budgets');
     expect(response.body.data.changes).toHaveProperty('castle');
     expect(Array.isArray(response.body.data.changes.transactions)).toBe(true);
-    expect(response.body.data.changes.transactions.length).toBeGreaterThan(0); // Debería traer la TX del test anterior
+    expect(response.body.data.changes.transactions.length).toBeGreaterThan(0); // Should include previous test transaction
   });
 
   it('should fail if unauthorized', async () => {

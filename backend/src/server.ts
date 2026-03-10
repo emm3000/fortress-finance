@@ -11,7 +11,7 @@ const server = app.listen(env.PORT, () => {
   logger.info('Server ready', { port: env.PORT });
 
   if (env.ENABLE_CRON) {
-    // Iniciar Cron Jobs solo cuando la instancia está marcada para ello.
+    // Start cron jobs only when this instance is explicitly designated for it.
     initCronJobs();
     return;
   }

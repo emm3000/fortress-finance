@@ -12,7 +12,7 @@ describe('Category Routes Integration', () => {
   };
 
   beforeAll(async () => {
-    // Registrar usuario y obtener token
+    // Register user and obtain token
     const response = await request(app).post('/api/auth/register').send(testUser);
     token = response.body.data.token;
   });

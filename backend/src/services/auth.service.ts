@@ -29,7 +29,7 @@ export const registerUser = async (data: RegisterBody) => {
 
   const passwordHash = await hashPassword(password);
 
-  // Crear usuario y castillo en una transacción atómica
+  // Create user and castle state in a single atomic transaction
   const result = await prisma.$transaction(async (tx) => {
     const newUser = await tx.user.create({
       data: {
@@ -52,7 +52,7 @@ export const registerUser = async (data: RegisterBody) => {
     await tx.userWallet.create({
       data: {
         userId: newUser.id,
-        goldBalance: 50, // Pequeño regalo inicial
+        goldBalance: 50, // Small initial starter gift
         streakDays: 0,
       },
     });
