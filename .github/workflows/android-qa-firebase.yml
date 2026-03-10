@@ -54,7 +54,7 @@ jobs:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Build Android QA APK (EAS)
+      - name: Build Android QA artifact (EAS)
         env:
           EXPO_PUBLIC_API_URL: ${{ secrets.EXPO_PUBLIC_API_URL_QA }}
           EXPO_PUBLIC_SENTRY_DSN: ${{ secrets.EXPO_PUBLIC_SENTRY_DSN_QA }}
@@ -65,28 +65,30 @@ jobs:
           eas build --platform android --profile qa --non-interactive --wait --json > eas-build.json
           cat eas-build.json
 
-      - name: Resolve APK URL
-        id: apk
+      - name: Resolve artifact URL
+        id: artifact
         run: |
-          APK_URL=$(node -e "const fs=require('fs');const d=JSON.parse(fs.readFileSync('eas-build.json','utf8'));const b=Array.isArray(d)?d[0]:d;console.log(b?.artifacts?.buildUrl || '')")
-          if [ -z \"$APK_URL\" ]; then
+          ARTIFACT_URL=$(node -e "const fs=require('fs');const d=JSON.parse(fs.readFileSync('eas-build.json','utf8'));const b=Array.isArray(d)?d[0]:d;console.log(b?.artifacts?.buildUrl || '')")
+          if [ -z \"$ARTIFACT_URL\" ]; then
             echo "Could not resolve build artifact URL from eas-build.json"
             exit 1
           fi
-          echo "apk_url=$APK_URL" >> "$GITHUB_OUTPUT"
+          echo "artifact_url=$ARTIFACT_URL" >> "$GITHUB_OUTPUT"
 
-      - name: Download APK
+      - name: Download artifact
         run: |
-          curl -L "${{ steps.apk.outputs.apk_url }}" -o app-qa.apk
-          ls -lh app-qa.apk
+          FILE_NAME="app-qa.aab"
+          curl -L "${{ steps.artifact.outputs.artifact_url }}" -o "$FILE_NAME"
+          ls -lh "$FILE_NAME"
 
-      - name: Upload APK to Firebase App Distribution
+      - name: Upload artifact to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
           appId: ${{ secrets.FIREBASE_APP_ID_ANDROID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
           groups: qa-team
-          file: frontend/app-qa.apk
+          file: frontend/app-qa.aab
           releaseNotes: |
-            QA build from commit ${{ github.sha }}
+            QA aab build from commit ${{ github.sha }}
             Branch: ${{ github.ref_name }}
+            EAS profile: qa
