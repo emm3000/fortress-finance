@@ -1,6 +1,7 @@
 import cron from 'node-cron';
 import * as gameEngine from '../services/gameEngine.service';
 import { logger } from '../utils/logger';
+import { captureException } from '../utils/monitoring';
 
 /**
  * Configure and start background cron jobs
@@ -16,6 +17,9 @@ export const initCronJobs = () => {
       logger.info('Daily liquidation cron completed', { processedUsers: results.length });
     } catch (error) {
       logger.error('Daily liquidation cron failed', { error });
+      captureException(error, {
+        job: 'daily-liquidation',
+      });
     }
   });
 

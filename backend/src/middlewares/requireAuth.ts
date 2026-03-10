@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
+import * as Sentry from '@sentry/node';
 import prisma from '../config/db';
 import { verifyToken } from '../utils/jwt';
 import { sendError } from '../utils/response';
@@ -35,6 +36,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     }
 
     req.user = payload;
+    Sentry.setUser({ id: payload.userId });
     next();
   } catch {
     sendError(res, 401, 'No autorizado, token inválido');

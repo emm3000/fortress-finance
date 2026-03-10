@@ -12,13 +12,23 @@ export const errorHandler = (
   res: Response,
   _next: NextFunction,
 ): void => {
+  const route = req.route as { path?: string } | undefined;
   const isProduction = env.NODE_ENV === 'production';
+  const requestIdHeader = req.headers['x-request-id'];
+  const requestId = typeof requestIdHeader === 'string' ? requestIdHeader : null;
+  const commonMeta = {
+    path: req.path,
+    originalUrl: req.originalUrl,
+    route: typeof route?.path === 'string' ? route.path : null,
+    method: req.method,
+    requestId,
+    userId: req.user?.userId ?? null,
+  };
 
   // Handle semantic application errors (401, 409, etc.)
   if (err instanceof AppError) {
     const logMeta = {
-      path: req.path,
-      method: req.method,
+      ...commonMeta,
       statusCode: err.statusCode,
       code: err.code ?? null,
       message: err.message,
@@ -38,8 +48,7 @@ export const errorHandler = (
 
   if (err instanceof PrismaClientKnownRequestError) {
     logger.warn('Prisma known request error', {
-      path: req.path,
-      method: req.method,
+      ...commonMeta,
       prismaCode: err.code,
       message: err.message,
     });
@@ -51,8 +60,7 @@ export const errorHandler = (
     }
 
     captureException(err, {
-      path: req.path,
-      method: req.method,
+      ...commonMeta,
       prismaCode: err.code,
     });
 
@@ -62,13 +70,11 @@ export const errorHandler = (
 
   const errorMessage = err instanceof Error ? err.message : 'Unknown error';
   logger.error('Unhandled API error', {
-    path: req.path,
-    method: req.method,
+    ...commonMeta,
     error: err,
   });
   captureException(err, {
-    path: req.path,
-    method: req.method,
+    ...commonMeta,
   });
 
   if (isProduction) {

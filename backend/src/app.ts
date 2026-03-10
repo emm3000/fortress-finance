@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import express from 'express';
+import * as Sentry from '@sentry/node';
 import cors from 'cors';
 import type { CorsOptions } from 'cors';
 import helmet from 'helmet';
@@ -19,6 +20,7 @@ import { errorHandler } from './middlewares/errorHandler';
 import { env } from './config/env';
 import prisma from './config/db';
 import { sendError, sendOk } from './utils/response';
+import { isMonitoringEnabled, setRequestMonitoringContext } from './utils/monitoring';
 
 const app = express();
 const allowedCorsOrigins = env.CORS_ORIGINS.split(',')
@@ -52,6 +54,10 @@ const corsOptions: CorsOptions = {
 app.use(helmet());
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use((req, _res, next) => {
+  setRequestMonitoringContext(req);
+  next();
+});
 
 if (env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
@@ -87,6 +93,10 @@ app.get('/api/ready', async (_req: Request, res: Response) => {
 app.get('/api/me', requireAuth, (req: Request, res: Response) => {
   sendOk(res, { user: req.user });
 });
+
+if (isMonitoringEnabled()) {
+  Sentry.setupExpressErrorHandler(app);
+}
 
 // Global error-handling middleware
 app.use(errorHandler);

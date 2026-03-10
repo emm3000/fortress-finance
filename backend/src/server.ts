@@ -1,11 +1,9 @@
+import './instrument';
 import 'dotenv/config';
 import { env } from './config/env';
 import app from './app';
 import { initCronJobs } from './config/cron';
 import { logger } from './utils/logger';
-import { initMonitoring } from './utils/monitoring';
-
-initMonitoring();
 
 const server = app.listen(env.PORT, () => {
   logger.info('Server ready', { port: env.PORT });
