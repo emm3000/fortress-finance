@@ -21,11 +21,16 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     const payload = verifyToken(token);
     const user = await prisma.user.findUnique({
       where: { id: payload.userId },
-      select: { id: true },
+      select: { id: true, updatedAt: true },
     });
 
     if (!user) {
       sendError(res, 401, 'No autorizado, token inválido o usuario inexistente');
+      return;
+    }
+
+    if (payload.sessionIssuedAt < user.updatedAt.getTime()) {
+      sendError(res, 401, 'No autorizado, sesión expirada. Inicia sesión nuevamente');
       return;
     }
 

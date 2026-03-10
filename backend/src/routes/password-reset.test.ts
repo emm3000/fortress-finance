@@ -93,4 +93,40 @@ describe('Password Reset Routes Integration', () => {
     expect(invalidResponse.status).toBe(400);
     expect(invalidResponse.body.error.message).toBe('Token inválido o expirado');
   });
+
+  it('should invalidate previously issued access tokens after password reset', async () => {
+    const loginBeforeReset = await request(app)
+      .post('/api/auth/login')
+      .send({ email: testUser.email, password: 'newPassword789' });
+
+    expect(loginBeforeReset.status).toBe(200);
+    const staleAccessToken = loginBeforeReset.body.data.token as string;
+
+    const requestReset = await request(app)
+      .post('/api/auth/password-reset/request')
+      .send({ email: testUser.email });
+
+    const resetToken = requestReset.body.data.resetToken as string;
+
+    const confirmResponse = await request(app)
+      .post('/api/auth/password-reset/confirm')
+      .send({ token: resetToken, newPassword: 'newPassword999' });
+
+    expect(confirmResponse.status).toBe(200);
+
+    const protectedWithStaleToken = await request(app)
+      .get('/api/categories')
+      .set('Authorization', `Bearer ${staleAccessToken}`);
+
+    expect(protectedWithStaleToken.status).toBe(401);
+    expect(protectedWithStaleToken.body.error.message).toBe(
+      'No autorizado, sesión expirada. Inicia sesión nuevamente',
+    );
+
+    const loginWithNewPassword = await request(app)
+      .post('/api/auth/login')
+      .send({ email: testUser.email, password: 'newPassword999' });
+
+    expect(loginWithNewPassword.status).toBe(200);
+  });
 });

@@ -6,6 +6,7 @@ const JWT_ALGORITHM = 'HS256' as const;
 
 export interface JwtPayload {
   userId: string;
+  sessionIssuedAt: number;
 }
 
 /**

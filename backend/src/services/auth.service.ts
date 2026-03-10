@@ -60,7 +60,7 @@ export const registerUser = async (data: RegisterBody) => {
     return newUser;
   });
 
-  const token = signToken({ userId: result.id });
+  const token = signToken({ userId: result.id, sessionIssuedAt: Date.now() });
 
   return {
     user: {
@@ -90,7 +90,7 @@ export const loginUser = async (data: LoginBody) => {
     throw errorCatalog.auth.invalidCredentials();
   }
 
-  const token = signToken({ userId: user.id });
+  const token = signToken({ userId: user.id, sessionIssuedAt: Date.now() });
 
   return {
     user: {
