@@ -1,6 +1,5 @@
 import apiClient from './api.client';
-import * as Notifications from 'expo-notifications';
-import Constants from 'expo-constants';
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
@@ -15,11 +14,20 @@ export interface AppNotification {
 
 const PUSH_TOKEN_KEY = 'expo_push_token';
 const PUSH_TOKEN_OWNER_KEY = 'expo_push_token_owner';
+const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
 
 const getProjectId = () =>
   Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId ?? null;
 
 const getDeviceInfo = () => `${Platform.OS}:${String(Platform.Version ?? 'unknown')}`;
+
+const loadNotificationsModule = async () => {
+  if (Platform.OS === 'web' || isExpoGo) {
+    return null;
+  }
+
+  return import('expo-notifications');
+};
 
 export const NotificationService = {
   async list(limit: number = 30): Promise<AppNotification[]> {
@@ -30,7 +38,9 @@ export const NotificationService = {
   },
 
   async ensurePushTokenRegistered(userId: string): Promise<string | null> {
-    if (Platform.OS === 'web') {
+    const Notifications = await loadNotificationsModule();
+
+    if (!Notifications) {
       return null;
     }
 

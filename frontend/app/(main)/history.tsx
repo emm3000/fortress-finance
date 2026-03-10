@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
   Pressable,
   Alert,
-  InteractionManager,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FlashList } from "@shopify/flash-list";
@@ -31,6 +30,7 @@ import {
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useAuthStore } from "../../store/auth.store";
+import { runWhenIdle } from "../../utils/idle";
 
 const TransactionListItem = React.memo(function TransactionListItem({
   transaction,
@@ -168,7 +168,7 @@ export default function HistoryScreen() {
               TransactionRepository.softDelete(transactionId, userId)
                 .then(async () => {
                   await refreshTransactions();
-                  InteractionManager.runAfterInteractions(() => {
+                  runWhenIdle(() => {
                     performSync().catch(() => {
                       // Errors are surfaced through sync state.
                     });

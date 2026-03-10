@@ -8,7 +8,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
-  InteractionManager,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
@@ -30,6 +29,7 @@ import {
   CalendarDays
 } from "lucide-react-native";
 import { MotiView } from "moti";
+import { runWhenIdle } from "../../utils/idle";
 
 const toTodayDateInput = () => {
   const now = new Date();
@@ -175,7 +175,7 @@ export default function NewTransactionScreen() {
       router.back();
 
       // Defer background sync until UI interactions/transitions finish.
-      InteractionManager.runAfterInteractions(() => {
+      runWhenIdle(() => {
         performSync().catch(() => {
           // Errors are surfaced through the sync hook/UI state when relevant.
         });

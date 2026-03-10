@@ -6,7 +6,6 @@ import {
   ScrollView,
   Pressable,
   RefreshControl,
-  InteractionManager,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuthStore } from "../../store/auth.store";
@@ -31,6 +30,7 @@ import {
   Bell,
 } from "lucide-react-native";
 import { MotiView } from "moti";
+import { runWhenIdle } from "../../utils/idle";
 
 const STATUS_COLORS: Record<string, string> = {
   HEALTHY: "text-green-400",
@@ -55,7 +55,7 @@ export default function Dashboard() {
     if (hasInitializedSync.current) return;
     hasInitializedSync.current = true;
 
-    const task = InteractionManager.runAfterInteractions(() => {
+    const task = runWhenIdle(() => {
       performSync().catch((error) => console.error("Initial Sync Failed:", error));
     });
 

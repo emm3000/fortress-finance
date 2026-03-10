@@ -10,7 +10,7 @@ import { useColorScheme } from 'nativewind';
 import { initDatabase } from '../db/database';
 import { OfflineBanner } from "../components/feedback/offline-banner";
 import { GlobalErrorBoundary } from "../components/feedback/global-error-boundary";
-import { captureException, initializeMonitoring } from "../services/monitoring.service";
+import { captureException, initializeMonitoring, isMonitoringEnabled } from "../services/monitoring.service";
 import { useNetworkStore } from "../store/network.store";
 import "../global.css";
 
@@ -103,4 +103,6 @@ function RootLayout() {
   );
 }
 
-export default Sentry.wrap(RootLayout);
+const ExportedRootLayout = isMonitoringEnabled() ? Sentry.wrap(RootLayout) : RootLayout;
+
+export default ExportedRootLayout;

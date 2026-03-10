@@ -23,6 +23,7 @@ const googleServicesPath =
       : undefined;
 const plugins: NonNullable<ExpoConfig["plugins"]> = [
   "expo-router",
+  "expo-image",
   [
     "expo-splash-screen",
     {
@@ -60,7 +61,6 @@ const config: ExpoConfig = {
   icon: "./assets/images/icon.png",
   scheme: "frontend",
   userInterfaceStyle: "automatic",
-  newArchEnabled: true,
   ios: {
     supportsTablet: true,
   },
@@ -71,7 +71,6 @@ const config: ExpoConfig = {
       backgroundImage: "./assets/images/android-icon-background.png",
       monochromeImage: "./assets/images/android-icon-monochrome.png",
     },
-    edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
     package: "com.emm3000.fortressfinance",
     ...(googleServicesPath

@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import * as SecureStore from "expo-secure-store";
 import { setAuthToken, setUnauthorizedHandler } from "../services/api.client";
+import { captureException, setMonitoringUser } from "../services/monitoring.service";
 
 interface User {
   id: string;
@@ -28,6 +29,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     await SecureStore.setItemAsync("auth_token", token);
     await SecureStore.setItemAsync("user_data", JSON.stringify(user));
     setAuthToken(token);
+    setMonitoringUser(user);
     set({ user, token, isAuthenticated: true, isLoading: false });
   },
 
@@ -35,6 +37,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     await SecureStore.deleteItemAsync("auth_token");
     await SecureStore.deleteItemAsync("user_data");
     setAuthToken(null);
+    setMonitoringUser(null);
     set({ user: null, token: null, isAuthenticated: false, isLoading: false });
   },
 
@@ -45,20 +48,25 @@ export const useAuthStore = create<AuthState>((set) => ({
       const userData = await SecureStore.getItemAsync("user_data");
 
       if (token && userData) {
+        const user = JSON.parse(userData) as User;
         setAuthToken(token);
+        setMonitoringUser(user);
         set({
           token,
-          user: JSON.parse(userData),
+          user,
           isAuthenticated: true,
           isLoading: false,
         });
       } else {
         setAuthToken(null);
-        set({ isAuthenticated: false, isLoading: false });
+        setMonitoringUser(null);
+        set({ user: null, token: null, isAuthenticated: false, isLoading: false });
       }
     } catch (error) {
       console.error("Auth initialization failed:", error);
-      set({ isAuthenticated: false, isLoading: false });
+      captureException(error, { phase: "auth_store_initialize" });
+      setMonitoringUser(null);
+      set({ user: null, token: null, isAuthenticated: false, isLoading: false });
     }
   },
 }));
