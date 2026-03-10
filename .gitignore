@@ -8,4 +8,5 @@ node_modules/
 .agents/
 .gemini/
 skills-lock.json
-docs/
+docs/deployment.md
+docs/mvp-status.md
