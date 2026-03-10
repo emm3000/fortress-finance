@@ -17,7 +17,8 @@ import dashboardRoutes from './routes/dashboard.routes';
 import { requireAuth } from './middlewares/requireAuth';
 import { errorHandler } from './middlewares/errorHandler';
 import { env } from './config/env';
-import { sendOk } from './utils/response';
+import prisma from './config/db';
+import { sendError, sendOk } from './utils/response';
 
 const app = express();
 const allowedCorsOrigins = env.CORS_ORIGINS.split(',')
@@ -71,6 +72,15 @@ app.use('/api/dashboard', dashboardRoutes);
 // Ruta base
 app.get('/api/health', (req: Request, res: Response) => {
   sendOk(res, { status: 'OK', message: 'Servicio en línea' });
+});
+
+app.get('/api/ready', async (_req: Request, res: Response) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    sendOk(res, { status: 'READY', message: 'Servicio y base de datos disponibles' });
+  } catch {
+    sendError(res, 503, 'Servicio no listo');
+  }
 });
 
 // Ruta de ejemplo protegida
