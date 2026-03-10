@@ -3,10 +3,12 @@ import { Stack, router } from "expo-router";
 import { useAuthStore } from "../../store/auth.store";
 import { useSync } from "../../hooks/useSync";
 import { useNetworkStore } from "../../store/network.store";
+import { NotificationService } from "../../services/notification.service";
 
 export default function MainLayout() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const isLoading = useAuthStore((state) => state.isLoading);
+  const userId = useAuthStore((state) => state.user?.id);
   const isOnline = useNetworkStore((state) => state.isOnline);
   const { performSync } = useSync();
   const wasOnlineRef = useRef(isOnline);
@@ -16,6 +18,16 @@ export default function MainLayout() {
       router.replace("/(auth)/login");
     }
   }, [isAuthenticated, isLoading]);
+
+  useEffect(() => {
+    if (isLoading || !isAuthenticated || !isOnline || !userId) {
+      return;
+    }
+
+    NotificationService.ensurePushTokenRegistered(userId).catch((error) => {
+      console.error("No se pudo registrar push token:", error);
+    });
+  }, [isAuthenticated, isLoading, isOnline, userId]);
 
   useEffect(() => {
     if (isLoading || !isAuthenticated) {

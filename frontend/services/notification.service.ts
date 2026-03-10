@@ -1,4 +1,8 @@
 import apiClient from './api.client';
+import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
+import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
 
 export interface AppNotification {
   id: string;
@@ -9,11 +13,88 @@ export interface AppNotification {
   createdAt: string;
 }
 
+const PUSH_TOKEN_KEY = 'expo_push_token';
+const PUSH_TOKEN_OWNER_KEY = 'expo_push_token_owner';
+
+const getProjectId = () =>
+  Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId ?? null;
+
+const getDeviceInfo = () => `${Platform.OS}:${String(Platform.Version ?? 'unknown')}`;
+
 export const NotificationService = {
   async list(limit: number = 30): Promise<AppNotification[]> {
     const response = await apiClient.get<AppNotification[]>('/notifications', {
       params: { limit },
     });
     return response.data;
+  },
+
+  async ensurePushTokenRegistered(userId: string): Promise<string | null> {
+    if (Platform.OS === 'web') {
+      return null;
+    }
+
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+    if (finalStatus !== 'granted') {
+      const permissionResponse = await Notifications.requestPermissionsAsync();
+      finalStatus = permissionResponse.status;
+    }
+
+    if (finalStatus !== 'granted') {
+      return null;
+    }
+
+    if (Platform.OS === 'android') {
+      await Notifications.setNotificationChannelAsync('default', {
+        name: 'default',
+        importance: Notifications.AndroidImportance.DEFAULT,
+      });
+    }
+
+    const projectId = getProjectId();
+    if (!projectId) {
+      console.warn('No se encontró projectId de EAS; se omite registro de push token.');
+      return null;
+    }
+
+    const tokenResponse = await Notifications.getExpoPushTokenAsync({ projectId });
+    const pushToken = tokenResponse.data;
+    const [storedToken, storedOwner] = await Promise.all([
+      SecureStore.getItemAsync(PUSH_TOKEN_KEY),
+      SecureStore.getItemAsync(PUSH_TOKEN_OWNER_KEY),
+    ]);
+
+    if (storedToken === pushToken && storedOwner === userId) {
+      return pushToken;
+    }
+
+    await apiClient.post('/notifications/register', {
+      token: pushToken,
+      deviceInfo: getDeviceInfo(),
+    });
+
+    await Promise.all([
+      SecureStore.setItemAsync(PUSH_TOKEN_KEY, pushToken),
+      SecureStore.setItemAsync(PUSH_TOKEN_OWNER_KEY, userId),
+    ]);
+
+    return pushToken;
+  },
+
+  async unregisterCurrentToken(): Promise<void> {
+    const pushToken = await SecureStore.getItemAsync(PUSH_TOKEN_KEY);
+    if (!pushToken) {
+      return;
+    }
+
+    try {
+      await apiClient.post('/notifications/unregister', { token: pushToken });
+    } finally {
+      await Promise.all([
+        SecureStore.deleteItemAsync(PUSH_TOKEN_KEY),
+        SecureStore.deleteItemAsync(PUSH_TOKEN_OWNER_KEY),
+      ]);
+    }
   },
 };

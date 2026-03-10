@@ -2,6 +2,7 @@ import apiClient from "./api.client";
 import { useAuthStore } from "../store/auth.store";
 import { OnboardingService } from "./onboarding.service";
 import { useNetworkStore } from "../store/network.store";
+import { NotificationService } from "./notification.service";
 
 interface RegisterInput {
   name: string;
@@ -70,6 +71,14 @@ export const AuthService = {
    * Logout user locally
    */
   async logout() {
+    if (useNetworkStore.getState().isOnline) {
+      try {
+        await NotificationService.unregisterCurrentToken();
+      } catch (error) {
+        console.error("No se pudo desregistrar push token:", error);
+      }
+    }
+
     await useAuthStore.getState().logout();
   },
 
