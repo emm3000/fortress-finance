@@ -8,11 +8,14 @@ import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
 import { initDatabase } from '../db/database';
 import { OfflineBanner } from "../components/feedback/offline-banner";
+import { GlobalErrorBoundary } from "../components/feedback/global-error-boundary";
+import { initializeMonitoring } from "../services/monitoring.service";
 import { useNetworkStore } from "../store/network.store";
 import "../global.css";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+initializeMonitoring();
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -82,16 +85,18 @@ export default function RootLayout() {
   const navTheme = colorScheme === 'dark' ? DarkTheme : DefaultTheme;
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider value={navTheme}>
-        <StatusBar style="auto" />
-        <OfflineBanner />
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="(main)" />
-          <Stack.Screen name="(auth)" />
-        </Stack>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <GlobalErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider value={navTheme}>
+          <StatusBar style="auto" />
+          <OfflineBanner />
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(main)" />
+            <Stack.Screen name="(auth)" />
+          </Stack>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </GlobalErrorBoundary>
   );
 }
