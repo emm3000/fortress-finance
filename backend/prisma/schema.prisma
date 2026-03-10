@@ -6,8 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // Enum for transaction / category type — enforced at DB level
@@ -38,34 +39,34 @@ enum NotificationStatus {
 }
 
 model User {
-  id            String            @id @default(uuid()) @db.Uuid
-  email         String            @unique
-  passwordHash  String            @map("password_hash")
-  name          String
-  createdAt     DateTime          @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt     DateTime          @updatedAt @map("updated_at") @db.Timestamptz
-  transactions  Transaction[]
-  castleState   CastleState?
-  budgets       Budget[]
-  gameEvents    GameEventLog[]
-  wallet        UserWallet?
-  inventory     UserInventory[]
-  pushTokens    UserPushToken[]
-  notifications NotificationLog[]
-  preferences   UserPreference?
-  initialCategories UserInitialCategory[]
+  id                  String                @id @default(uuid()) @db.Uuid
+  email               String                @unique
+  passwordHash        String                @map("password_hash")
+  name                String
+  createdAt           DateTime              @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt           DateTime              @updatedAt @map("updated_at") @db.Timestamptz
+  transactions        Transaction[]
+  castleState         CastleState?
+  budgets             Budget[]
+  gameEvents          GameEventLog[]
+  wallet              UserWallet?
+  inventory           UserInventory[]
+  pushTokens          UserPushToken[]
+  notifications       NotificationLog[]
+  preferences         UserPreference?
+  initialCategories   UserInitialCategory[]
   passwordResetTokens PasswordResetToken[]
 
   @@map("users")
 }
 
 model PasswordResetToken {
-  id        String   @id @db.Text
-  userId    String   @map("user_id") @db.Uuid
-  tokenHash String   @unique @map("token_hash")
-  expiresAt DateTime @map("expires_at") @db.Timestamptz
+  id        String    @id @db.Text
+  userId    String    @map("user_id") @db.Uuid
+  tokenHash String    @unique @map("token_hash")
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz
   usedAt    DateTime? @map("used_at") @db.Timestamptz
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -74,14 +75,14 @@ model PasswordResetToken {
 }
 
 model Category {
-  id           String          @id @default(uuid()) @db.Uuid
-  name         String
-  type         TransactionType
-  icon         String
-  createdAt    DateTime        @default(now()) @map("created_at") @db.Timestamptz
-  updatedAt    DateTime        @updatedAt @map("updated_at") @db.Timestamptz
-  transactions Transaction[]
-  budgets      Budget[]
+  id              String                @id @default(uuid()) @db.Uuid
+  name            String
+  type            TransactionType
+  icon            String
+  createdAt       DateTime              @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime              @updatedAt @map("updated_at") @db.Timestamptz
+  transactions    Transaction[]
+  budgets         Budget[]
   initialForUsers UserInitialCategory[]
 
   @@unique([name, type])
@@ -110,12 +111,12 @@ model Transaction {
 }
 
 model CastleState {
-  userId    String   @id @map("user_id") @db.Uuid
-  level     Int      @default(1)
-  hp        Int      @default(100)
-  maxHp     Int      @default(100) @map("max_hp")
+  userId    String       @id @map("user_id") @db.Uuid
+  level     Int          @default(1)
+  hp        Int          @default(100)
+  maxHp     Int          @default(100) @map("max_hp")
   status    CastleStatus @default(HEALTHY)
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  updatedAt DateTime     @updatedAt @map("updated_at") @db.Timestamptz
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -123,12 +124,12 @@ model CastleState {
 }
 
 model Budget {
-  id          String   @id @default(uuid()) @db.Uuid
-  userId      String   @map("user_id") @db.Uuid
-  categoryId  String   @map("category_id") @db.Uuid
-  limitAmount Decimal  @map("limit_amount") @db.Decimal(10, 2)
+  id          String       @id @default(uuid()) @db.Uuid
+  userId      String       @map("user_id") @db.Uuid
+  categoryId  String       @map("category_id") @db.Uuid
+  limitAmount Decimal      @map("limit_amount") @db.Decimal(10, 2)
   period      BudgetPeriod @default(MONTHLY)
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz
+  updatedAt   DateTime     @updatedAt @map("updated_at") @db.Timestamptz
 
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
@@ -204,13 +205,13 @@ model UserPushToken {
 }
 
 model NotificationLog {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @map("user_id") @db.Uuid
+  id        String             @id @default(uuid()) @db.Uuid
+  userId    String             @map("user_id") @db.Uuid
   title     String
   body      String
   type      NotificationType
   status    NotificationStatus @default(SENT)
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  createdAt DateTime           @default(now()) @map("created_at") @db.Timestamptz
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

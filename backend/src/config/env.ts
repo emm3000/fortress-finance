@@ -8,6 +8,7 @@ config();
 
 const envSchema = z.object({
   DATABASE_URL: z.url('DATABASE_URL debe ser una URL válida'),
+  DIRECT_URL: z.url('DIRECT_URL debe ser una URL válida'),
   TEST_DATABASE_URL: z.url('TEST_DATABASE_URL debe ser una URL válida').optional(),
   JWT_SECRET: z.string().min(32, 'JWT_SECRET debe tener al menos 32 caracteres'),
   SENTRY_DSN: z.preprocess(
