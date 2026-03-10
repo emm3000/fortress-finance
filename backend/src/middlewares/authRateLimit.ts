@@ -11,6 +11,8 @@ export const authRateLimiter = rateLimit({
   legacyHeaders: false,
   skip: () => env.NODE_ENV === 'test',
   message: {
-    error: 'Demasiados intentos de autenticación. Inténtalo más tarde.',
+    error: {
+      message: 'Demasiados intentos de autenticación. Inténtalo más tarde.',
+    },
   },
 });

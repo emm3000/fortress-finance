@@ -14,6 +14,7 @@ import { AuthScreenShell } from "../../components/layout/auth-screen-shell";
 import { LabeledInput } from "../../components/ui/labeled-input";
 import { AsyncButton } from "../../components/ui/async-button";
 import { ShieldCheck, Mail, Lock } from "lucide-react-native";
+import { getApiErrorMessage } from "../../utils/api-error";
 
 const loginSchema = z.object({
   email: z.string().email("Correo inválido"),
@@ -40,7 +41,10 @@ export default function LoginScreen() {
       await AuthService.login(data);
       router.replace("/(main)");
     } catch (error: any) {
-      const message = error?.response?.data?.message || "No se pudo iniciar sesión. Intenta nuevamente.";
+      const message = getApiErrorMessage(
+        error,
+        "No se pudo iniciar sesión. Intenta nuevamente."
+      );
       setSubmitError(message);
       console.error(message);
     }

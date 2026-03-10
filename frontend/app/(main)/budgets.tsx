@@ -16,6 +16,7 @@ import { EmptyState } from '../../components/feedback/empty-state';
 import { useCategories } from '../../hooks/useCategories';
 import { useBudgets } from '../../hooks/useBudgets';
 import { useBudgetProgress } from '../../hooks/useBudgetProgress';
+import { getApiErrorMessage } from '../../utils/api-error';
 
 type Status = 'NORMAL' | 'RISK' | 'EXCEEDED';
 
@@ -115,14 +116,7 @@ export default function BudgetsScreen() {
       setAmount('');
       setCategoryId('');
     } catch (error: unknown) {
-      const responseMessage =
-        error && typeof error === 'object' && 'response' in error
-          ? (error as { response?: { data?: { error?: string } } }).response?.data?.error
-          : null;
-      const fallbackMessage =
-        error instanceof Error ? error.message : 'No se pudo guardar el presupuesto.';
-
-      setSubmitError(responseMessage ?? fallbackMessage);
+      setSubmitError(getApiErrorMessage(error, 'No se pudo guardar el presupuesto.'));
     }
   };
 

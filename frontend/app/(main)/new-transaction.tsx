@@ -30,6 +30,7 @@ import {
 } from "lucide-react-native";
 import { MotiView } from "moti";
 import { runWhenIdle } from "../../utils/idle";
+import { getApiErrorMessage } from "../../utils/api-error";
 
 const toTodayDateInput = () => {
   const now = new Date();
@@ -181,9 +182,10 @@ export default function NewTransactionScreen() {
         });
       });
     } catch (error: any) {
-      const message =
-        error?.response?.data?.message ||
-        "No se pudo guardar la transacción. Inténtalo de nuevo.";
+      const message = getApiErrorMessage(
+        error,
+        "No se pudo guardar la transacción. Inténtalo de nuevo."
+      );
       setSubmitError(message);
       console.error("Failed to save transaction:", error);
     }

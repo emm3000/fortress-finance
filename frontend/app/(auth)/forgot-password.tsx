@@ -10,6 +10,7 @@ import { InlineError } from '../../components/feedback/inline-error';
 import { AuthScreenShell } from '../../components/layout/auth-screen-shell';
 import { LabeledInput } from '../../components/ui/labeled-input';
 import { AsyncButton } from '../../components/ui/async-button';
+import { getApiErrorMessage } from '../../utils/api-error';
 
 const forgotSchema = z.object({
   email: z.string().email('Correo inválido'),
@@ -44,12 +45,7 @@ export default function ForgotPasswordScreen() {
         });
       }
     } catch (error: unknown) {
-      const message =
-        error && typeof error === 'object' && 'response' in error
-          ? (error as { response?: { data?: { message?: string } } }).response?.data?.message
-          : null;
-
-      setSubmitError(message ?? 'No se pudo procesar la solicitud.');
+      setSubmitError(getApiErrorMessage(error, 'No se pudo procesar la solicitud.'));
     }
   };
 

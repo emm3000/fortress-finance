@@ -14,6 +14,7 @@ import { AuthScreenShell } from "../../components/layout/auth-screen-shell";
 import { LabeledInput } from "../../components/ui/labeled-input";
 import { AsyncButton } from "../../components/ui/async-button";
 import { UserPlus, Mail, Lock, User } from "lucide-react-native";
+import { getApiErrorMessage } from "../../utils/api-error";
 
 const registerSchema = z.object({
   name: z.string().min(2, "Mínimo 2 caracteres"),
@@ -41,7 +42,10 @@ export default function RegisterScreen() {
       await AuthService.register(data);
       router.replace("/(main)");
     } catch (error: any) {
-      const message = error?.response?.data?.message || "No se pudo completar el registro. Intenta nuevamente.";
+      const message = getApiErrorMessage(
+        error,
+        "No se pudo completar el registro. Intenta nuevamente."
+      );
       setSubmitError(message);
       console.error(message);
     }
