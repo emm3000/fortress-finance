@@ -91,21 +91,21 @@ Garantizar que cada usuario vea y modifique solo sus propios datos.
 
 ### Subtareas atomicas
 
-- [ ] Habilitar RLS en `profiles`.
+- [x] Habilitar RLS en `profiles`.
   Commit sugerido: `feat(db): enable rls on profiles`
-- [ ] Habilitar RLS en `transactions`.
+- [x] Habilitar RLS en `transactions`.
   Commit sugerido: `feat(db): enable rls on transactions`
-- [ ] Habilitar RLS en `budgets`.
+- [x] Habilitar RLS en `budgets`.
   Commit sugerido: `feat(db): enable rls on budgets`
-- [ ] Habilitar RLS en `castle_states` y `user_wallets`.
+- [x] Habilitar RLS en `castle_states` y `user_wallets`.
   Commit sugerido: `feat(db): enable rls on game state`
-- [ ] Habilitar RLS en `user_preferences` y `user_initial_categories`.
+- [x] Habilitar RLS en `user_preferences` y `user_initial_categories`.
   Commit sugerido: `feat(db): enable rls on onboarding tables`
-- [ ] Habilitar RLS en `notification_logs` y `user_push_tokens`.
+- [x] Habilitar RLS en `notification_logs` y `user_push_tokens`.
   Commit sugerido: `feat(db): enable rls on notification tables`
-- [ ] Crear politica de solo lectura autenticada para `categories`.
+- [x] Crear politica de solo lectura autenticada para `categories`.
   Commit sugerido: `feat(db): add categories read policy`
-- [ ] Validar manualmente que un usuario no puede leer datos de otro.
+- [x] Validar manualmente que un usuario no puede leer datos de otro.
   Commit sugerido: `test(db): validate user isolation`
 
 ### Criterios de aceptacion
