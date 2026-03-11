@@ -98,6 +98,7 @@ const markAsFailed = async (
     .eq("id", row.id);
 
   if (error) throw error;
+  return shouldStop;
 };
 
 const sendExpoPush = async (
@@ -218,7 +219,18 @@ Deno.serve(async (req) => {
       failed += 1;
       const message = error instanceof Error ? error.message : "Unknown dispatch error";
       try {
-        await markAsFailed(supabase, due, message);
+        const isTerminalFailure = await markAsFailed(supabase, due, message);
+        if (isTerminalFailure) {
+          await supabase
+            .from("notification_logs")
+            .insert({
+              user_id: due.user_id,
+              title: due.title,
+              body: due.body,
+              type: due.notification_type,
+              status: "FAILED",
+            });
+        }
       } catch {
         // Best effort only; job will remain visible for manual recovery.
       }
