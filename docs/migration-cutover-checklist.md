@@ -2,6 +2,9 @@
 
 Fecha de actualizacion: 2026-03-11
 
+Runbook operativo:
+- `docs/h12-smoke-test-runbook.md`
+
 ## 1. Gate tecnico previo a cutover
 
 - [x] Frontend typecheck en verde.
@@ -86,4 +89,3 @@ Acciones:
    - query/funcion SQL implicada
    - reproduccion minima
 5. Abrir fix-forward en rama nueva y repetir smoke completo antes de nuevo release.
-
