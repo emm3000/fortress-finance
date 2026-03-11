@@ -1,4 +1,3 @@
-import apiClient from "./api.client";
 import { TransactionRepository } from "../db/transaction.repository";
 import { CategoryRepository } from "../db/category.repository";
 import { CastleRepository } from "../db/castle.repository";
@@ -16,6 +15,41 @@ export type FullSyncResult = {
   hasCastleUpdate: boolean;
   pendingQueueCount: number;
   failedQueueCount: number;
+};
+
+type SyncTransactionChange = {
+  id: string;
+  userId: string;
+  categoryId: string | null;
+  amount: number | string;
+  notes: string | null;
+  date: string;
+  type: "INCOME" | "EXPENSE";
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+};
+
+type SyncCastleChange = {
+  userId: string;
+  hp: number;
+  maxHp: number;
+  status: "HEALTHY" | "UNDER_ATTACK" | "RUINS";
+} | null;
+
+type SyncWalletChange = {
+  userId: string;
+  goldBalance: number;
+  streakDays: number;
+} | null;
+
+type SyncRpcResponse = {
+  syncTimestamp: string;
+  changes: {
+    transactions?: SyncTransactionChange[];
+    castle?: SyncCastleChange;
+    wallet?: SyncWalletChange;
+  };
 };
 
 const BACKOFF_BASE_MS = 5_000;
@@ -101,18 +135,23 @@ export const SyncService = {
       // 2. Get last sync timestamp
       const lastSync = await SyncMetaRepository.get("last_sync_timestamp");
 
-      // 3. Call Backend Sync API
-      const response = await apiClient.post("/sync", {
-        lastSyncTimestamp: lastSync,
-        transactions: transactionsPush.map((item) => item.payload),
-        budgets: [], // Placeholder for now
-        inventory: [], // Placeholder for now
+      // 3. Sync against Supabase RPC (push + pull reconciliation)
+      const { data, error } = await supabase.rpc("sync_client_state", {
+        p_last_sync_timestamp: lastSync,
+        p_transactions: transactionsPush.map((item) => item.payload),
       });
 
-      const { syncTimestamp, changes } = response.data;
-      const castleChange = changes?.castle;
-      const walletChange = changes?.wallet;
-      const transactionsPull = Array.isArray(changes?.transactions) ? changes.transactions : [];
+      if (error) {
+        throw error;
+      }
+
+      const payload = (data ?? {}) as SyncRpcResponse;
+      const syncTimestamp = payload.syncTimestamp || new Date().toISOString();
+      const castleChange = payload.changes?.castle;
+      const walletChange = payload.changes?.wallet;
+      const transactionsPull = Array.isArray(payload.changes?.transactions)
+        ? payload.changes?.transactions
+        : [];
 
       // 4. APPLY CHANGES (PULL)
       try {
