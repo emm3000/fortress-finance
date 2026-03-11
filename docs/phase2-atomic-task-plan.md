@@ -69,11 +69,13 @@ One task should map to one commit whenever possible.
 ### task-10: Add Observability and Ops Runbook
 
 - Deliverable: metrics/logging checklist and operational runbook (incident handling and replay).
+  - File: `docs/phase2-ops-runbook.md`
 - Suggested commit: `docs(phase2): add operations runbook and monitoring`
 
 ### task-11: Run Phase 2 Smoke Tests
 
 - Deliverable: end-to-end validation results (daily run, no duplicates, correct push behavior, home consistency).
+  - File: `docs/phase2-smoke-test-runbook.md`
 - Suggested commit: `test(phase2): add smoke validation results`
 
 ### task-12: Close Phase 2 Backlog
