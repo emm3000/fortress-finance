@@ -3,7 +3,8 @@ import { Pressable, Text, View } from "react-native";
 import { ArrowLeft } from "lucide-react-native";
 
 type ScreenHeaderProps = {
-  title: React.ReactNode;
+  title?: string;
+  titleSlot?: React.ReactNode;
   onBack?: () => void;
   backAccessibilityLabel?: string;
   backAccessibilityHint?: string;
@@ -17,6 +18,7 @@ type ScreenHeaderProps = {
 
 export function ScreenHeader({
   title,
+  titleSlot,
   onBack,
   backAccessibilityLabel = "Volver",
   backAccessibilityHint,
@@ -28,6 +30,7 @@ export function ScreenHeader({
   rightSlot,
 }: ScreenHeaderProps) {
   const paddingClassName = size === "lg" ? "py-6" : "py-4";
+  const hasTitle = typeof title === "string" && title.length > 0;
 
   return (
     <View
@@ -46,7 +49,10 @@ export function ScreenHeader({
           <ArrowLeft size={24} color={backIconColor} />
         </Pressable>
       ) : null}
-      <Text className={`text-text text-xl font-bold ${onBack ? "ml-2" : ""}`}>{title}</Text>
+      {hasTitle ? (
+        <Text className={`text-text text-xl font-bold ${onBack ? "ml-2" : ""}`}>{title}</Text>
+      ) : null}
+      {titleSlot ? <View className={onBack ? "ml-2" : ""}>{titleSlot}</View> : null}
       {rightSlot ? <View className="ml-auto">{rightSlot}</View> : null}
     </View>
   );
