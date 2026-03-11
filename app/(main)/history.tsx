@@ -11,9 +11,10 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 import { FlashList } from "@shopify/flash-list";
 import { router } from "expo-router";
 import { useTransactions } from "@/hooks/useTransactions";
+import { useDeleteTransaction } from "@/hooks/useTransactionCommands";
 import { useSync } from "@/hooks/useSync";
 import { useCategories } from "@/hooks/useCategories";
-import { Transaction, TransactionRepository } from "@/db/transaction.repository";
+import { Transaction } from "@/db/transaction.repository";
 import { Category } from "@/db/category.repository";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { LoadingState } from "@/components/feedback/loading-state";
@@ -29,8 +30,6 @@ import {
 } from "lucide-react-native";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { useAuthStore } from "@/store/auth.store";
-import { runWhenIdle } from "@/utils/idle";
 
 const TransactionListItem = React.memo(function TransactionListItem({
   transaction,
@@ -118,7 +117,6 @@ const TransactionListItem = React.memo(function TransactionListItem({
 
 export default function HistoryScreen() {
   const insets = useSafeAreaInsets();
-  const userId = useAuthStore((state) => state.user?.id);
   const { 
     transactions, 
     isLoading: isTransactionsLoading, 
@@ -127,6 +125,7 @@ export default function HistoryScreen() {
     fetchNextPage
   } = useTransactions();
   const { performSync, isSyncing } = useSync();
+  const { deleteTransaction } = useDeleteTransaction();
   const { data: categories = [] } = useCategories();
 
   const categoriesById = useMemo(() => {
@@ -156,7 +155,6 @@ export default function HistoryScreen() {
 
   const handleDelete = useCallback(
     (transactionId: string) => {
-      if (!userId) return;
       Alert.alert(
         "Eliminar transacción",
         "Esta acción ocultará la transacción de tu historial. ¿Deseas continuar?",
@@ -166,14 +164,9 @@ export default function HistoryScreen() {
             text: "Eliminar",
             style: "destructive",
             onPress: () => {
-              TransactionRepository.softDelete(transactionId, userId)
-                .then(async () => {
-                  await refreshTransactions();
-                  runWhenIdle(() => {
-                    performSync().catch(() => {
-                      // Errors are surfaced through sync state.
-                    });
-                  });
+              deleteTransaction(transactionId)
+                .then(() => {
+                  void refreshTransactions();
                 })
                 .catch((error) => {
                   console.error("Failed to delete transaction locally:", error);
@@ -183,7 +176,7 @@ export default function HistoryScreen() {
         ]
       );
     },
-    [performSync, refreshTransactions, userId]
+    [deleteTransaction, refreshTransactions]
   );
 
   const renderItem = useCallback(

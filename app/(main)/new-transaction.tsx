@@ -14,13 +14,12 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import * as Crypto from "expo-crypto";
-import { useQueryClient } from "@tanstack/react-query";
 import { useCategories } from "@/hooks/useCategories";
-import { TransactionRepository } from "@/db/transaction.repository";
-import { useSync } from "@/hooks/useSync";
-import { useAuthStore } from "@/store/auth.store";
-import { AnalyticsService } from "@/services/analytics.service";
+import { useTransactionDetails } from "@/hooks/useTransactionDetails";
+import {
+  useCreateTransaction,
+  useUpdateTransaction,
+} from "@/hooks/useTransactionCommands";
 import { InlineError } from "@/components/feedback/inline-error";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { 
@@ -29,7 +28,6 @@ import {
   CalendarDays
 } from "lucide-react-native";
 import { MotiView } from "moti";
-import { runWhenIdle } from "@/utils/idle";
 import { getApiErrorMessage } from "@/utils/api-error";
 
 const toTodayDateInput = () => {
@@ -64,14 +62,14 @@ type TransactionFormData = z.infer<typeof transactionSchema>;
 
 export default function NewTransactionScreen() {
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [isLoadingExisting, setIsLoadingExisting] = useState(false);
-  const { user } = useAuthStore();
-  const { performSync } = useSync();
   const { data: categories = [], isLoading: isCategoriesLoading } = useCategories();
+  const { createTransaction } = useCreateTransaction();
+  const { updateTransaction } = useUpdateTransaction();
   const insets = useSafeAreaInsets();
-  const queryClient = useQueryClient();
   const { id } = useLocalSearchParams<{ id?: string | string[] }>();
   const editingTransactionId = typeof id === "string" && id.length > 0 ? id : undefined;
+  const { transaction: existingTransaction, isLoading: isLoadingExisting, error: loadingError } =
+    useTransactionDetails(editingTransactionId);
 
   const {
     control,
@@ -98,90 +96,52 @@ export default function NewTransactionScreen() {
   const isEditing = !!editingTransactionId;
 
   useEffect(() => {
-    if (!isEditing || !editingTransactionId || !user?.id) return;
+    if (!isEditing) {
+      return;
+    }
 
-    let isCancelled = false;
-    setIsLoadingExisting(true);
+    if (loadingError) {
+      setSubmitError(loadingError);
+      return;
+    }
 
-    TransactionRepository.getById(editingTransactionId, user.id)
-      .then((existing) => {
-        if (isCancelled) return;
-        if (!existing || existing.deleted_at) {
-          setSubmitError("La transacción no existe o ya fue eliminada.");
-          return;
-        }
-        setValue("type", existing.type);
-        setValue("amount", String(existing.amount));
-        setValue("categoryId", existing.category_id ?? "");
-        setValue("date", toDateInput(existing.date));
-        setValue("description", existing.description ?? "");
-      })
-      .catch(() => {
-        if (isCancelled) return;
-        setSubmitError("No se pudo cargar la transacción.");
-      })
-      .finally(() => {
-        if (!isCancelled) setIsLoadingExisting(false);
-      });
+    if (!existingTransaction) {
+      return;
+    }
 
-    return () => {
-      isCancelled = true;
-    };
-  }, [editingTransactionId, isEditing, setValue, user?.id]);
+    setSubmitError(null);
+    setValue("type", existingTransaction.type);
+    setValue("amount", String(existingTransaction.amount));
+    setValue("categoryId", existingTransaction.category_id ?? "");
+    setValue("date", toDateInput(existingTransaction.date));
+    setValue("description", existingTransaction.description ?? "");
+  }, [existingTransaction, isEditing, loadingError, setValue]);
 
   const onSubmit = async (data: TransactionFormData) => {
     setSubmitError(null);
 
-    if (!user) {
-      setSubmitError("Tu sesión no está disponible. Inicia sesión nuevamente.");
-      return;
-    }
-
     try {
       if (isEditing && editingTransactionId) {
-        await TransactionRepository.update(editingTransactionId, user.id, {
+        await updateTransaction(editingTransactionId, {
           amount: Number(data.amount),
           type: data.type,
-          category_id: data.categoryId,
+          categoryId: data.categoryId,
           description: data.description || "",
           date: toStoredIsoDate(data.date),
         });
       } else {
-        const now = new Date().toISOString();
-        const newTransaction = {
-          id: Crypto.randomUUID(),
-          user_id: user.id,
-          category_id: data.categoryId,
+        await createTransaction({
+          analyticsDate: data.date,
           amount: Number(data.amount),
+          categoryId: data.categoryId,
           description: data.description || "",
           date: toStoredIsoDate(data.date),
           type: data.type,
-          is_synced: 0,
-          updated_at: now,
-          deleted_at: null,
-        };
-
-        await TransactionRepository.create(newTransaction);
-        AnalyticsService.track("transaction_created", {
-          userId: user.id,
-          type: data.type,
-          amount: Number(data.amount),
-          categoryId: data.categoryId,
-          date: data.date,
         });
       }
 
-      await queryClient.invalidateQueries({ queryKey: ["transactions", user.id] });
-
       router.back();
-
-      // Defer background sync until UI interactions/transitions finish.
-      runWhenIdle(() => {
-        performSync().catch(() => {
-          // Errors are surfaced through the sync hook/UI state when relevant.
-        });
-      });
-    } catch (error: any) {
+    } catch (error: unknown) {
       const message = getApiErrorMessage(
         error,
         "No se pudo guardar la transacción. Inténtalo de nuevo."
