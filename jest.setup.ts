@@ -14,11 +14,13 @@ const mockRouter = {
   push: jest.fn(),
   back: jest.fn(),
 };
+const mockUseLocalSearchParams = jest.fn(() => ({}));
 
 jest.mock("expo-router", () => {
   return {
     router: mockRouter,
     Link: ({ children }: { children: unknown }) => children,
+    useLocalSearchParams: mockUseLocalSearchParams,
   };
 });
 
@@ -29,3 +31,4 @@ jest.mock("expo-secure-store", () => ({
 }));
 
 globalThis.__TEST_ROUTER__ = mockRouter;
+globalThis.__TEST_LOCAL_SEARCH_PARAMS__ = mockUseLocalSearchParams;

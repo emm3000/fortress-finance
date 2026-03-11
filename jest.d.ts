@@ -4,6 +4,7 @@ declare global {
     push: jest.Mock;
     back: jest.Mock;
   };
+  var __TEST_LOCAL_SEARCH_PARAMS__: jest.Mock;
 }
 
 export {};
