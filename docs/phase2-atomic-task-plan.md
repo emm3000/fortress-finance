@@ -63,6 +63,7 @@ One task should map to one commit whenever possible.
 ### task-09: Integrate Liquidation -> Notification
 
 - Deliverable: enqueue deduplicated notifications when liquidation events are created.
+  - File: `supabase/migrations/20260311_h14_liquidation_notification_enqueue.sql`
 - Suggested commit: `feat(notifications): enqueue push on liquidation events`
 
 ### task-10: Add Observability and Ops Runbook
