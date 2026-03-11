@@ -4,7 +4,7 @@
 
 Date: 2026-03-11  
 Target project: `zxdnuxqrogxlsumlzdlv`  
-Status: Rollout completed (migrations + function deployment + delivery validation)
+Status: Finalization pending (automatic scheduler strategy not closed)
 
 ## Open Gap (as of 2026-03-11)
 
@@ -13,6 +13,21 @@ Status: Rollout completed (migrations + function deployment + delivery validatio
 - Daily automation must use one of these alternatives:
   - Supabase Scheduled Edge Function calling `run_daily_liquidation_batch(...)`
   - External scheduler (for example GitHub Actions / Cloud Scheduler) invoking the same RPC
+
+Selected implementation in this repo:
+- External scheduler via GitHub Actions:
+  - `.github/workflows/daily-liquidation-scheduler.yml`
+
+## Finalization Exit Criteria
+
+Phase 2 can be marked fully closed only when all are true:
+
+- scheduler runs automatically every day (without manual trigger)
+- two consecutive daily runs complete without critical errors
+- no duplicate liquidation effects for same `user_id + period_key`
+- queue flow `PENDING -> SENT` is verified after automated run
+- `docs/supabase-migration-backlog.md` H13/H14 pending items are updated to closed
+- `docs/phase2-smoke-test-runbook.md` blocks A-F are PASS with evidence
 
 ## 1) Ensure Project Is Active
 
@@ -77,6 +92,19 @@ order by proname;
   - dispatcher deployed
   - smoke tests passed
   - daily scheduler strategy finalized (without `pg_cron` unless extension is enabled)
+
+## Next Actions (Execution Order)
+
+1. Enable scheduler workflow and required secrets in GitHub Actions.
+2. Run one manual validation execution for baseline.
+3. Wait/trigger first automatic execution and capture evidence.
+4. Validate idempotency and dedupe after automatic run.
+5. Run full Phase 2 smoke runbook and record PASS/FAIL.
+6. Close backlog pending items and update final status wording in this file.
+
+## Scheduler Secrets (GitHub Actions)
+
+- `SUPABASE_SERVICE_ROLE_KEY`
 
 ## Execution Notes (2026-03-11)
 

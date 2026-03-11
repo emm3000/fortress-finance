@@ -295,6 +295,7 @@ Have a validation checklist before declaring v1 migration closed.
 Execution reference:
 - `docs/phase2-atomic-task-plan.md`
 - `docs/phase2-rollout-checklist.md`
+- `docs/phase2-closure-plan.md`
 
 ### H13. Daily Liquidation and Game Engine
 

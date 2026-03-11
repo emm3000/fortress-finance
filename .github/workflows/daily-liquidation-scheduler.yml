@@ -1,0 +1,98 @@
+name: Daily Liquidation Scheduler
+
+on:
+  schedule:
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+    inputs:
+      period_tz:
+        description: "Timezone used for period key"
+        required: false
+        default: "UTC"
+      max_users:
+        description: "Max users to process in this batch"
+        required: false
+        default: "5000"
+      rules_version:
+        description: "Liquidation rules version"
+        required: false
+        default: "1"
+      dispatch_batch:
+        description: "Dispatcher queue batch size"
+        required: false
+        default: "100"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: daily-liquidation-scheduler
+  cancel-in-progress: false
+
+jobs:
+  run-daily-liquidation:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_PROJECT_REF: zxdnuxqrogxlsumlzdlv
+      PERIOD_TZ: ${{ github.event.inputs.period_tz || 'UTC' }}
+      MAX_USERS: ${{ github.event.inputs.max_users || '5000' }}
+      RULES_VERSION: ${{ github.event.inputs.rules_version || '1' }}
+      DISPATCH_BATCH: ${{ github.event.inputs.dispatch_batch || '100' }}
+
+    steps:
+      - name: Run liquidation batch RPC
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+            echo "Missing SUPABASE_SERVICE_ROLE_KEY secret"
+            exit 1
+          fi
+
+          RPC_URL="https://${SUPABASE_PROJECT_REF}.supabase.co/rest/v1/rpc/run_daily_liquidation_batch"
+
+          RPC_PAYLOAD=$(cat <<JSON
+          {
+            "p_period_tz": "${PERIOD_TZ}",
+            "p_max_users": ${MAX_USERS},
+            "p_rules_version": ${RULES_VERSION}
+          }
+          JSON
+          )
+
+          echo "Invoking liquidation RPC..."
+          RPC_RESPONSE=$(curl -sS -f "$RPC_URL" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -H "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -d "$RPC_PAYLOAD")
+
+          echo "$RPC_RESPONSE"
+
+          RPC_FAILED=$(node -e "const r=JSON.parse(process.argv[1]);console.log(Number(r.failed ?? 0));" "$RPC_RESPONSE")
+          if [ "$RPC_FAILED" -gt 0 ]; then
+            echo "Liquidation reported failed=${RPC_FAILED}"
+            exit 1
+          fi
+
+      - name: Trigger Expo push dispatcher
+        env:
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          DISPATCH_URL="https://${SUPABASE_PROJECT_REF}.functions.supabase.co/expo-push-dispatcher?batch=${DISPATCH_BATCH}"
+
+          echo "Invoking dispatcher..."
+          DISPATCH_RESPONSE=$(curl -sS -f "$DISPATCH_URL" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
+            -d "{}")
+
+          echo "$DISPATCH_RESPONSE"
+
+          DISPATCH_FAILED=$(node -e "const r=JSON.parse(process.argv[1]);console.log(Number(r.failed ?? 0));" "$DISPATCH_RESPONSE")
+          if [ "$DISPATCH_FAILED" -gt 0 ]; then
+            echo "Dispatcher reported failed=${DISPATCH_FAILED}"
+            exit 1
+          fi

@@ -7,7 +7,8 @@ Validate daily liquidation automation and push dispatch behavior end-to-end.
 ## Preconditions
 
 - Latest Phase 2 migrations are applied.
-- `daily-liquidation-batch` cron job exists (or manual batch execution is available).
+- Automatic scheduler strategy is active (`Scheduled Edge Function` or external scheduler).
+- Manual fallback execution is available for incident recovery (`run_daily_liquidation_batch(...)`).
 - `expo-push-dispatcher` Edge Function is deployed.
 - Test user has:
   - `castle_states` row
