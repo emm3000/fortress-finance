@@ -299,7 +299,7 @@ Execution reference:
 
 ### H13. Daily Liquidation and Game Engine
 
-- [ ] Implement scheduler for daily liquidation (blocked: `pg_cron` not available in current project).
+- [x] Implement scheduler for daily liquidation via external scheduler (`.github/workflows/daily-liquidation-scheduler.yml`).
 - [x] Port damage/heal/streak/gold rules.
 - [x] Persist game events and post-liquidation states.
 
@@ -307,7 +307,7 @@ Execution reference:
 
 - [x] Create Edge Function for Expo push delivery.
 - [x] Add notification dedupe rules.
-- [ ] Integrate scheduler with game events (pending final scheduler strategy without `pg_cron`).
+- [x] Integrate scheduler with game events (GitHub Actions scheduler + dispatcher invocation).
 
 ### Phase 2 Validation Summary
 
@@ -316,7 +316,7 @@ Execution reference:
 - [x] Device push token registration confirmed in `user_push_tokens`.
 - [x] Manual push delivery (`curl`) confirmed on Android device.
 - [x] Queue -> dispatcher -> `notification_logs` (`SENT`) confirmed.
-- [ ] Daily automatic scheduler not finalized (`pg_cron` extension unavailable).
+- [x] Daily automatic scheduler finalized with external workflow (no dependency on `pg_cron`).
 
 ---
 

@@ -4,21 +4,19 @@
 
 Date: 2026-03-11  
 Target project: `zxdnuxqrogxlsumlzdlv`  
-Status: Finalization pending (automatic scheduler strategy not closed)
+Status: Rollout completed (external scheduler active, delivery validated)
 
-## Open Gap (as of 2026-03-11)
+## Platform Note (as of 2026-03-11)
 
 - `pg_cron` extension is not installed in this project.
 - SQL scheduler job (`cron.job`) is therefore unavailable.
-- Daily automation must use one of these alternatives:
-  - Supabase Scheduled Edge Function calling `run_daily_liquidation_batch(...)`
-  - External scheduler (for example GitHub Actions / Cloud Scheduler) invoking the same RPC
+- Daily automation uses external scheduler path.
 
 Selected implementation in this repo:
 - External scheduler via GitHub Actions:
   - `.github/workflows/daily-liquidation-scheduler.yml`
 
-## Finalization Exit Criteria
+## Closure Criteria
 
 Phase 2 can be marked fully closed only when all are true:
 
@@ -93,14 +91,12 @@ order by proname;
   - smoke tests passed
   - daily scheduler strategy finalized (without `pg_cron` unless extension is enabled)
 
-## Next Actions (Execution Order)
+## Post-Closure Monitoring (Execution Order)
 
-1. Enable scheduler workflow and required secrets in GitHub Actions.
-2. Run one manual validation execution for baseline.
-3. Wait/trigger first automatic execution and capture evidence.
-4. Validate idempotency and dedupe after automatic run.
-5. Run full Phase 2 smoke runbook and record PASS/FAIL.
-6. Close backlog pending items and update final status wording in this file.
+1. Keep daily scheduler workflow enabled in GitHub Actions.
+2. Monitor first scheduled window after manual validation.
+3. Validate idempotency and dedupe after scheduled run.
+4. Run full Phase 2 smoke runbook and keep evidence updated.
 
 ## Scheduler Secrets (GitHub Actions)
 
@@ -112,3 +108,7 @@ order by proname;
 - Edge Function `expo-push-dispatcher` deployed.
 - Android device token registered successfully.
 - Manual and queue-based push notifications reached device.
+- GitHub Actions workflow `daily-liquidation-scheduler` executed successfully.
+- Workflow result:
+  - liquidation RPC: `failed=0`
+  - dispatcher: `sent=1`, `failed=0`
