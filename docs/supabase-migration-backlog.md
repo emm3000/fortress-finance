@@ -163,9 +163,9 @@ Crear automaticamente el estado minimo de un usuario nuevo y migrar onboarding.
   Commit sugerido: `feat(db): bootstrap wallet on signup`
 - [x] Implementar RPC `complete_onboarding`.
   Commit sugerido: `feat(db): add onboarding rpc`
-- [ ] Adaptar `OnboardingService` al RPC nuevo.
+- [x] Adaptar `OnboardingService` al RPC nuevo.
   Commit sugerido: `feat(frontend): migrate onboarding service`
-- [ ] Mantener borrador local y limpieza post-sync.
+- [x] Mantener borrador local y limpieza post-sync.
   Commit sugerido: `refactor(frontend): preserve onboarding draft flow`
 
 ### Criterios de aceptacion

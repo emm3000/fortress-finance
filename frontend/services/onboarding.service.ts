@@ -1,5 +1,6 @@
 import * as SecureStore from "expo-secure-store";
 import apiClient from "./api.client";
+import { supabase } from "./supabase.client";
 
 const ONBOARDING_DRAFT_KEY = "onboarding_preferences_draft";
 
@@ -44,10 +45,26 @@ export const OnboardingService = {
       return;
     }
 
-    await apiClient.post("/onboarding/preferences", {
-      currency: draft.currency,
-      monthlyIncomeGoal: draft.monthlyIncomeGoal,
-    });
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (session?.user) {
+      const { error } = await supabase.rpc("complete_onboarding", {
+        p_currency: draft.currency,
+        p_monthly_income_goal: draft.monthlyIncomeGoal,
+      });
+
+      if (error) {
+        throw error;
+      }
+    } else {
+      // Temporary fallback while H4 (Supabase Auth migration) is in progress.
+      await apiClient.post("/onboarding/preferences", {
+        currency: draft.currency,
+        monthlyIncomeGoal: draft.monthlyIncomeGoal,
+      });
+    }
 
     await this.clearDraft();
   },
