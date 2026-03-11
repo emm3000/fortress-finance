@@ -21,13 +21,13 @@ One task should map to one commit whenever possible.
 ### task-02: Add Game Event Schema
 
 - Deliverable: SQL migration for liquidation events table, indexes, and unique dedupe key per period.
-  - File: `supabase/migrations/20260311_h13_game_liquidation_events.sql`
+  - File: `supabase/migrations/202603110006_h13_game_liquidation_events.sql`
 - Suggested commit: `feat(db): add game liquidation events table`
 
 ### task-03: Implement Idempotent Daily Liquidation RPC
 
 - Deliverable: transactional SQL RPC updating `castle_states`, `user_wallets`, and event rows atomically.
-  - File: `supabase/migrations/20260311_h13_daily_liquidation_rpc.sql`
+  - File: `supabase/migrations/202603110007_h13_daily_liquidation_rpc.sql`
 - Suggested commit: `feat(db): add daily liquidation rpc`
 
 ### task-04: Validate Core SQL Rules
@@ -39,13 +39,13 @@ One task should map to one commit whenever possible.
 ### task-05: Add Daily Scheduler
 
 - Deliverable: scheduled job that executes liquidation in batches and records outcomes.
-  - File: `supabase/migrations/20260311_h13_daily_liquidation_scheduler.sql`
+  - File: `supabase/migrations/202603110008_h13_daily_liquidation_scheduler.sql`
 - Suggested commit: `feat(ops): add daily liquidation scheduler`
 
 ### task-06: Add Notification Dispatch Queue
 
 - Deliverable: SQL migration for notification dispatch table (`pending/sent/failed`) plus dedupe key.
-  - File: `supabase/migrations/20260311_h14_notification_dispatch_queue.sql`
+  - File: `supabase/migrations/202603110009_h14_notification_dispatch_queue.sql`
 - Suggested commit: `feat(db): add notification dispatch queue`
 
 ### task-07: Implement Expo Push Dispatcher (Edge Function)
@@ -63,7 +63,7 @@ One task should map to one commit whenever possible.
 ### task-09: Integrate Liquidation -> Notification
 
 - Deliverable: enqueue deduplicated notifications when liquidation events are created.
-  - File: `supabase/migrations/20260311_h14_liquidation_notification_enqueue.sql`
+  - File: `supabase/migrations/202603110010_h14_liquidation_notification_enqueue.sql`
 - Suggested commit: `feat(notifications): enqueue push on liquidation events`
 
 ### task-10: Add Observability and Ops Runbook

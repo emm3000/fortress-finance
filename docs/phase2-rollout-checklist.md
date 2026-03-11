@@ -20,11 +20,11 @@ Cannot retrieve service for project sytwkomczzkygekjhpnm with current status 'IN
 
 ## 2) Apply Phase 2 Migrations (in order)
 
-1. `supabase/migrations/20260311_h13_game_liquidation_events.sql`
-2. `supabase/migrations/20260311_h13_daily_liquidation_rpc.sql`
-3. `supabase/migrations/20260311_h13_daily_liquidation_scheduler.sql`
-4. `supabase/migrations/20260311_h14_notification_dispatch_queue.sql`
-5. `supabase/migrations/20260311_h14_liquidation_notification_enqueue.sql`
+1. `supabase/migrations/202603110006_h13_game_liquidation_events.sql`
+2. `supabase/migrations/202603110007_h13_daily_liquidation_rpc.sql`
+3. `supabase/migrations/202603110008_h13_daily_liquidation_scheduler.sql`
+4. `supabase/migrations/202603110009_h14_notification_dispatch_queue.sql`
+5. `supabase/migrations/202603110010_h14_liquidation_notification_enqueue.sql`
 
 After applying:
 
