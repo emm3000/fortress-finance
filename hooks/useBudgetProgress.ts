@@ -1,14 +1,11 @@
-import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { TransactionRepository } from "@/db/transaction.repository";
 import { useAuthStore } from "@/store/auth.store";
+import { useCurrentPeriod } from "@/hooks/useCurrentPeriod";
 
 export const useBudgetProgress = () => {
   const userId = useAuthStore((state) => state.user?.id);
-
-  const now = useMemo(() => new Date(), []);
-  const year = now.getFullYear();
-  const month = now.getMonth() + 1;
+  const { year, month } = useCurrentPeriod();
 
   return useQuery({
     queryKey: ['budget-progress', userId, year, month],

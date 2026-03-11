@@ -45,6 +45,7 @@ type SyncWalletChange = {
 
 type SyncRpcResponse = {
   syncTimestamp: string;
+  acknowledgedOperationIds?: string[];
   changes: {
     transactions?: SyncTransactionChange[];
     castle?: SyncCastleChange;
@@ -60,6 +61,18 @@ const computeBackoffRetryAt = (attempts: number) => {
   return new Date(Date.now() + delay).toISOString();
 };
 
+type TransactionSyncPayload = {
+  operationId: string;
+  id: string;
+  amount: number;
+  type: "INCOME" | "EXPENSE";
+  categoryId: string;
+  date: string;
+  notes: string | null;
+  updatedAt: string;
+  deletedAt: string | null;
+};
+
 const toTransactionSyncPayload = (operation: SyncOperation) => {
   try {
     const payload = JSON.parse(operation.payload) as Record<string, unknown>;
@@ -72,7 +85,8 @@ const toTransactionSyncPayload = (operation: SyncOperation) => {
       return null;
     }
 
-    return {
+    const syncPayload: TransactionSyncPayload = {
+      operationId: operation.id,
       id: String(payload.id ?? operation.entity_id),
       amount: Number(payload.amount ?? 0),
       type: (payload.type as "INCOME" | "EXPENSE") ?? "EXPENSE",
@@ -85,6 +99,8 @@ const toTransactionSyncPayload = (operation: SyncOperation) => {
           ? null
           : String(payload.deletedAt),
     };
+
+    return syncPayload;
   } catch {
     return null;
   }
@@ -147,11 +163,29 @@ export const SyncService = {
 
       const payload = (data ?? {}) as SyncRpcResponse;
       const syncTimestamp = payload.syncTimestamp || new Date().toISOString();
+      const acknowledgedOperationIds = Array.isArray(payload.acknowledgedOperationIds)
+        ? payload.acknowledgedOperationIds.filter((operationId): operationId is string =>
+            typeof operationId === "string"
+          )
+        : transactionsPush.map((item) => item.operationId);
+      const acknowledgedOperationIdSet = new Set(acknowledgedOperationIds);
+      const acknowledgedTransactions = transactionsPush.filter((item) =>
+        acknowledgedOperationIdSet.has(item.operationId)
+      );
       const castleChange = payload.changes?.castle;
       const walletChange = payload.changes?.wallet;
       const transactionsPull = Array.isArray(payload.changes?.transactions)
         ? payload.changes?.transactions
         : [];
+
+      if (acknowledgedTransactions.length > 0) {
+        await TransactionRepository.markAsSynced(
+          acknowledgedTransactions.map((item) => item.payload.id)
+        );
+        await SyncQueueRepository.markSucceeded(
+          acknowledgedTransactions.map((item) => item.operationId)
+        );
+      }
 
       // 4. APPLY CHANGES (PULL)
       try {
@@ -172,12 +206,6 @@ export const SyncService = {
           await TransactionRepository.upsertManyFromRemote(transactionsPull);
         }
 
-        // Mark pushed operations as synced
-        if (transactionsPush.length > 0) {
-          await SyncQueueRepository.markSucceeded(transactionsPush.map((item) => item.operationId));
-          await TransactionRepository.markAsSynced(transactionsPush.map((item) => item.payload.id));
-        }
-
         // 5. Update last sync time
         await SyncMetaRepository.set("last_sync_timestamp", syncTimestamp);
       } catch (dbError) {
@@ -190,7 +218,8 @@ export const SyncService = {
       return {
         status: "success",
         syncTimestamp,
-        hasTransactionsUpdates: transactionsPush.length > 0 || transactionsPull.length > 0,
+        hasTransactionsUpdates:
+          acknowledgedTransactions.length > 0 || transactionsPull.length > 0,
         hasCastleUpdate: !!castleChange,
         pendingQueueCount: queueStatus.pendingCount,
         failedQueueCount: queueStatus.failedCount,
