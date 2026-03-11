@@ -1,20 +1,14 @@
 # Phase 2 Remote Rollout Checklist
 
-## Current Blocker
+## Current Status
 
 Date: 2026-03-11  
-Project: `sytwkomczzkygekjhpnm`  
-Observed status: `INACTIVE`
+Target project: `zxdnuxqrogxlsumlzdlv`  
+Status: Rollout completed (migrations + function deployment + delivery validation)
 
-Deployment error observed:
+## 1) Ensure Project Is Active
 
-```text
-Cannot retrieve service for project sytwkomczzkygekjhpnm with current status 'INACTIVE'.
-```
-
-## 1) Reactivate Supabase Project
-
-- Open Supabase dashboard for project `sytwkomczzkygekjhpnm`.
+- Open Supabase dashboard for project `zxdnuxqrogxlsumlzdlv`.
 - Resume/reactivate project services.
 - Confirm database and Edge Functions services are available.
 
@@ -74,3 +68,10 @@ order by proname;
   - migrations applied
   - dispatcher deployed
   - smoke tests passed
+
+## Execution Notes (2026-03-11)
+
+- Migrations applied with Supabase CLI `db push`.
+- Edge Function `expo-push-dispatcher` deployed.
+- Android device token registered successfully.
+- Manual and queue-based push notifications reached device.

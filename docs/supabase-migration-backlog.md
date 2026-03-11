@@ -290,22 +290,31 @@ Have a validation checklist before declaring v1 migration closed.
 
 ---
 
-## Deferred to Phase 2
+## Phase 2 Execution Status
 
 Execution reference:
 - `docs/phase2-atomic-task-plan.md`
+- `docs/phase2-rollout-checklist.md`
 
 ### H13. Daily Liquidation and Game Engine
 
-- [-] Implement scheduler for daily liquidation.
-- [-] Port damage/heal/streak/gold rules.
-- [-] Persist game events and post-liquidation states.
+- [x] Implement scheduler for daily liquidation.
+- [x] Port damage/heal/streak/gold rules.
+- [x] Persist game events and post-liquidation states.
 
 ### H14. Automatic Push Notifications
 
-- [-] Create Edge Function for Expo push delivery.
-- [-] Add notification dedupe rules.
-- [-] Integrate scheduler with game events.
+- [x] Create Edge Function for Expo push delivery.
+- [x] Add notification dedupe rules.
+- [x] Integrate scheduler with game events.
+
+### Phase 2 Validation Summary
+
+- [x] Remote database reset and migration rollout completed (`zxdnuxqrogxlsumlzdlv`).
+- [x] Edge Function `expo-push-dispatcher` deployed.
+- [x] Device push token registration confirmed in `user_push_tokens`.
+- [x] Manual push delivery (`curl`) confirmed on Android device.
+- [x] Queue -> dispatcher -> `notification_logs` (`SENT`) confirmed.
 
 ---
 
