@@ -20,7 +20,6 @@
     "@shopify/flash-list": "2.0.2",
     "@supabase/supabase-js": "^2.99.0",
     "@tanstack/react-query": "^5.90.21",
-    "axios": "^1.13.6",
     "date-fns": "^4.1.0",
     "expo": "^55.0.0",
     "expo-constants": "~55.0.7",
