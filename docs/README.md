@@ -16,6 +16,9 @@ This folder is organized into two sections:
 3. `milestone-2026-03-11.md`
 - Consolidated milestone status up to current point (what is complete, what is monitored).
 
+4. `guia-app-jaa.md`
+- Product-facing guide in Spanish: app value proposition, features, user journey, and engine explanation in marketing language.
+
 ## Archive
 
 Historical documents were moved to `docs/archive/` to reduce active-document noise:
