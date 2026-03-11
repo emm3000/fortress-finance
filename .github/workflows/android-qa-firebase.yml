@@ -6,7 +6,22 @@ on:
     branches:
       - main
     paths:
-      - 'frontend/**'
+      - 'app/**'
+      - 'assets/**'
+      - 'components/**'
+      - 'constants/**'
+      - 'db/**'
+      - 'hooks/**'
+      - 'scripts/**'
+      - 'services/**'
+      - 'store/**'
+      - 'utils/**'
+      - 'app.config.ts'
+      - 'babel.config.js'
+      - 'eas.json'
+      - 'metro.config.js'
+      - 'package.json'
+      - 'package-lock.json'
       - '.github/workflows/android-qa-firebase.yml'
 
 permissions:
@@ -19,9 +34,6 @@ concurrency:
 jobs:
   build-and-distribute:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
 
     steps:
       - name: Checkout
@@ -32,7 +44,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -56,7 +68,8 @@ jobs:
 
       - name: Build Android QA artifact (EAS)
         env:
-          EXPO_PUBLIC_API_URL: ${{ secrets.EXPO_PUBLIC_API_URL_QA }}
+          EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL_QA }}
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY_QA }}
           EXPO_PUBLIC_SENTRY_DSN: ${{ secrets.EXPO_PUBLIC_SENTRY_DSN_QA }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
@@ -87,7 +100,7 @@ jobs:
           appId: ${{ secrets.FIREBASE_APP_ID_ANDROID }}
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
           groups: qa-team
-          file: frontend/app-qa.aab
+          file: app-qa.aab
           releaseNotes: |
             QA aab build from commit ${{ github.sha }}
             Branch: ${{ github.ref_name }}
