@@ -2,6 +2,7 @@ node_modules/
 .DS_Store
 .env
 .env.*
+!frontend/.env.example
 
 # Ignore agent generated files
 .agent/

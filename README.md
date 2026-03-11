@@ -38,7 +38,8 @@ npx expo start
 ## Production Notes
 
 - Backend requires environment configuration (`DATABASE_URL`, `JWT_SECRET`, `CORS_ORIGINS`, etc.).
-- Frontend requires `EXPO_PUBLIC_API_URL` and optional `EXPO_PUBLIC_SENTRY_DSN`.
+- Frontend now requires `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
+- Frontend keeps `EXPO_PUBLIC_SENTRY_DSN` as optional.
 - Android push requires Firebase/FCM credentials plus EAS push credentials.
 
 For architecture details, see `docs/architecture.md`.

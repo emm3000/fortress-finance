@@ -29,15 +29,15 @@ Preparar el proyecto para usar Supabase desde el frontend sin romper el flujo de
 
 ### Subtareas atomicas
 
-- [ ] Instalar `@supabase/supabase-js` en `frontend/`.
+- [x] Instalar `@supabase/supabase-js` en `frontend/`.
   Commit sugerido: `chore(frontend): add supabase sdk`
-- [ ] Crear cliente compartido de Supabase en el frontend.
+- [x] Crear cliente compartido de Supabase en el frontend.
   Commit sugerido: `feat(frontend): add shared supabase client`
-- [ ] Definir nuevas variables `EXPO_PUBLIC_SUPABASE_URL` y `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
+- [x] Definir nuevas variables `EXPO_PUBLIC_SUPABASE_URL` y `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
   Commit sugerido: `chore(frontend): add supabase env contract`
-- [ ] Documentar configuracion local para trabajar con Supabase.
+- [x] Documentar configuracion local para trabajar con Supabase.
   Commit sugerido: `docs(frontend): add supabase setup notes`
-- [ ] Verificar que el frontend compile sin depender de `EXPO_PUBLIC_API_URL`.
+- [x] Verificar que el frontend compile sin depender de `EXPO_PUBLIC_API_URL`.
   Commit sugerido: `refactor(frontend): remove api url requirement`
 
 ### Criterios de aceptacion
