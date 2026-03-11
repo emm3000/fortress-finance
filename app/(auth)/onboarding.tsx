@@ -4,7 +4,6 @@ import { router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Shield, Coins, BellRing } from "lucide-react-native";
-import { OnboardingService } from "@/services/onboarding.service";
 
 type OnboardingStep = {
   title: string;
@@ -30,11 +29,6 @@ const STEPS: OnboardingStep[] = [
   },
 ];
 
-const DEFAULT_ONBOARDING_PREFERENCES = {
-  currency: "USD",
-  monthlyIncomeGoal: 3000,
-};
-
 export default function OnboardingScreen() {
   const insets = useSafeAreaInsets();
   const [stepIndex, setStepIndex] = React.useState(0);
@@ -46,13 +40,13 @@ export default function OnboardingScreen() {
   };
 
   const handleSkip = async () => {
+    await SecureStore.deleteItemAsync("onboarding_preferences_draft");
     await markOnboardingAsSkipped();
     router.replace("/(auth)/login");
   };
 
   const handleNext = async () => {
     if (isLastStep) {
-      await OnboardingService.saveDraft(DEFAULT_ONBOARDING_PREFERENCES);
       await markOnboardingAsSkipped();
       router.replace("/(auth)/register");
       return;
@@ -108,7 +102,6 @@ export default function OnboardingScreen() {
 
         <Pressable
           onPress={async () => {
-            await OnboardingService.saveDraft(DEFAULT_ONBOARDING_PREFERENCES);
             await markOnboardingAsSkipped();
             router.replace("/(auth)/register");
           }}

@@ -54,12 +54,12 @@ if (hasSentryBuildCredentials) {
 }
 
 const config: ExpoConfig = {
-  name: "frontend",
-  slug: "frontend",
+  name: "JAA",
+  slug: "jaa",
   version: "1.0.0",
   orientation: "portrait",
   icon: "./assets/images/icon.png",
-  scheme: "frontend",
+  scheme: "jaa",
   userInterfaceStyle: "automatic",
   ios: {
     supportsTablet: true,
