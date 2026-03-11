@@ -258,19 +258,19 @@ Preservar el modelo offline-first sin backend Express.
 
 ### Subtareas atomicas
 
-- [ ] Disenar firma del RPC `sync_client_state`.
+- [x] Disenar firma del RPC `sync_client_state`.
   Commit sugerido: `feat(sync): define rpc contract`
-- [ ] Implementar push de transacciones con ownership y `updated_at`.
+- [x] Implementar push de transacciones con ownership y `updated_at`.
   Commit sugerido: `feat(db): add transaction push logic`
-- [ ] Implementar soporte de soft delete por `deleted_at`.
+- [x] Implementar soporte de soft delete por `deleted_at`.
   Commit sugerido: `feat(db): add transaction soft delete sync`
-- [ ] Implementar pull incremental desde `last_sync_timestamp`.
+- [x] Implementar pull incremental desde `last_sync_timestamp`.
   Commit sugerido: `feat(db): add incremental sync pull`
-- [ ] Agregar `castle` y `wallet` al payload de respuesta.
+- [x] Agregar `castle` y `wallet` al payload de respuesta.
   Commit sugerido: `feat(sync): return castle and wallet payload`
-- [ ] Migrar `frontend/services/sync.service.ts` al RPC nuevo.
+- [x] Migrar `frontend/services/sync.service.ts` al RPC nuevo.
   Commit sugerido: `feat(frontend): migrate sync service`
-- [ ] Mantener cola local y backoff sin cambios de UX.
+- [x] Mantener cola local y backoff sin cambios de UX.
   Commit sugerido: `refactor(frontend): preserve sync queue behavior`
 - [ ] Verificar conflicto por timestamp viejo y empate por timestamp igual.
   Commit sugerido: `test(sync): validate timestamp conflict rules`
