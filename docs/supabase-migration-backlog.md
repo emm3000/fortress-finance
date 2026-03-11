@@ -347,7 +347,7 @@ Tener un checklist de validacion antes de declarar cerrada la migracion de v1.
   Commit sugerido: `test: add finance smoke results`
 - [ ] Validar home con castillo/wallet sin fase 2 activa.
   Commit sugerido: `test: add home state smoke results`
-- [ ] Documentar checklist de corte y rollback simple.
+- [x] Documentar checklist de corte y rollback simple.
   Commit sugerido: `docs: add migration cutover checklist`
 
 ### Criterios de aceptacion
