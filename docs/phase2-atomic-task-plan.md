@@ -57,6 +57,7 @@ One task should map to one commit whenever possible.
 ### task-08: Add Retry and Backoff Policy
 
 - Deliverable: retry policy with exponential backoff and terminal-failure handling.
+  - File: `supabase/functions/expo-push-dispatcher/index.ts`
 - Suggested commit: `feat(notifications): add retry and backoff policy`
 
 ### task-09: Integrate Liquidation -> Notification
