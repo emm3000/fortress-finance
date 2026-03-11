@@ -6,7 +6,7 @@ export interface Category {
   icon: string | null;
   color: string | null;
   type: "INCOME" | "EXPENSE";
-  is_default: number;
+  is_default: number | boolean;
 }
 
 /**
@@ -29,7 +29,7 @@ export const CategoryRepository = {
           cat.icon !== null ? cat.icon : "",
           cat.color !== null ? cat.color : "",
           cat.type,
-          cat.is_default
+          cat.is_default ? 1 : 0
         );
       }
     });

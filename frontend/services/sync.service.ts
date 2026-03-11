@@ -4,6 +4,7 @@ import { CategoryRepository } from "../db/category.repository";
 import { CastleRepository } from "../db/castle.repository";
 import { SyncMetaRepository } from "../db/syncMeta.repository";
 import { SyncQueueRepository, SyncOperation } from "../db/syncQueue.repository";
+import { supabase } from "./supabase.client";
 
 const CATEGORY_SYNC_META_KEY = "categories_last_sync";
 const CATEGORY_SYNC_TTL_MS = 1000 * 60 * 60 * 6;
@@ -189,11 +190,20 @@ export const SyncService = {
         return [];
       }
 
-      const response = await apiClient.get("/categories");
-      const categories = response.data;
-      await CategoryRepository.upsertMany(categories);
+      const { data: categories, error } = await supabase
+        .from("categories")
+        .select("id,name,icon,color,type,is_default")
+        .order("name", { ascending: true });
+
+      if (error) {
+        throw error;
+      }
+
+      const safeCategories = categories ?? [];
+
+      await CategoryRepository.upsertMany(safeCategories);
       await SyncMetaRepository.set(CATEGORY_SYNC_META_KEY, new Date().toISOString());
-      return categories;
+      return safeCategories;
     } catch (error) {
       console.error("Category sync failed:", error);
       throw error;
