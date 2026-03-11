@@ -6,8 +6,10 @@ This repository contains a mobile-first personal finance app with offline-first 
 
 - `app/`, `components/`, `hooks/`, `services/`, `db/`, `store/`: Expo + React Native app (root-based).
 - `supabase/migrations/`: SQL migrations and RPC contracts used by the app.
-- `docs/`: Architecture, migration and cutover documentation.
-  - `docs/phase2-atomic-task-plan.md`: Atomic execution plan for deferred Phase 2 scope.
+- `docs/`: Consolidated project documentation.
+  - `docs/README.md`: Documentation index (active docs + archive).
+  - `docs/operations.md`: Operational runbook and validation queries.
+  - `docs/milestone-2026-03-11.md`: Current milestone status.
 
 ## Core Product Capabilities
 
@@ -32,4 +34,4 @@ npx expo start
 - Android push requires Firebase/FCM credentials plus EAS push credentials.
 - The mobile app runtime no longer depends on `EXPO_PUBLIC_API_URL`.
 
-For architecture details, see `docs/architecture.md`.
+For full documentation navigation, see `docs/README.md`.
