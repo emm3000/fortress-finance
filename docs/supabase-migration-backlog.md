@@ -234,11 +234,11 @@ Mover el dashboard agregado a una funcion SQL/RPC que conserve el contrato actua
 
 ### Subtareas atomicas
 
-- [ ] Implementar RPC `get_monthly_dashboard(year, month)`.
+- [x] Implementar RPC `get_monthly_dashboard(year, month)`.
   Commit sugerido: `feat(db): add monthly dashboard rpc`
-- [ ] Mantener el shape actual del resultado del dashboard.
+- [x] Mantener el shape actual del resultado del dashboard.
   Commit sugerido: `refactor(db): align dashboard rpc response`
-- [ ] Migrar `DashboardService` para consumir el RPC.
+- [x] Migrar `DashboardService` para consumir el RPC.
   Commit sugerido: `feat(frontend): migrate dashboard service`
 - [ ] Verificar la home con datos y sin datos del mes.
   Commit sugerido: `test(frontend): validate monthly dashboard states`
