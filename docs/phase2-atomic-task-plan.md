@@ -81,6 +81,7 @@ One task should map to one commit whenever possible.
 ### task-12: Close Phase 2 Backlog
 
 - Deliverable: update backlog/checklists to reflect completed deferred items.
+  - File: `docs/phase2-rollout-checklist.md`
 - Suggested commit: `docs(phase2): close deferred migration items`
 
 ## Dependency Order
