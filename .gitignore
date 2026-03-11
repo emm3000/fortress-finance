@@ -50,6 +50,7 @@ app-example
 .agent/
 .claude/
 # Keep project skills versioned under .agents/skills
+skills-lock.json
 
 # Supabase (keep migrations/config in repo, ignore local runtime artifacts)
 supabase/.temp/
