@@ -155,13 +155,13 @@ Crear automaticamente el estado minimo de un usuario nuevo y migrar onboarding.
 
 ### Subtareas atomicas
 
-- [ ] Crear trigger o funcion para poblar `profiles` al registrar usuario.
+- [x] Crear trigger o funcion para poblar `profiles` al registrar usuario.
   Commit sugerido: `feat(db): bootstrap profile on signup`
-- [ ] Crear trigger o funcion para poblar `castle_states`.
+- [x] Crear trigger o funcion para poblar `castle_states`.
   Commit sugerido: `feat(db): bootstrap castle state on signup`
-- [ ] Crear trigger o funcion para poblar `user_wallets`.
+- [x] Crear trigger o funcion para poblar `user_wallets`.
   Commit sugerido: `feat(db): bootstrap wallet on signup`
-- [ ] Implementar RPC `complete_onboarding`.
+- [x] Implementar RPC `complete_onboarding`.
   Commit sugerido: `feat(db): add onboarding rpc`
 - [ ] Adaptar `OnboardingService` al RPC nuevo.
   Commit sugerido: `feat(frontend): migrate onboarding service`
