@@ -124,19 +124,19 @@ Reemplazar el auth propio del backend por Supabase Auth en Expo.
 
 ### Subtareas atomicas
 
-- [ ] Migrar login a `signInWithPassword`.
+- [x] Migrar login a `signInWithPassword`.
   Commit sugerido: `feat(auth): migrate login to supabase`
-- [ ] Migrar registro a `signUp`.
+- [x] Migrar registro a `signUp`.
   Commit sugerido: `feat(auth): migrate signup to supabase`
-- [ ] Migrar logout a cierre de sesion Supabase.
+- [x] Migrar logout a cierre de sesion Supabase.
   Commit sugerido: `refactor(auth): migrate logout flow`
-- [ ] Adaptar `auth.store` para persistir e hidratar sesion Supabase.
+- [x] Adaptar `auth.store` para persistir e hidratar sesion Supabase.
   Commit sugerido: `refactor(auth): persist supabase session`
-- [ ] Escuchar cambios de auth y actualizar estado global.
+- [x] Escuchar cambios de auth y actualizar estado global.
   Commit sugerido: `feat(auth): subscribe to session changes`
-- [ ] Migrar recovery/reset de contrasena con Supabase.
+- [x] Migrar recovery/reset de contrasena con Supabase.
   Commit sugerido: `feat(auth): add supabase password recovery`
-- [ ] Eliminar manejo manual de bearer token de axios.
+- [x] Eliminar manejo manual de bearer token de axios.
   Commit sugerido: `refactor(auth): remove custom token plumbing`
 
 ### Criterios de aceptacion

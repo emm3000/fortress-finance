@@ -4,7 +4,7 @@ import { Link, router, useLocalSearchParams } from 'expo-router';
 import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Lock, KeyRound } from 'lucide-react-native';
+import { Lock, KeyRound, Mail } from 'lucide-react-native';
 import { AuthService } from '../../services/auth.service';
 import { InlineError } from '../../components/feedback/inline-error';
 import { AuthScreenShell } from '../../components/layout/auth-screen-shell';
@@ -15,7 +15,8 @@ import { captureException } from '../../services/monitoring.service';
 
 const resetSchema = z
   .object({
-    token: z.string().min(10, 'Token inválido'),
+    email: z.string().email('Correo inválido'),
+    token: z.string().min(6, 'Codigo inválido'),
     newPassword: z.string().min(6, 'Mínimo 6 caracteres'),
     confirmPassword: z.string().min(6, 'Mínimo 6 caracteres'),
   })
@@ -27,11 +28,15 @@ const resetSchema = z
 type ResetFormData = z.infer<typeof resetSchema>;
 
 export default function ResetPasswordScreen() {
-  const { token } = useLocalSearchParams<{ token?: string | string[] }>();
+  const { token, email } = useLocalSearchParams<{
+    token?: string | string[];
+    email?: string | string[];
+  }>();
   const [submitError, setSubmitError] = React.useState<string | null>(null);
   const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
 
   const initialToken = typeof token === 'string' ? token : '';
+  const initialEmail = typeof email === 'string' ? email : '';
 
   const {
     control,
@@ -40,6 +45,7 @@ export default function ResetPasswordScreen() {
   } = useForm<ResetFormData>({
     resolver: zodResolver(resetSchema),
     defaultValues: {
+      email: initialEmail,
       token: initialToken,
       newPassword: '',
       confirmPassword: '',
@@ -52,6 +58,7 @@ export default function ResetPasswordScreen() {
 
     try {
       await AuthService.confirmPasswordReset({
+        email: data.email,
         token: data.token,
         newPassword: data.newPassword,
       });
@@ -79,17 +86,35 @@ export default function ResetPasswordScreen() {
           Nueva <Text className='text-primary'>Contraseña</Text>
         </>
       }
-      subtitle='Ingresa el token temporal y define una clave nueva.'
+      subtitle='Ingresa el codigo temporal y define una clave nueva.'
     >
       <View className='space-y-4'>
+        <Controller
+          control={control}
+          name='email'
+          render={({ field: { onChange, onBlur, value } }) => (
+            <LabeledInput
+              label='Email'
+              icon={<Mail size={20} color='#666' />}
+              placeholder='tu@email.com'
+              onBlur={onBlur}
+              onChangeText={onChange}
+              value={value}
+              autoCapitalize='none'
+              keyboardType='email-address'
+              error={errors.email?.message}
+            />
+          )}
+        />
+
         <Controller
           control={control}
           name='token'
           render={({ field: { onChange, onBlur, value } }) => (
             <LabeledInput
-              label='Token'
+              label='Codigo'
               icon={<KeyRound size={20} color='#666' />}
-              placeholder='Pega el token recibido'
+              placeholder='Pega el codigo recibido'
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
@@ -142,14 +167,14 @@ export default function ResetPasswordScreen() {
           label='Actualizar contraseña'
           accessibilityRole='button'
           accessibilityLabel='Confirmar recuperación'
-          accessibilityHint='Actualiza tu contraseña usando el token temporal'
+          accessibilityHint='Actualiza tu contraseña usando el codigo temporal'
         />
 
         {successMessage ? <Text className='text-green-400 text-sm mt-3'>{successMessage}</Text> : null}
         <InlineError message={submitError} />
 
         <View className='flex-row justify-center mt-6'>
-          <Text className='text-text-muted'>¿No tienes token? </Text>
+          <Text className='text-text-muted'>¿No tienes codigo? </Text>
           <Link href='/(auth)/forgot-password' asChild>
             <Pressable>
               <Text className='text-primary font-bold'>Solicitar nuevamente</Text>

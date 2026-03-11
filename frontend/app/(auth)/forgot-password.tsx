@@ -38,13 +38,10 @@ export default function ForgotPasswordScreen() {
     try {
       const result = await AuthService.requestPasswordReset(data);
       setSuccessMessage(result.message);
-
-      if (result.resetToken) {
-        router.push({
-          pathname: '/(auth)/reset-password',
-          params: { token: result.resetToken },
-        });
-      }
+      router.push({
+        pathname: '/(auth)/reset-password',
+        params: { email: data.email },
+      });
     } catch (error: unknown) {
       const message = getApiErrorMessage(error, 'No se pudo procesar la solicitud.');
       captureException(error, {
@@ -64,7 +61,7 @@ export default function ForgotPasswordScreen() {
           Recuperar <Text className='text-primary'>Contraseña</Text>
         </>
       }
-      subtitle='Te enviaremos un token temporal para restablecer tu acceso.'
+      subtitle='Te enviaremos un codigo temporal para restablecer tu acceso.'
     >
       <View className='space-y-4'>
         <Controller
@@ -89,10 +86,10 @@ export default function ForgotPasswordScreen() {
           onPress={handleSubmit(onSubmit)}
           isLoading={isSubmitting}
           className='bg-primary mt-8'
-          label='Solicitar token'
+          label='Solicitar codigo'
           accessibilityRole='button'
           accessibilityLabel='Solicitar recuperación'
-          accessibilityHint='Solicita un token temporal para restablecer contraseña'
+          accessibilityHint='Solicita un codigo de recuperacion para restablecer contraseña'
         />
 
         {successMessage ? <Text className='text-green-400 text-sm mt-3'>{successMessage}</Text> : null}
