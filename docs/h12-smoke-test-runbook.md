@@ -1,16 +1,16 @@
 # H12 Smoke Test Runbook (30-40 min)
 
-Fecha: 2026-03-11  
-Objetivo: cerrar los `PENDING` de H12 con evidencia minima verificable.
+Date: 2026-03-11  
+Goal: close H12 `PENDING` items with minimal verifiable evidence.
 
-## Preparacion (5 min)
+## Preparation (5 min)
 
-1. Verifica que el frontend tenga:
+1. Verify frontend has:
    - `EXPO_PUBLIC_SUPABASE_URL`
    - `EXPO_PUBLIC_SUPABASE_ANON_KEY`
-2. Inicia app:
+2. Start app:
    - `npx expo start`
-3. Ten abierto Supabase (SQL editor / table editor) para revisar:
+3. Keep Supabase open (SQL editor / table editor) to check:
    - `profiles`
    - `castle_states`
    - `user_wallets`
@@ -19,96 +19,96 @@ Objetivo: cerrar los `PENDING` de H12 con evidencia minima verificable.
    - `user_push_tokens`
    - `notification_logs`
 
-## Evidencia requerida por prueba
+## Required Evidence Per Test
 
-- 1 captura de pantalla de UI (resultado final)
-- 1 evidencia de datos (fila en Supabase o estado visible en app)
-- Resultado: `PASS` o `FAIL`
-- Si falla: error textual y paso exacto donde falla
+- 1 UI screenshot (final state)
+- 1 data evidence point (row in Supabase or visible state in app)
+- Result: `PASS` or `FAIL`
+- If failing: exact error text and step where it fails
 
-## Bloque A: Auth (8 min)
+## Block A: Auth (8 min)
 
-1. Signup en simulador:
-   - Registrar usuario nuevo.
-   - Esperado: entra al flujo autenticado.
+1. Signup on simulator:
+   - Register new user.
+   - Expected: enters authenticated flow.
 2. Logout:
-   - Cerrar sesion.
-   - Esperado: vuelve a login.
+   - Sign out.
+   - Expected: returns to login.
 3. Login:
-   - Ingresar con mismo usuario.
-   - Esperado: acceso correcto.
-4. Repetir 1-3 en dispositivo fisico.
+   - Login with same user.
+   - Expected: successful access.
+4. Repeat 1-3 on physical device.
 
-Checks DB:
-- existe `profiles.id = auth.users.id`
+DB checks:
+- `profiles.id = auth.users.id` exists
 
-## Bloque B: Onboarding (5 min)
+## Block B: Onboarding (5 min)
 
-1. Usar usuario nuevo.
-2. Completar onboarding.
-3. Esperado:
-   - preferencias guardadas
-   - sin errores de sesion
+1. Use new user.
+2. Complete onboarding.
+3. Expected:
+   - preferences saved
+   - no session errors
 
-Checks DB:
-- existe fila en `user_preferences`
-- existe `castle_states` y `user_wallets` para el usuario
+DB checks:
+- row exists in `user_preferences`
+- rows exist in `castle_states` and `user_wallets` for user
 
-## Bloque C: Sync offline->online (8 min)
+## Block C: Offline -> Online Sync (8 min)
 
-1. Con sesion activa, poner dispositivo offline.
-2. Crear transaccion.
-3. Editar esa transaccion.
-4. Eliminar (soft delete) esa transaccion.
-5. Volver online y forzar sync (pull-to-refresh o accion de sync).
-6. Esperado:
-   - cola local se vacia
-   - no quedan errores de sync
+1. With active session, set device offline.
+2. Create transaction.
+3. Edit that transaction.
+4. Delete it (soft delete).
+5. Go online and force sync (pull-to-refresh or sync action).
+6. Expected:
+   - local queue drains
+   - no sync errors remain
 
-Checks DB:
-- transaccion existe con `deleted_at` no nulo (si aplica)
-- no hay duplicados por `id`
+DB checks:
+- transaction exists with `deleted_at` not null (if applicable)
+- no duplicates by `id`
 
-## Bloque D: Budgets + Dashboard (7 min)
+## Block D: Budgets + Dashboard (7 min)
 
-1. Crear/editar un budget para categoria de gasto.
-2. Verificar refresco de dashboard.
-3. Ver dashboard con datos.
-4. Probar mes sin datos (si la UI lo permite) o usuario limpio.
+1. Create/edit budget for expense category.
+2. Verify dashboard refresh.
+3. View dashboard with data.
+4. Test month without data (if UI supports) or clean user.
 
-Esperado:
-- guardado correcto
-- dashboard conserva shape y no rompe UI
+Expected:
+- save succeeds
+- dashboard shape stays consistent and UI does not break
 
-## Bloque E: Home (3 min)
+## Block E: Home (3 min)
 
-1. Abrir home despues de login.
-2. Esperado:
-   - castillo renderiza (HP/status)
-   - wallet renderiza (gold/streak)
-   - sin placeholders rotos
+1. Open home after login.
+2. Expected:
+   - castle renders (HP/status)
+   - wallet renders (gold/streak)
+   - no broken placeholders
 
-## Bloque F: Alertas y push token (4 min)
+## Block F: Alerts and Push Token (4 min)
 
-1. Abrir pantalla de alertas sin datos.
-2. Esperado:
-   - estado vacio correcto
-   - sin crash
-3. Con permisos de push activos:
-   - validar registro de token
-   - hacer logout y validar unregister
+1. Open alerts screen with empty data.
+2. Expected:
+   - correct empty state
+   - no crash
+3. With push permissions enabled:
+   - validate token registration
+   - logout and validate unregister
 
-Checks DB:
-- insercion/eliminacion en `user_push_tokens`
+DB checks:
+- insert/delete in `user_push_tokens`
 
-## Cierre y criterio de salida
+## Exit Criteria
 
-H12 se considera cerrado cuando:
-- todos los bloques A-F = `PASS`
-- existe evidencia minima por bloque
-- se actualiza `docs/migration-cutover-checklist.md` con resultados finales
+H12 is considered closed when:
+- all blocks A-F = `PASS`
+- minimal evidence exists per block
+- `docs/migration-cutover-checklist.md` is updated with final results
 
-Si hay FAIL critico:
-- no cortar a produccion
-- registrar issue con reproduccion minima
-- fix-forward y repetir bloque afectado
+If there is a critical `FAIL`:
+- do not cut to production
+- log issue with minimal reproducible steps
+- fix-forward and rerun affected block
