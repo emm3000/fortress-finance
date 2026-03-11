@@ -292,6 +292,9 @@ Have a validation checklist before declaring v1 migration closed.
 
 ## Deferred to Phase 2
 
+Execution reference:
+- `docs/phase2-atomic-task-plan.md`
+
 ### H13. Daily Liquidation and Game Engine
 
 - [-] Implement scheduler for daily liquidation.

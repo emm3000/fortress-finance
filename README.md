@@ -7,6 +7,7 @@ This repository contains a mobile-first personal finance app with offline-first 
 - `app/`, `components/`, `hooks/`, `services/`, `db/`, `store/`: Expo + React Native app (root-based).
 - `supabase/migrations/`: SQL migrations and RPC contracts used by the app.
 - `docs/`: Architecture, migration and cutover documentation.
+  - `docs/phase2-atomic-task-plan.md`: Atomic execution plan for deferred Phase 2 scope.
 
 ## Core Product Capabilities
 
