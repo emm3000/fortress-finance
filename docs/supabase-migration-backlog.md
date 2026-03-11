@@ -291,11 +291,11 @@ Mantener la pantalla de alertas funcional sin depender todavia de automatizacion
 
 ### Subtareas atomicas
 
-- [ ] Migrar lectura de `notification_logs` a Supabase.
+- [x] Migrar lectura de `notification_logs` a Supabase.
   Commit sugerido: `feat(frontend): migrate notification reads`
-- [ ] Migrar registro de `user_push_tokens` si se decide mantener desde v1.
+- [x] Migrar registro de `user_push_tokens` si se decide mantener desde v1.
   Commit sugerido: `feat(frontend): migrate push token registration`
-- [ ] Permitir que la pantalla de alertas funcione vacia sin errores.
+- [x] Permitir que la pantalla de alertas funcione vacia sin errores.
   Commit sugerido: `refactor(frontend): harden empty notification states`
 
 ### Criterios de aceptacion
