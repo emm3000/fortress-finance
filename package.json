@@ -8,7 +8,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "eslint app components constants db hooks services store --ext .ts,.tsx",
+    "lint": "eslint app components constants db hooks services store __tests__ jest.setup.ts jest.d.ts --ext .ts,.tsx",
     "typecheck": "tsc --noEmit",
     "test": "jest --runInBand"
   },
