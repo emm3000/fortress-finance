@@ -51,6 +51,7 @@ One task should map to one commit whenever possible.
 ### task-07: Implement Expo Push Dispatcher (Edge Function)
 
 - Deliverable: Edge Function that reads pending jobs, sends Expo pushes, and writes results to `notification_logs`.
+  - File: `supabase/functions/expo-push-dispatcher/index.ts`
 - Suggested commit: `feat(functions): add expo push dispatcher`
 
 ### task-08: Add Retry and Backoff Policy
