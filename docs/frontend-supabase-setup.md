@@ -21,6 +21,6 @@ EXPO_PUBLIC_SENTRY_DSN=""
 
 ## Notes
 
-- `EXPO_PUBLIC_API_URL` is no longer required for frontend startup.
+- `EXPO_PUBLIC_API_URL` is no longer used by the frontend runtime.
 - Supabase client bootstrap is in `frontend/services/supabase.client.ts`.
-- Auth session persistence wiring is intentionally deferred to H4.
+- Auth session persistence is active via Supabase Auth + SecureStore.

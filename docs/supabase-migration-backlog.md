@@ -313,13 +313,13 @@ Dejar el frontend funcionando sin llamadas residuales a `/api/*`.
 
 ### Subtareas atomicas
 
-- [ ] Retirar `frontend/services/api.client.ts` del flujo principal.
+- [x] Retirar `frontend/services/api.client.ts` del flujo principal.
   Commit sugerido: `refactor(frontend): remove legacy api client`
-- [ ] Eliminar axios si deja de usarse.
+- [x] Eliminar axios si deja de usarse.
   Commit sugerido: `chore(frontend): remove axios dependency`
-- [ ] Buscar y remover llamadas residuales a `/api/`.
+- [x] Buscar y remover llamadas residuales a `/api/`.
   Commit sugerido: `refactor(frontend): remove legacy api endpoints`
-- [ ] Actualizar README y docs de despliegue.
+- [x] Actualizar README y docs de despliegue.
   Commit sugerido: `docs: update deployment model for supabase`
 
 ### Criterios de aceptacion
