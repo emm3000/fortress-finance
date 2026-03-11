@@ -53,13 +53,18 @@ export const AuthService = {
 
     await useAuthStore.getState().hydrateFromSession(authData.session ?? null);
 
-    try {
-      await OnboardingService.syncPreferencesIfNeeded();
-    } catch (error) {
-      console.error("No se pudieron sincronizar preferencias iniciales:", error);
+    if (authData.session) {
+      try {
+        await OnboardingService.syncPreferencesIfNeeded();
+      } catch (error) {
+        console.error("No se pudieron sincronizar preferencias iniciales:", error);
+      }
     }
 
-    return authData;
+    return {
+      ...authData,
+      requiresEmailConfirmation: !authData.session,
+    };
   },
 
   /**

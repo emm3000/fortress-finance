@@ -175,12 +175,14 @@ Deno.serve(async (req) => {
   let skipped = 0;
 
   for (const due of (dueRows ?? []) as QueueRow[]) {
+    let activeRow: QueueRow = due;
     try {
       const claimed = await markAsClaimed(supabase, due);
       if (!claimed) {
         skipped += 1;
         continue;
       }
+      activeRow = claimed;
 
       const { data: tokenRows, error: tokenError } = await supabase
         .from("user_push_tokens")
@@ -219,15 +221,15 @@ Deno.serve(async (req) => {
       failed += 1;
       const message = error instanceof Error ? error.message : "Unknown dispatch error";
       try {
-        const isTerminalFailure = await markAsFailed(supabase, due, message);
+        const isTerminalFailure = await markAsFailed(supabase, activeRow, message);
         if (isTerminalFailure) {
           await supabase
             .from("notification_logs")
             .insert({
-              user_id: due.user_id,
-              title: due.title,
-              body: due.body,
-              type: due.notification_type,
+              user_id: activeRow.user_id,
+              title: activeRow.title,
+              body: activeRow.body,
+              type: activeRow.notification_type,
               status: "FAILED",
             });
         }

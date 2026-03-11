@@ -33,9 +33,14 @@ export const useSync = () => {
       if (!isOnline) {
         throw new Error("Sin conexion a internet");
       }
-      // First, ensure we have categories
-      const syncedCategories = await SyncService.syncCategories();
-      // Then perform the full data sync
+
+      let syncedCategories: Awaited<ReturnType<typeof SyncService.syncCategories>> = [];
+      try {
+        syncedCategories = await SyncService.syncCategories();
+      } catch (error) {
+        console.error("Category refresh skipped; continuing with full sync:", error);
+      }
+
       const fullSyncResult = await SyncService.fullSync(userId);
       return {
         ...fullSyncResult,

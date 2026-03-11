@@ -27,6 +27,7 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function RegisterScreen() {
   const [submitError, setSubmitError] = React.useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = React.useState<string | null>(null);
 
   const {
     control,
@@ -38,9 +39,16 @@ export default function RegisterScreen() {
 
   const onSubmit = async (data: RegisterFormData) => {
     setSubmitError(null);
+    setSuccessMessage(null);
 
     try {
-      await AuthService.register(data);
+      const result = await AuthService.register(data);
+      if (result.requiresEmailConfirmation) {
+        setSuccessMessage(
+          "Te enviamos un enlace de confirmacion a tu correo. Confirma tu cuenta antes de iniciar sesion."
+        );
+        return;
+      }
       router.replace("/(main)");
     } catch (error: any) {
       const message = getApiErrorMessage(
@@ -132,6 +140,9 @@ export default function RegisterScreen() {
         />
 
         <InlineError message={submitError} />
+        {successMessage ? (
+          <Text className="text-green-400 text-sm mt-3 text-center">{successMessage}</Text>
+        ) : null}
 
         <View className="flex-row justify-center mt-6">
           <Text className="text-text-muted">¿Ya tienes rango? </Text>
