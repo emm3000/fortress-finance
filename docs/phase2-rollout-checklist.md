@@ -6,6 +6,14 @@ Date: 2026-03-11
 Target project: `zxdnuxqrogxlsumlzdlv`  
 Status: Rollout completed (migrations + function deployment + delivery validation)
 
+## Open Gap (as of 2026-03-11)
+
+- `pg_cron` extension is not installed in this project.
+- SQL scheduler job (`cron.job`) is therefore unavailable.
+- Daily automation must use one of these alternatives:
+  - Supabase Scheduled Edge Function calling `run_daily_liquidation_batch(...)`
+  - External scheduler (for example GitHub Actions / Cloud Scheduler) invoking the same RPC
+
 ## 1) Ensure Project Is Active
 
 - Open Supabase dashboard for project `zxdnuxqrogxlsumlzdlv`.
@@ -68,6 +76,7 @@ order by proname;
   - migrations applied
   - dispatcher deployed
   - smoke tests passed
+  - daily scheduler strategy finalized (without `pg_cron` unless extension is enabled)
 
 ## Execution Notes (2026-03-11)
 

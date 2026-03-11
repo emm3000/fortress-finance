@@ -12,7 +12,9 @@ and fast recovery procedures.
 - SQL trigger: `trg_enqueue_liquidation_notification`
 - Queue table: `notification_dispatch_queue`
 - Edge Function: `expo-push-dispatcher`
-- Scheduler: `pg_cron` job `daily-liquidation-batch`
+- Scheduler:
+  - preferred: `pg_cron` job `daily-liquidation-batch` (if extension exists)
+  - fallback: scheduled Edge Function or external scheduler invoking `run_daily_liquidation_batch(...)`
 
 ## Monitoring Checklist
 
@@ -67,7 +69,9 @@ order by status;
 
 ### A. Scheduler did not run
 
-1. Check `cron.job` for `daily-liquidation-batch`.
+1. Check scheduler backend:
+   - if `pg_cron` is enabled, inspect `cron.job` for `daily-liquidation-batch`
+   - otherwise inspect external/scheduled function runner logs
 2. Trigger manual batch:
 
 ```sql
