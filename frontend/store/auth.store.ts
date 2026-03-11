@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import * as SecureStore from "expo-secure-store";
 import type { Session } from "@supabase/supabase-js";
-import { setUnauthorizedHandler } from "../services/api.client";
 import { captureException, setMonitoringUser } from "../services/monitoring.service";
 import { supabase } from "../services/supabase.client";
 
@@ -115,13 +114,3 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 }));
-
-setUnauthorizedHandler(async () => {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session) {
-    await useAuthStore.getState().hydrateFromSession(null);
-  }
-});
