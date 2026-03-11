@@ -45,6 +45,7 @@ One task should map to one commit whenever possible.
 ### task-06: Add Notification Dispatch Queue
 
 - Deliverable: SQL migration for notification dispatch table (`pending/sent/failed`) plus dedupe key.
+  - File: `supabase/migrations/20260311_h14_notification_dispatch_queue.sql`
 - Suggested commit: `feat(db): add notification dispatch queue`
 
 ### task-07: Implement Expo Push Dispatcher (Edge Function)
