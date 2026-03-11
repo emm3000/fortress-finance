@@ -22,6 +22,9 @@ This folder is organized into two sections:
 5. `release-checklist.md`
 - Production release checklist: secrets, build validation, smoke manual, monitoring, scheduler checks, and rollback criteria.
 
+6. `smoke-test-runbook.md`
+- Step-by-step manual smoke test guide: preconditions, execution order, expected results, evidence, and release blocking criteria.
+
 ## Archive
 
 Historical documents were moved to `docs/archive/` to reduce active-document noise:

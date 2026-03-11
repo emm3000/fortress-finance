@@ -89,6 +89,10 @@ eas build --platform ios --profile production
 
 ## 6. Smoke manual en dispositivo
 
+Runbook detallado:
+
+- `docs/smoke-test-runbook.md`
+
 ### Arranque y sesion
 
 - [ ] Abrir la app por primera vez
