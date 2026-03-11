@@ -13,6 +13,12 @@ const iconByType: Record<'ATTACK' | 'REWARD' | 'SHOP', React.ReactNode> = {
   SHOP: <Store size={18} color='#facc15' />,
 };
 
+const routeByType: Record<'ATTACK' | 'REWARD' | 'SHOP', '/(main)'> = {
+  ATTACK: '/(main)',
+  REWARD: '/(main)',
+  SHOP: '/(main)',
+};
+
 export default function AlertsScreen() {
   const insets = useSafeAreaInsets();
   const { data: notifications = [], isLoading, isError } = useNotifications();
@@ -41,26 +47,12 @@ export default function AlertsScreen() {
           />
         ) : (
           notifications.map((notification) => {
-            const shouldOpenBudgets =
-              notification.type === 'ATTACK' && notification.title.includes('Presupuesto');
-            const categoryName =
-              shouldOpenBudgets && notification.title.includes(':')
-                ? notification.title.split(':').slice(1).join(':').trim()
-                : '';
+            const targetRoute = routeByType[notification.type] ?? '/(main)';
 
             return (
               <Pressable
                 key={notification.id}
-                onPress={() => {
-                  if (shouldOpenBudgets) {
-                    router.push({
-                      pathname: '/(main)/budgets',
-                      params: { categoryName },
-                    });
-                    return;
-                  }
-                  router.push('/(main)');
-                }}
+                onPress={() => router.push(targetRoute)}
                 className='mb-3 p-4 bg-surface border border-border rounded-2xl'
                 accessibilityRole='button'
                 accessibilityLabel='Abrir detalle de alerta'
@@ -78,9 +70,7 @@ export default function AlertsScreen() {
                         ? 'Fecha no disponible'
                         : new Date(notification.createdAt).toLocaleString()}
                     </Text>
-                    {shouldOpenBudgets ? (
-                      <Text className='text-primary text-xs mt-2'>Ir a presupuestos</Text>
-                    ) : null}
+                    <Text className='text-primary text-xs mt-2'>Ir al dashboard</Text>
                   </View>
                 </View>
               </Pressable>

@@ -1,6 +1,8 @@
-# JAA - Personal Finance Fortress
+# JAA
 
-This repository contains a mobile-first personal finance app with offline-first transaction handling and a Supabase-backed runtime.
+App mobile-first de finanzas personales con gamificacion, captura offline-first y runtime sobre Supabase.
+
+This repository contains the JAA mobile app: a personal finance experience that combines budgeting, monthly visibility, alerts, and offline-first transaction capture.
 
 ## Repository Structure
 
