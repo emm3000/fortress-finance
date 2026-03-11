@@ -39,6 +39,7 @@ One task should map to one commit whenever possible.
 ### task-05: Add Daily Scheduler
 
 - Deliverable: scheduled job that executes liquidation in batches and records outcomes.
+  - File: `supabase/migrations/20260311_h13_daily_liquidation_scheduler.sql`
 - Suggested commit: `feat(ops): add daily liquidation scheduler`
 
 ### task-06: Add Notification Dispatch Queue
