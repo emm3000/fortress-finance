@@ -1,8 +1,8 @@
 import { useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { FullSyncResult, SyncService } from "../services/sync.service";
-import { useAuthStore } from "../store/auth.store";
-import { useNetworkStore } from "../store/network.store";
+import { FullSyncResult, SyncService } from "@/services/sync.service";
+import { useAuthStore } from "@/store/auth.store";
+import { useNetworkStore } from "@/store/network.store";
 
 type SyncMutationResult = FullSyncResult & {
   hasCategoriesUpdate: boolean;

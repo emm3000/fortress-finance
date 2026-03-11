@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useAuthStore } from '../store/auth.store';
-import { BudgetService } from '../services/budget.service';
-import { useNetworkStore } from '../store/network.store';
+import { useAuthStore } from "@/store/auth.store";
+import { BudgetService } from "@/services/budget.service";
+import { useNetworkStore } from "@/store/network.store";
 
 export const useBudgets = () => {
   const userId = useAuthStore((state) => state.user?.id);

@@ -1,6 +1,6 @@
 import React from "react";
 import { Pressable, Text, View } from "react-native";
-import { captureException } from "../../services/monitoring.service";
+import { captureException } from "@/services/monitoring.service";
 
 type GlobalErrorBoundaryProps = {
   children: React.ReactNode;

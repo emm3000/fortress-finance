@@ -1,4 +1,4 @@
-import { Category, CategoryRepository } from '../db/category.repository';
+import { Category, CategoryRepository } from "@/db/category.repository";
 import { supabase } from './supabase.client';
 
 type CategoryRow = {

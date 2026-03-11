@@ -1,7 +1,7 @@
 import { View, Text } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { WifiOff } from "lucide-react-native";
-import { useNetworkStore } from "../../store/network.store";
+import { useNetworkStore } from "@/store/network.store";
 
 export function OfflineBanner() {
   const isOnline = useNetworkStore((state) => state.isOnline);

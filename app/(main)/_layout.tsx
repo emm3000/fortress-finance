@@ -1,9 +1,9 @@
 import { useEffect, useRef } from "react";
 import { Stack, router } from "expo-router";
-import { useAuthStore } from "../../store/auth.store";
-import { useSync } from "../../hooks/useSync";
-import { useNetworkStore } from "../../store/network.store";
-import { NotificationService } from "../../services/notification.service";
+import { useAuthStore } from "@/store/auth.store";
+import { useSync } from "@/hooks/useSync";
+import { useNetworkStore } from "@/store/network.store";
+import { NotificationService } from "@/services/notification.service";
 
 export default function MainLayout() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);

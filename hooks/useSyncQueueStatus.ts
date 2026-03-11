@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { useAuthStore } from '../store/auth.store';
-import { SyncQueueRepository } from '../db/syncQueue.repository';
+import { useAuthStore } from "@/store/auth.store";
+import { SyncQueueRepository } from "@/db/syncQueue.repository";
 
 export const useSyncQueueStatus = () => {
   const userId = useAuthStore((state) => state.user?.id);

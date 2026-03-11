@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
-import { NotificationService } from '../services/notification.service';
-import { useAuthStore } from '../store/auth.store';
-import { useNetworkStore } from '../store/network.store';
+import { NotificationService } from "@/services/notification.service";
+import { useAuthStore } from "@/store/auth.store";
+import { useNetworkStore } from "@/store/network.store";
 
 export const useNotifications = () => {
   const userId = useAuthStore((state) => state.user?.id);

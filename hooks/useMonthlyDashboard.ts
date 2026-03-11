@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { DashboardService } from '../services/dashboard.service';
-import { useAuthStore } from '../store/auth.store';
-import { useNetworkStore } from '../store/network.store';
+import { DashboardService } from "@/services/dashboard.service";
+import { useAuthStore } from "@/store/auth.store";
+import { useNetworkStore } from "@/store/network.store";
 
 export const useMonthlyDashboard = () => {
   const userId = useAuthStore((state) => state.user?.id);

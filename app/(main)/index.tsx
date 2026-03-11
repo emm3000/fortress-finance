@@ -8,13 +8,13 @@ import {
   RefreshControl,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { useAuthStore } from "../../store/auth.store";
-import { useCastle } from "../../hooks/useCastle";
-import { useSync } from "../../hooks/useSync";
-import { useSyncQueueStatus } from "../../hooks/useSyncQueueStatus";
-import { useTransactions } from "../../hooks/useTransactions";
-import { useMonthlyDashboard } from "../../hooks/useMonthlyDashboard";
-import { theme } from "../../constants/theme";
+import { useAuthStore } from "@/store/auth.store";
+import { useCastle } from "@/hooks/useCastle";
+import { useSync } from "@/hooks/useSync";
+import { useSyncQueueStatus } from "@/hooks/useSyncQueueStatus";
+import { useTransactions } from "@/hooks/useTransactions";
+import { useMonthlyDashboard } from "@/hooks/useMonthlyDashboard";
+import { theme } from "@/constants/theme";
 import {
   Shield,
   Coins,
@@ -30,7 +30,7 @@ import {
   Bell,
 } from "lucide-react-native";
 import { MotiView } from "moti";
-import { runWhenIdle } from "../../utils/idle";
+import { runWhenIdle } from "@/utils/idle";
 
 const STATUS_COLORS: Record<string, string> = {
   HEALTHY: "text-green-400",

@@ -1,6 +1,6 @@
-import { useAuthStore } from "../store/auth.store";
+import { useAuthStore } from "@/store/auth.store";
 import { OnboardingService } from "./onboarding.service";
-import { useNetworkStore } from "../store/network.store";
+import { useNetworkStore } from "@/store/network.store";
 import { NotificationService } from "./notification.service";
 import { supabase } from "./supabase.client";
 

@@ -10,13 +10,13 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { AlertTriangle, CheckCircle2, Coins, Pencil, ShieldAlert } from 'lucide-react-native';
-import { ScreenHeader } from '../../components/ui/screen-header';
-import { InlineError } from '../../components/feedback/inline-error';
-import { EmptyState } from '../../components/feedback/empty-state';
-import { useCategories } from '../../hooks/useCategories';
-import { useBudgets } from '../../hooks/useBudgets';
-import { useBudgetProgress } from '../../hooks/useBudgetProgress';
-import { getApiErrorMessage } from '../../utils/api-error';
+import { ScreenHeader } from "@/components/ui/screen-header";
+import { InlineError } from "@/components/feedback/inline-error";
+import { EmptyState } from "@/components/feedback/empty-state";
+import { useCategories } from "@/hooks/useCategories";
+import { useBudgets } from "@/hooks/useBudgets";
+import { useBudgetProgress } from "@/hooks/useBudgetProgress";
+import { getApiErrorMessage } from "@/utils/api-error";
 
 type Status = 'NORMAL' | 'RISK' | 'EXCEEDED';
 

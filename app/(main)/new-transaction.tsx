@@ -16,21 +16,21 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import * as Crypto from "expo-crypto";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCategories } from "../../hooks/useCategories";
-import { TransactionRepository } from "../../db/transaction.repository";
-import { useSync } from "../../hooks/useSync";
-import { useAuthStore } from "../../store/auth.store";
-import { AnalyticsService } from "../../services/analytics.service";
-import { InlineError } from "../../components/feedback/inline-error";
-import { ScreenHeader } from "../../components/ui/screen-header";
+import { useCategories } from "@/hooks/useCategories";
+import { TransactionRepository } from "@/db/transaction.repository";
+import { useSync } from "@/hooks/useSync";
+import { useAuthStore } from "@/store/auth.store";
+import { AnalyticsService } from "@/services/analytics.service";
+import { InlineError } from "@/components/feedback/inline-error";
+import { ScreenHeader } from "@/components/ui/screen-header";
 import { 
   CircleDollarSign,
   FileText,
   CalendarDays
 } from "lucide-react-native";
 import { MotiView } from "moti";
-import { runWhenIdle } from "../../utils/idle";
-import { getApiErrorMessage } from "../../utils/api-error";
+import { runWhenIdle } from "@/utils/idle";
+import { getApiErrorMessage } from "@/utils/api-error";
 
 const toTodayDateInput = () => {
   const now = new Date();

@@ -7,11 +7,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'nativewind';
-import { initDatabase } from '../db/database';
-import { OfflineBanner } from "../components/feedback/offline-banner";
-import { GlobalErrorBoundary } from "../components/feedback/global-error-boundary";
-import { captureException, initializeMonitoring, isMonitoringEnabled } from "../services/monitoring.service";
-import { useNetworkStore } from "../store/network.store";
+import { initDatabase } from "@/db/database";
+import { OfflineBanner } from "@/components/feedback/offline-banner";
+import { GlobalErrorBoundary } from "@/components/feedback/global-error-boundary";
+import { captureException, initializeMonitoring, isMonitoringEnabled } from "@/services/monitoring.service";
+import { useNetworkStore } from "@/store/network.store";
 import "../global.css";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.

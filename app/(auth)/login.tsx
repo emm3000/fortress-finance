@@ -8,14 +8,14 @@ import { Link, router } from "expo-router";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { AuthService } from "../../services/auth.service";
-import { InlineError } from "../../components/feedback/inline-error";
-import { AuthScreenShell } from "../../components/layout/auth-screen-shell";
-import { LabeledInput } from "../../components/ui/labeled-input";
-import { AsyncButton } from "../../components/ui/async-button";
+import { AuthService } from "@/services/auth.service";
+import { InlineError } from "@/components/feedback/inline-error";
+import { AuthScreenShell } from "@/components/layout/auth-screen-shell";
+import { LabeledInput } from "@/components/ui/labeled-input";
+import { AsyncButton } from "@/components/ui/async-button";
 import { ShieldCheck, Mail, Lock } from "lucide-react-native";
-import { getApiErrorMessage } from "../../utils/api-error";
-import { captureException } from "../../services/monitoring.service";
+import { getApiErrorMessage } from "@/utils/api-error";
+import { captureException } from "@/services/monitoring.service";
 
 const loginSchema = z.object({
   email: z.string().email("Correo inválido"),

@@ -3,9 +3,9 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Bell, ShieldAlert, ShieldCheck, Store } from 'lucide-react-native';
-import { ScreenHeader } from '../../components/ui/screen-header';
-import { EmptyState } from '../../components/feedback/empty-state';
-import { useNotifications } from '../../hooks/useNotifications';
+import { ScreenHeader } from "@/components/ui/screen-header";
+import { EmptyState } from "@/components/feedback/empty-state";
+import { useNotifications } from "@/hooks/useNotifications";
 
 const iconByType: Record<'ATTACK' | 'REWARD' | 'SHOP', React.ReactNode> = {
   ATTACK: <ShieldAlert size={18} color='#f87171' />,

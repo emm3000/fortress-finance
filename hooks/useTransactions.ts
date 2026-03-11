@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { TransactionRepository } from "../db/transaction.repository";
-import { useAuthStore } from "../store/auth.store";
+import { TransactionRepository } from "@/db/transaction.repository";
+import { useAuthStore } from "@/store/auth.store";
 
 export const useTransactions = () => {
   const userId = useAuthStore((state) => state.user?.id);

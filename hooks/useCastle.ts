@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CastleRepository, CastleState } from "../db/castle.repository";
-import { useAuthStore } from "../store/auth.store";
+import { CastleRepository, CastleState } from "@/db/castle.repository";
+import { useAuthStore } from "@/store/auth.store";
 
 export const useCastle = () => {
   const userId = useAuthStore((state) => state.user?.id);

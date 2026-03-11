@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { TransactionRepository } from '../db/transaction.repository';
-import { useAuthStore } from '../store/auth.store';
+import { TransactionRepository } from "@/db/transaction.repository";
+import { useAuthStore } from "@/store/auth.store";
 
 export const useBudgetProgress = () => {
   const userId = useAuthStore((state) => state.user?.id);

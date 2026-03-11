@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { CategoryService } from "../services/category.service";
-import { useAuthStore } from "../store/auth.store";
-import { useNetworkStore } from "../store/network.store";
+import { CategoryService } from "@/services/category.service";
+import { useAuthStore } from "@/store/auth.store";
+import { useNetworkStore } from "@/store/network.store";
 
 export const useCategories = () => {
   const userId = useAuthStore((state) => state.user?.id);

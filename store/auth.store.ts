@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import * as SecureStore from "expo-secure-store";
 import type { Session } from "@supabase/supabase-js";
-import { captureException, setMonitoringUser } from "../services/monitoring.service";
-import { supabase } from "../services/supabase.client";
+import { captureException, setMonitoringUser } from "@/services/monitoring.service";
+import { supabase } from "@/services/supabase.client";
 
 interface User {
   id: string;

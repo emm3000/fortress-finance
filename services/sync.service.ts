@@ -1,8 +1,8 @@
-import { TransactionRepository } from "../db/transaction.repository";
-import { CategoryRepository } from "../db/category.repository";
-import { CastleRepository } from "../db/castle.repository";
-import { SyncMetaRepository } from "../db/syncMeta.repository";
-import { SyncQueueRepository, SyncOperation } from "../db/syncQueue.repository";
+import { TransactionRepository } from "@/db/transaction.repository";
+import { CategoryRepository } from "@/db/category.repository";
+import { CastleRepository } from "@/db/castle.repository";
+import { SyncMetaRepository } from "@/db/syncMeta.repository";
+import { SyncQueueRepository, SyncOperation } from "@/db/syncQueue.repository";
 import { supabase } from "./supabase.client";
 
 const CATEGORY_SYNC_META_KEY = "categories_last_sync";

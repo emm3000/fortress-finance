@@ -4,7 +4,7 @@ import { router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Shield, Coins, BellRing } from "lucide-react-native";
-import { OnboardingService } from "../../services/onboarding.service";
+import { OnboardingService } from "@/services/onboarding.service";
 
 type OnboardingStep = {
   title: string;

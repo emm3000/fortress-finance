@@ -10,14 +10,14 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { FlashList } from "@shopify/flash-list";
 import { router } from "expo-router";
-import { useTransactions } from "../../hooks/useTransactions";
-import { useSync } from "../../hooks/useSync";
-import { useCategories } from "../../hooks/useCategories";
-import { Transaction, TransactionRepository } from "../../db/transaction.repository";
-import { Category } from "../../db/category.repository";
-import { EmptyState } from "../../components/feedback/empty-state";
-import { LoadingState } from "../../components/feedback/loading-state";
-import { ScreenHeader } from "../../components/ui/screen-header";
+import { useTransactions } from "@/hooks/useTransactions";
+import { useSync } from "@/hooks/useSync";
+import { useCategories } from "@/hooks/useCategories";
+import { Transaction, TransactionRepository } from "@/db/transaction.repository";
+import { Category } from "@/db/category.repository";
+import { EmptyState } from "@/components/feedback/empty-state";
+import { LoadingState } from "@/components/feedback/loading-state";
+import { ScreenHeader } from "@/components/ui/screen-header";
 import {
   TrendingDown,
   TrendingUp,
@@ -29,8 +29,8 @@ import {
 } from "lucide-react-native";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { useAuthStore } from "../../store/auth.store";
-import { runWhenIdle } from "../../utils/idle";
+import { useAuthStore } from "@/store/auth.store";
+import { runWhenIdle } from "@/utils/idle";
 
 const TransactionListItem = React.memo(function TransactionListItem({
   transaction,
