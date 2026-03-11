@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/react-native";
 import { Stack } from "expo-router";
+import * as Notifications from "expo-notifications";
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import { View, Text } from 'react-native';
@@ -17,6 +18,14 @@ import "../global.css";
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 initializeMonitoring();
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 const queryClient = new QueryClient({
   defaultOptions: {

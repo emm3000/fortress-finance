@@ -17,6 +17,8 @@
       "env": {
         "APP_ENV": "qa",
         "EXPO_PUBLIC_APP_ENV": "qa"
+
+
       },
       "android": {
         "buildType": "app-bundle"
@@ -27,6 +29,8 @@
       "env": {
         "APP_ENV": "qa",
         "EXPO_PUBLIC_APP_ENV": "qa"
+
+
       },
       "android": {
         "buildType": "apk"
