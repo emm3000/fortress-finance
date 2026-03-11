@@ -1,15 +1,60 @@
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# dependencies
 node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
 .DS_Store
+*.pem
+
+# local env files
 .env
 .env.*
-!frontend/.env.example
+!.env.example
+!.env.test.example
+.env*.local
 
-# Ignore agent generated files
+# typescript
+*.tsbuildinfo
+
+app-example
+
+# generated native folders
+/ios
+/android
+
+# local AI/editor metadata
 .agent/
-.agents/
-.gemini/
-skills-lock.json
-docs/deployment.md
-docs/mvp-status.md
-docs/dependency-audit-frontend-*.md
-frontend/google-services.json
+.claude/
+# Keep project skills versioned under .agents/skills
+
+# Supabase (keep migrations/config in repo, ignore local runtime artifacts)
+supabase/.temp/
+supabase/.cache/
+supabase/.branches/
+supabase/config.local.toml
+supabase/.env
+supabase/.env.*

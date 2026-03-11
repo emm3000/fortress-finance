@@ -8,11 +8,11 @@ Runbook operativo:
 ## 1. Gate tecnico previo a cutover
 
 - [x] Frontend typecheck en verde.
-  Comando: `cd frontend && npx tsc --noEmit`
+  Comando: `npx tsc --noEmit`
 - [x] Frontend lint en verde.
-  Comando: `cd frontend && npm run lint`
+  Comando: `npm run lint`
 - [x] No hay llamadas activas a cliente API legacy (`/api/*`, `api.client`, `axios`) en runtime frontend.
-  Comando: `rg -n "apiClient|api\.client|/api/|EXPO_PUBLIC_API_URL|axios" frontend --glob '!package-lock.json'`
+  Comando: `rg -n "apiClient|api\.client|/api/|EXPO_PUBLIC_API_URL|axios" app components constants db hooks services store utils --glob '!package-lock.json'`
 
 ## 2. Smoke tests funcionales (manual)
 

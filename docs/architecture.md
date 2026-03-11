@@ -2,32 +2,32 @@
 
 ## Overview
 
-The project is split into two bounded contexts:
+The current repository is frontend-first and root-based:
 
-- **Frontend (Expo React Native):** Offline-first mobile experience, local persistence, and sync orchestration.
-- **Backend (Express + Prisma + PostgreSQL):** Authoritative source of truth, business rules, and secure API boundaries.
+- **Expo React Native app:** Offline-first mobile experience, local persistence, and sync orchestration.
+- **Supabase backend services:** Auth, Postgres tables (RLS), and SQL RPC functions for composed operations.
 
 ## Frontend Architecture
 
 ### Layers
 
-1. **Screens (`frontend/app`)**
+1. **Screens (`app`)**
 - Presentation and user interactions.
 - No direct database/network implementation details.
 
-2. **Hooks (`frontend/hooks`)**
+2. **Hooks (`hooks`)**
 - UI-facing orchestration (`useSync`, `useBudgets`, `useTransactions`, etc.).
 - Query invalidation and flow coordination.
 
-3. **Services (`frontend/services`)**
-- API client and remote operations.
+3. **Services (`services`)**
+- Supabase remote operations.
 - Notification, auth, sync, and monitoring integration points.
 
-4. **Repositories (`frontend/db`)**
+4. **Repositories (`db`)**
 - SQLite access layer.
 - Local-first writes and queue persistence.
 
-5. **Stores (`frontend/store`)**
+5. **Stores (`store`)**
 - Global app state (authentication and connectivity).
 
 ### Offline-First Model
@@ -37,27 +37,11 @@ The project is split into two bounded contexts:
 - Pull phase updates local state with server changes.
 - Reconnect triggers automatic sync retries.
 
-## Backend Architecture
+## Supabase Responsibilities
 
-### Request Flow
-
-`routes -> controllers -> services -> repositories -> prisma -> PostgreSQL`
-
-### Responsibilities
-
-- **Routes:** Endpoint declarations and middleware wiring.
-- **Controllers:** HTTP orchestration only.
-- **Services:** Business logic and use-case rules.
-- **Repositories:** Database access abstraction.
-- **Middlewares:** Auth, validation, errors, security controls.
-
-### Security and Consistency Controls
-
-- JWT authentication + user existence validation.
-- Stale session rejection after credential changes.
-- Resource ownership checks for sync and mutation paths.
-- Rate limiting for sensitive/expensive endpoints.
-- Centralized error envelopes and monitoring hooks.
+- **Auth:** signup/login/logout/recovery and session lifecycle.
+- **RLS Policies:** ownership and isolation by `auth.uid()`.
+- **SQL/RPC:** `complete_onboarding`, `get_monthly_dashboard`, `sync_client_state`.
 
 ## Data Synchronization Contract
 
@@ -67,7 +51,7 @@ Client sends pending local operations (`transactions`, and related entities wher
 
 ### Pull
 
-Server returns changes since `lastSyncTimestamp`.
+RPC returns changes since `lastSyncTimestamp`.
 
 ### Conflict and Integrity Rules
 
@@ -77,11 +61,10 @@ Server returns changes since `lastSyncTimestamp`.
 
 ## Observability
 
-- Backend: Sentry integration + readiness endpoint.
 - Frontend: Global error boundary + Sentry initialization support.
 
 ## Deployment Baseline
 
-- Backend optimized for Render/Railway style deployment.
-- Frontend optimized for EAS build/deploy flows.
+- App optimized for EAS build/deploy flows.
+- Supabase hosts data/auth/RPC backend surface.
 - Environment variables are mandatory for production safety.

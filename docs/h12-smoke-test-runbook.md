@@ -9,7 +9,6 @@ Objetivo: cerrar los `PENDING` de H12 con evidencia minima verificable.
    - `EXPO_PUBLIC_SUPABASE_URL`
    - `EXPO_PUBLIC_SUPABASE_ANON_KEY`
 2. Inicia app:
-   - `cd frontend`
    - `npx expo start`
 3. Ten abierto Supabase (SQL editor / table editor) para revisar:
    - `profiles`
@@ -113,4 +112,3 @@ Si hay FAIL critico:
 - no cortar a produccion
 - registrar issue con reproduccion minima
 - fix-forward y repetir bloque afectado
-

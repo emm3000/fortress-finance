@@ -4,9 +4,9 @@ This repository contains a mobile-first personal finance app with offline-first 
 
 ## Repository Structure
 
-- `frontend/`: Expo + React Native client.
-- `backend/`: Legacy Express + TypeScript API (kept for reference during migration).
-- `docs/architecture.md`: Public architecture overview.
+- `app/`, `components/`, `hooks/`, `services/`, `db/`, `store/`: Expo + React Native app (root-based).
+- `supabase/migrations/`: SQL migrations and RPC contracts used by the app.
+- `docs/`: Architecture, migration and cutover documentation.
 
 ## Core Product Capabilities
 
@@ -19,18 +19,7 @@ This repository contains a mobile-first personal finance app with offline-first 
 
 ## Local Development
 
-### Backend
-
 ```bash
-cd backend
-npm install
-npm run dev
-```
-
-### Frontend
-
-```bash
-cd frontend
 npm install
 npx expo start
 ```

@@ -16,10 +16,13 @@ La decision de base es:
 
 ## Estado actual del proyecto
 
-El repo tiene dos bounded contexts claros:
+El repo actual esta organizado en raiz para el cliente movil:
 
-- `frontend/`: Expo + React Native, con modelo offline-first y SQLite local
-- `backend/`: API Express con TypeScript, Prisma y PostgreSQL
+- `app/`, `hooks/`, `services/`, `db/`, `store/`: Expo + React Native, con modelo offline-first y SQLite local
+- `supabase/migrations/`: SQL de esquema, RLS y RPC
+
+Contexto historico:
+- existia un backend Express + Prisma + PostgreSQL, usado como base de migracion
 
 Hoy el frontend depende del backend para estas capacidades:
 
@@ -47,18 +50,18 @@ Tambien existe logica que no es simple CRUD:
 
 El cliente no habla directo con pantallas o componentes; usa servicios como:
 
-- `frontend/services/auth.service.ts`
-- `frontend/services/sync.service.ts`
-- `frontend/services/budget.service.ts`
-- `frontend/services/dashboard.service.ts`
-- `frontend/services/onboarding.service.ts`
-- `frontend/services/notification.service.ts`
+- `services/auth.service.ts`
+- `services/sync.service.ts`
+- `services/budget.service.ts`
+- `services/dashboard.service.ts`
+- `services/onboarding.service.ts`
+- `services/notification.service.ts`
 
 Eso permite reemplazar la implementacion remota sin reescribir toda la UI.
 
 ### 2. La pieza critica no es auth, es sync
 
-El flujo mas delicado esta en `frontend/services/sync.service.ts` y en el backend:
+El flujo mas delicado esta en `services/sync.service.ts` y en el backend historico:
 
 - `backend/src/services/sync.service.ts`
 - `backend/src/services/sync/sync.push.ts`

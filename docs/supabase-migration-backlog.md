@@ -29,7 +29,7 @@ Preparar el proyecto para usar Supabase desde el frontend sin romper el flujo de
 
 ### Subtareas atomicas
 
-- [x] Instalar `@supabase/supabase-js` en `frontend/`.
+- [x] Instalar `@supabase/supabase-js` en el proyecto (raiz).
   Commit sugerido: `chore(frontend): add supabase sdk`
 - [x] Crear cliente compartido de Supabase en el frontend.
   Commit sugerido: `feat(frontend): add shared supabase client`
@@ -268,7 +268,7 @@ Preservar el modelo offline-first sin backend Express.
   Commit sugerido: `feat(db): add incremental sync pull`
 - [x] Agregar `castle` y `wallet` al payload de respuesta.
   Commit sugerido: `feat(sync): return castle and wallet payload`
-- [x] Migrar `frontend/services/sync.service.ts` al RPC nuevo.
+- [x] Migrar `services/sync.service.ts` al RPC nuevo.
   Commit sugerido: `feat(frontend): migrate sync service`
 - [x] Mantener cola local y backoff sin cambios de UX.
   Commit sugerido: `refactor(frontend): preserve sync queue behavior`
@@ -313,7 +313,7 @@ Dejar el frontend funcionando sin llamadas residuales a `/api/*`.
 
 ### Subtareas atomicas
 
-- [x] Retirar `frontend/services/api.client.ts` del flujo principal.
+- [x] Retirar `services/api.client.ts` del flujo principal.
   Commit sugerido: `refactor(frontend): remove legacy api client`
 - [x] Eliminar axios si deja de usarse.
   Commit sugerido: `chore(frontend): remove axios dependency`
