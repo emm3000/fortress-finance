@@ -54,6 +54,7 @@ if (hasSentryBuildCredentials) {
 }
 
 const config: ExpoConfig = {
+  owner: "emm3000",
   name: "JAA",
   slug: "jaa",
   version: "1.0.0",
@@ -90,7 +91,7 @@ const config: ExpoConfig = {
     router: {},
     appEnv: appEnvironment,
     eas: {
-      projectId: "c0f025de-5a47-40dd-8cd6-76edb7572479",
+      projectId: "54bbfa95-4dd2-4407-9e3e-3157383d4f73",
     },
   },
 };
