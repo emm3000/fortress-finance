@@ -1,8 +1,8 @@
-import apiClient from "./api.client";
 import { useAuthStore } from "../store/auth.store";
 import { OnboardingService } from "./onboarding.service";
 import { useNetworkStore } from "../store/network.store";
 import { NotificationService } from "./notification.service";
+import { supabase } from "./supabase.client";
 
 interface RegisterInput {
   name: string;
@@ -20,6 +20,7 @@ interface RequestResetInput {
 }
 
 interface ConfirmResetInput {
+  email: string;
   token: string;
   newPassword: string;
 }
@@ -36,9 +37,21 @@ export const AuthService = {
    */
   async register(data: RegisterInput) {
     assertOnline();
-    const response = await apiClient.post("/auth/register", data);
-    const { user, token } = response.data;
-    await useAuthStore.getState().setAuth(user, token);
+    const { data: authData, error } = await supabase.auth.signUp({
+      email: data.email,
+      password: data.password,
+      options: {
+        data: {
+          name: data.name,
+        },
+      },
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    await useAuthStore.getState().hydrateFromSession(authData.session ?? null);
 
     try {
       await OnboardingService.syncPreferencesIfNeeded();
@@ -46,7 +59,7 @@ export const AuthService = {
       console.error("No se pudieron sincronizar preferencias iniciales:", error);
     }
 
-    return response.data;
+    return authData;
   },
 
   /**
@@ -54,9 +67,16 @@ export const AuthService = {
    */
   async login(data: LoginInput) {
     assertOnline();
-    const response = await apiClient.post("/auth/login", data);
-    const { user, token } = response.data;
-    await useAuthStore.getState().setAuth(user, token);
+    const { data: authData, error } = await supabase.auth.signInWithPassword({
+      email: data.email,
+      password: data.password,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    await useAuthStore.getState().hydrateFromSession(authData.session);
 
     try {
       await OnboardingService.syncPreferencesIfNeeded();
@@ -64,7 +84,7 @@ export const AuthService = {
       console.error("No se pudieron sincronizar preferencias iniciales:", error);
     }
 
-    return response.data;
+    return authData;
   },
 
   /**
@@ -84,13 +104,37 @@ export const AuthService = {
 
   async requestPasswordReset(data: RequestResetInput) {
     assertOnline();
-    const response = await apiClient.post("/auth/password-reset/request", data);
-    return response.data as { message: string; resetToken?: string };
+    const { error } = await supabase.auth.resetPasswordForEmail(data.email);
+    if (error) {
+      throw error;
+    }
+
+    return {
+      message:
+        "Te enviamos un codigo de recuperacion a tu correo. Ingresalo junto con tu nueva contraseña.",
+    };
   },
 
   async confirmPasswordReset(data: ConfirmResetInput) {
     assertOnline();
-    const response = await apiClient.post("/auth/password-reset/confirm", data);
-    return response.data as { message: string };
+    const { error: verifyError } = await supabase.auth.verifyOtp({
+      email: data.email,
+      token: data.token,
+      type: "recovery",
+    });
+    if (verifyError) {
+      throw verifyError;
+    }
+
+    const { error: updateError } = await supabase.auth.updateUser({
+      password: data.newPassword,
+    });
+    if (updateError) {
+      throw updateError;
+    }
+
+    await supabase.auth.signOut();
+    await useAuthStore.getState().hydrateFromSession(null);
+    return { message: "Contrasena actualizada correctamente." };
   },
 };

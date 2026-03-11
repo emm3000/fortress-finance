@@ -1,6 +1,6 @@
 import axios from "axios";
-import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
+import { supabase } from "./supabase.client";
 
 // Replace with your local machine's IP address for physical device testing
 // Android Emulator uses 10.0.2.2, iOS Simulator uses localhost
@@ -22,17 +22,24 @@ type UnauthorizedHandler = () => Promise<void> | void;
 let unauthorizedHandler: UnauthorizedHandler | null = null;
 let isHandlingUnauthorized = false;
 
-export const setAuthToken = (token: string | null) => {
-  if (token) {
-    apiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-  } else {
-    delete apiClient.defaults.headers.common["Authorization"];
-  }
-};
-
 export const setUnauthorizedHandler = (handler: UnauthorizedHandler) => {
   unauthorizedHandler = handler;
 };
+
+apiClient.interceptors.request.use(async (config) => {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (session?.access_token) {
+    config.headers = config.headers ?? {};
+    config.headers.Authorization = `Bearer ${session.access_token}`;
+  } else if (config.headers) {
+    delete config.headers.Authorization;
+  }
+
+  return config;
+});
 
 // Interceptor to handle unauthorized errors (token expired)
 apiClient.interceptors.response.use(
@@ -64,10 +71,6 @@ apiClient.interceptors.response.use(
       try {
         if (unauthorizedHandler) {
           await unauthorizedHandler();
-        } else {
-          await SecureStore.deleteItemAsync("auth_token");
-          await SecureStore.deleteItemAsync("user_data");
-          setAuthToken(null);
         }
       } finally {
         isHandlingUnauthorized = false;
