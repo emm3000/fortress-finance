@@ -184,13 +184,13 @@ Sustituir el endpoint de categorias por lectura directa desde Supabase mantenien
 
 ### Subtareas atomicas
 
-- [ ] Crear consulta remota de categorias en el frontend.
+- [x] Crear consulta remota de categorias en el frontend.
   Commit sugerido: `feat(frontend): fetch categories from supabase`
-- [ ] Adaptar `SyncService.syncCategories` para dejar de llamar `/categories`.
+- [x] Adaptar `SyncService.syncCategories` para dejar de llamar `/categories`.
   Commit sugerido: `refactor(sync): migrate categories sync source`
-- [ ] Mantener persistencia en SQLite via `CategoryRepository`.
+- [x] Mantener persistencia en SQLite via `CategoryRepository`.
   Commit sugerido: `refactor(frontend): keep local category cache`
-- [ ] Verificar uso en formularios y filtros por tipo.
+- [x] Verificar uso en formularios y filtros por tipo.
   Commit sugerido: `test(frontend): validate category consumers`
 
 ### Criterios de aceptacion
