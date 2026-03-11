@@ -86,6 +86,7 @@ jobs:
           DISPATCH_RESPONSE=$(curl -sS -f "$DISPATCH_URL" \
             -X POST \
             -H "Content-Type: application/json" \
+            -H "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" \
             -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
             -d "{}")
 
