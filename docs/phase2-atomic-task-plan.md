@@ -33,6 +33,7 @@ One task should map to one commit whenever possible.
 ### task-04: Validate Core SQL Rules
 
 - Deliverable: SQL validation scripts/checklist for idempotency, ownership, and consistency.
+  - File: `supabase/validation/phase2-liquidation-idempotency.sql`
 - Suggested commit: `test(db): validate liquidation idempotency`
 
 ### task-05: Add Daily Scheduler
