@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { queryKeys } from "@/constants/query-keys";
 import { DashboardService } from "@/services/dashboard.service";
 import { useAuthStore } from "@/store/auth.store";
 import { useNetworkStore } from "@/store/network.store";
@@ -10,7 +11,7 @@ export const useMonthlyDashboard = () => {
   const { year, month } = useCurrentPeriod();
 
   return useQuery({
-    queryKey: ['dashboard', 'monthly', userId, year, month],
+    queryKey: queryKeys.dashboardMonthly(userId, year, month),
     queryFn: () => DashboardService.getMonthlyCachedOrRemote(userId!, year, month, isOnline),
     enabled: !!userId,
     staleTime: 1000 * 60 * 5,

@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { queryKeys } from "@/constants/query-keys";
 import { NotificationService } from "@/services/notification.service";
 import { useAuthStore } from "@/store/auth.store";
 import { useNetworkStore } from "@/store/network.store";
@@ -8,7 +9,7 @@ export const useNotifications = () => {
   const isOnline = useNetworkStore((state) => state.isOnline);
 
   return useQuery({
-    queryKey: ['notifications', userId],
+    queryKey: queryKeys.notifications(userId),
     queryFn: () => NotificationService.list(40),
     enabled: !!userId && isOnline,
     staleTime: 1000 * 30,

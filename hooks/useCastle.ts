@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/constants/query-keys";
 import { CastleRepository, CastleState } from "@/db/castle.repository";
 import { useAuthStore } from "@/store/auth.store";
 
@@ -11,7 +12,7 @@ export const useCastle = () => {
     isLoading,
     refetch,
   } = useQuery<CastleState | null>({
-    queryKey: ["castle", userId],
+    queryKey: queryKeys.castle(userId),
     queryFn: async () => {
       if (!userId) return null;
       return await CastleRepository.get(userId);

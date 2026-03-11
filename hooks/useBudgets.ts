@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from "@/constants/query-keys";
 import { useAuthStore } from "@/store/auth.store";
 import { BudgetService } from "@/services/budget.service";
 import { useNetworkStore } from "@/store/network.store";
@@ -9,7 +10,7 @@ export const useBudgets = () => {
   const queryClient = useQueryClient();
 
   const budgetsQuery = useQuery({
-    queryKey: ['budgets', userId],
+    queryKey: queryKeys.budgets(userId),
     queryFn: () => BudgetService.getCachedOrRemote(userId!, isOnline),
     enabled: !!userId,
     staleTime: 1000 * 60,
@@ -27,8 +28,8 @@ export const useBudgets = () => {
     },
     onSuccess: async () => {
       if (!userId) return;
-      await queryClient.invalidateQueries({ queryKey: ['budgets', userId] });
-      await queryClient.invalidateQueries({ queryKey: ['dashboard', 'monthly', userId] });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.budgets(userId) });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.dashboardMonthly(userId) });
     },
   });
 

@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/constants/query-keys";
 import { TransactionRepository } from "@/db/transaction.repository";
 import { useAuthStore } from "@/store/auth.store";
 
@@ -15,7 +16,7 @@ export const useTransactions = () => {
     fetchNextPage,
     refetch,
   } = useInfiniteQuery({
-    queryKey: ["transactions", userId],
+    queryKey: queryKeys.transactions(userId),
     queryFn: async ({ pageParam = 0 }) => {
       if (!userId) return [];
       return await TransactionRepository.getAll(userId, limit, pageParam);

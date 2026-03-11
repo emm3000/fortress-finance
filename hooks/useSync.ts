@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { queryKeys } from "@/constants/query-keys";
 import { FullSyncResult, SyncService } from "@/services/sync.service";
 import { useAuthStore } from "@/store/auth.store";
 import { useNetworkStore } from "@/store/network.store";
@@ -50,22 +51,22 @@ export const useSync = () => {
     onSuccess: (result) => {
       if (!userId) return;
       if (result.hasTransactionsUpdates) {
-        queryClient.invalidateQueries({ queryKey: ["transactions", userId] });
-        queryClient.invalidateQueries({ queryKey: ["dashboard", "monthly", userId] });
-        queryClient.invalidateQueries({ queryKey: ["budget-progress", userId] });
+        queryClient.invalidateQueries({ queryKey: queryKeys.transactions(userId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.dashboardMonthly(userId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.budgetProgress(userId) });
       }
       if (result.hasCastleUpdate) {
-        queryClient.invalidateQueries({ queryKey: ["castle", userId] });
+        queryClient.invalidateQueries({ queryKey: queryKeys.castle(userId) });
       }
       if (result.hasCategoriesUpdate) {
-        queryClient.invalidateQueries({ queryKey: ["categories", userId] });
+        queryClient.invalidateQueries({ queryKey: queryKeys.categories(userId) });
       }
-      queryClient.invalidateQueries({ queryKey: ["sync-queue-status", userId] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.syncQueueStatus(userId) });
     },
     onError: (error) => {
       console.error("Sync error:", error);
       if (userId) {
-        queryClient.invalidateQueries({ queryKey: ["sync-queue-status", userId] });
+        queryClient.invalidateQueries({ queryKey: queryKeys.syncQueueStatus(userId) });
       }
     },
   });

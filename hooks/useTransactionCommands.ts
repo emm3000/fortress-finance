@@ -2,6 +2,7 @@ import * as Crypto from "expo-crypto";
 import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
+import { queryKeys } from "@/constants/query-keys";
 import { TransactionRepository } from "@/db/transaction.repository";
 import { useSync } from "@/hooks/useSync";
 import { AnalyticsService } from "@/services/analytics.service";
@@ -22,10 +23,10 @@ const invalidateTransactionQueries = async (
   userId: string
 ) => {
   await Promise.all([
-    queryClient.invalidateQueries({ queryKey: ["transactions", userId] }),
-    queryClient.invalidateQueries({ queryKey: ["dashboard", "monthly", userId] }),
-    queryClient.invalidateQueries({ queryKey: ["budget-progress", userId] }),
-    queryClient.invalidateQueries({ queryKey: ["sync-queue-status", userId] }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.transactions(userId) }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.dashboardMonthly(userId) }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.budgetProgress(userId) }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.syncQueueStatus(userId) }),
   ]);
 };
 
