@@ -3,5 +3,23 @@
     "source.fixAll": "explicit",
     "source.organizeImports": "explicit",
     "source.sortMembers": "explicit"
-  }
+  },
+  "markdownlint.config": {
+    "default": true,
+    "MD013": false,
+    "MD024": false,
+    "MD029": false,
+    "MD032": false,
+    "MD034": false
+  },
+  "markdownlint.ignore": [
+    "node_modules/**",
+    ".agent/**",
+    ".agents/**",
+    ".claude/**",
+    ".expo/**",
+    "dist/**",
+    "build/**",
+    "coverage/**"
+  ]
 }
