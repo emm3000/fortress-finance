@@ -1,7 +1,6 @@
 import { supabase } from './supabase.client';
 import { CategoryRepository } from "@/db/category.repository";
 import { TransactionRepository } from "@/db/transaction.repository";
-import { useAuthStore } from "@/store/auth.store";
 
 export interface MonthlyDashboardResponse {
   period: {
@@ -119,20 +118,28 @@ export const DashboardService = {
     return normalizeMonthlyDashboard(data, year, month);
   },
 
-  async getMonthlyCachedOrRemote(year: number, month: number, isOnline: boolean): Promise<MonthlyDashboardResponse> {
+  async getMonthlyCachedOrRemote(
+    userId: string,
+    year: number,
+    month: number,
+    isOnline: boolean
+  ): Promise<MonthlyDashboardResponse> {
     if (!isOnline) {
-      return this.getMonthlyLocal(year, month);
+      return this.getMonthlyLocal(userId, year, month);
     }
 
     try {
       return await this.getMonthly(year, month);
     } catch {
-      return this.getMonthlyLocal(year, month);
+      return this.getMonthlyLocal(userId, year, month);
     }
   },
 
-  async getMonthlyLocal(year: number, month: number): Promise<MonthlyDashboardResponse> {
-    const userId = useAuthStore.getState().user?.id;
+  async getMonthlyLocal(
+    userId: string | undefined,
+    year: number,
+    month: number
+  ): Promise<MonthlyDashboardResponse> {
     if (!userId) {
       return normalizeMonthlyDashboard(null, year, month);
     }

@@ -57,27 +57,22 @@ const normalizeBudget = (budget: BudgetApiResponse): Budget => ({
 const selectBudgetFields =
   'id,category_id,limit_amount,period,category:categories(name,icon,type)';
 
-const requireAuthUserId = async (): Promise<string> => {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  const userId = session?.user.id;
+const assertUserId = (userId?: string): string => {
   if (!userId) {
     throw new Error('Sesion no disponible. Inicia sesion nuevamente.');
-  };
+  }
 
   return userId;
 };
 
 export const BudgetService = {
-  async getAll(): Promise<Budget[]> {
-    const userId = await requireAuthUserId();
+  async getAll(userId: string): Promise<Budget[]> {
+    const ensuredUserId = assertUserId(userId);
 
     const { data, error } = await supabase
       .from('budgets')
       .select(selectBudgetFields)
-      .eq('user_id', userId)
+      .eq('user_id', ensuredUserId)
       .order('updated_at', { ascending: false });
 
     if (error) {
@@ -86,7 +81,7 @@ export const BudgetService = {
 
     const budgets = (data ?? []).map((row) => normalizeBudget(row as BudgetApiResponse));
     await BudgetRepository.replaceAllForUser(
-      userId,
+      ensuredUserId,
       budgets.map((budget) => ({
         id: budget.id,
         categoryId: budget.categoryId,
@@ -98,17 +93,17 @@ export const BudgetService = {
     return budgets;
   },
 
-  async getCachedOrRemote(isOnline: boolean): Promise<Budget[]> {
-    const userId = await requireAuthUserId();
+  async getCachedOrRemote(userId: string, isOnline: boolean): Promise<Budget[]> {
+    const ensuredUserId = assertUserId(userId);
 
     if (!isOnline) {
-      return BudgetRepository.getAll(userId);
+      return BudgetRepository.getAll(ensuredUserId);
     }
 
     try {
-      return await this.getAll();
+      return await this.getAll(ensuredUserId);
     } catch (error) {
-      const localBudgets = await BudgetRepository.getAll(userId);
+      const localBudgets = await BudgetRepository.getAll(ensuredUserId);
       if (localBudgets.length > 0) {
         return localBudgets;
       }
@@ -116,14 +111,17 @@ export const BudgetService = {
     }
   },
 
-  async upsert(input: { categoryId: string; limitAmount: number; period?: 'MONTHLY' }): Promise<Budget> {
-    const userId = await requireAuthUserId();
+  async upsert(
+    userId: string,
+    input: { categoryId: string; limitAmount: number; period?: 'MONTHLY' }
+  ): Promise<Budget> {
+    const ensuredUserId = assertUserId(userId);
 
     const { data, error } = await supabase
       .from('budgets')
       .upsert(
         {
-          user_id: userId,
+          user_id: ensuredUserId,
           category_id: input.categoryId,
           limit_amount: input.limitAmount,
           period: input.period ?? 'MONTHLY',
@@ -140,7 +138,7 @@ export const BudgetService = {
     const budget = normalizeBudget(data as BudgetApiResponse);
     await BudgetRepository.upsert({
       id: budget.id,
-      userId,
+      userId: ensuredUserId,
       categoryId: budget.categoryId,
       limitAmount: budget.limitAmount,
       period: budget.period,

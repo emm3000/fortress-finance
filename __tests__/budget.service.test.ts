@@ -11,11 +11,6 @@ jest.mock("@/db/budget.repository", () => ({
 
 jest.mock("@/services/supabase.client", () => ({
   supabase: {
-    auth: {
-      getSession: jest.fn(async () => ({
-        data: { session: { user: { id: "user-1" } } },
-      })),
-    },
     from: jest.fn(() => ({
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
@@ -63,10 +58,16 @@ describe("BudgetService", () => {
       },
     ]);
 
-    const budgets = await BudgetService.getCachedOrRemote(false);
+    const budgets = await BudgetService.getCachedOrRemote("user-1", false);
 
     expect(BudgetRepository.getAll).toHaveBeenCalledWith("user-1");
     expect(budgets).toHaveLength(1);
     expect(budgets[0].category.name).toBe("Comida");
+  });
+
+  it("throws when user id is missing", async () => {
+    await expect(BudgetService.getCachedOrRemote("", false)).rejects.toThrow(
+      "Sesion no disponible. Inicia sesion nuevamente."
+    );
   });
 });

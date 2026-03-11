@@ -10,7 +10,7 @@ export const useBudgets = () => {
 
   const budgetsQuery = useQuery({
     queryKey: ['budgets', userId],
-    queryFn: () => BudgetService.getCachedOrRemote(isOnline),
+    queryFn: () => BudgetService.getCachedOrRemote(userId!, isOnline),
     enabled: !!userId,
     staleTime: 1000 * 60,
   });
@@ -20,7 +20,10 @@ export const useBudgets = () => {
       if (!isOnline) {
         throw new Error('Sin internet. No se puede guardar presupuesto en este momento.');
       }
-      return BudgetService.upsert(input);
+      if (!userId) {
+        throw new Error('Sesion no disponible. Inicia sesion nuevamente.');
+      }
+      return BudgetService.upsert(userId, input);
     },
     onSuccess: async () => {
       if (!userId) return;

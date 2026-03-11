@@ -1,7 +1,6 @@
 import { DashboardService } from "@/services/dashboard.service";
 import { CategoryRepository } from "@/db/category.repository";
 import { TransactionRepository } from "@/db/transaction.repository";
-import { useAuthStore } from "@/store/auth.store";
 
 jest.mock("@/db/category.repository", () => ({
   CategoryRepository: {
@@ -16,12 +15,6 @@ jest.mock("@/db/transaction.repository", () => ({
   },
 }));
 
-jest.mock("@/store/auth.store", () => ({
-  useAuthStore: {
-    getState: jest.fn(),
-  },
-}));
-
 jest.mock("@/services/supabase.client", () => ({
   supabase: {
     rpc: jest.fn(),
@@ -31,9 +24,6 @@ jest.mock("@/services/supabase.client", () => ({
 describe("DashboardService", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(useAuthStore.getState).mockReturnValue({
-      user: { id: "user-1" },
-    } as unknown as ReturnType<typeof useAuthStore.getState>);
   });
 
   it("builds the monthly dashboard from local data when offline", async () => {
@@ -52,12 +42,23 @@ describe("DashboardService", () => {
       { id: "cat-2", name: "Transporte", icon: "car", color: "", type: "EXPENSE", is_default: 1 },
     ]);
 
-    const result = await DashboardService.getMonthlyCachedOrRemote(2026, 3, false);
+    const result = await DashboardService.getMonthlyCachedOrRemote("user-1", 2026, 3, false);
 
     expect(result.totals.income).toBe(1200);
     expect(result.totals.expense).toBe(300);
     expect(result.totals.balance).toBe(900);
     expect(result.topExpenseCategories[0].categoryName).toBe("Comida");
     expect(result.topExpenseCategories[1].categoryName).toBe("Transporte");
+  });
+
+  it("returns the normalized fallback when user id is missing offline", async () => {
+    const result = await DashboardService.getMonthlyLocal(undefined, 2026, 3);
+
+    expect(result.totals).toEqual({
+      income: 0,
+      expense: 0,
+      balance: 0,
+    });
+    expect(result.topExpenseCategories).toEqual([]);
   });
 });
