@@ -6,6 +6,7 @@ node_modules/
 # Expo
 .expo/
 dist/
+dist-js/
 web-build/
 expo-env.d.ts
 
@@ -30,6 +31,7 @@ yarn-error.*
 # macOS
 .DS_Store
 *.pem
+build-*.apk
 
 # local env files
 .env
