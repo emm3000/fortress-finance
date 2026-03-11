@@ -209,13 +209,13 @@ Mover budgets al stack Supabase manteniendo la UX actual online-only.
 
 ### Subtareas atomicas
 
-- [ ] Migrar lectura de budgets a Supabase.
+- [x] Migrar lectura de budgets a Supabase.
   Commit sugerido: `feat(frontend): migrate budget reads`
-- [ ] Migrar upsert de budgets a Supabase.
+- [x] Migrar upsert de budgets a Supabase.
   Commit sugerido: `feat(frontend): migrate budget writes`
-- [ ] Mantener invalidacion de React Query para budgets y dashboard.
+- [x] Mantener invalidacion de React Query para budgets y dashboard.
   Commit sugerido: `refactor(frontend): preserve budget invalidation`
-- [ ] Verificar restricciones por usuario y unicidad de categoria.
+- [x] Verificar restricciones por usuario y unicidad de categoria.
   Commit sugerido: `test(db): validate budget ownership and uniqueness`
 
 ### Criterios de aceptacion
