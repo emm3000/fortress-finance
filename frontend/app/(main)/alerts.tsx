@@ -15,7 +15,7 @@ const iconByType: Record<'ATTACK' | 'REWARD' | 'SHOP', React.ReactNode> = {
 
 export default function AlertsScreen() {
   const insets = useSafeAreaInsets();
-  const { data: notifications = [], isLoading } = useNotifications();
+  const { data: notifications = [], isLoading, isError } = useNotifications();
 
   return (
     <SafeAreaView className='flex-1 bg-background'>
@@ -33,7 +33,7 @@ export default function AlertsScreen() {
           <View className='py-10 items-center'>
             <ActivityIndicator color='#FFD700' />
           </View>
-        ) : notifications.length === 0 ? (
+        ) : notifications.length === 0 || isError ? (
           <EmptyState
             icon={<Bell size={56} color='#444' />}
             title='Sin alertas por ahora'
@@ -68,13 +68,15 @@ export default function AlertsScreen() {
               >
                 <View className='flex-row items-start'>
                   <View className='w-9 h-9 rounded-lg bg-background border border-border items-center justify-center'>
-                    {iconByType[notification.type]}
+                    {iconByType[notification.type] ?? <Bell size={18} color='#9ca3af' />}
                   </View>
                   <View className='ml-3 flex-1'>
                     <Text className='text-text font-semibold'>{notification.title}</Text>
                     <Text className='text-text-muted text-sm mt-1'>{notification.body}</Text>
                     <Text className='text-text-muted text-[11px] mt-2'>
-                      {new Date(notification.createdAt).toLocaleString()}
+                      {Number.isNaN(new Date(notification.createdAt).getTime())
+                        ? 'Fecha no disponible'
+                        : new Date(notification.createdAt).toLocaleString()}
                     </Text>
                     {shouldOpenBudgets ? (
                       <Text className='text-primary text-xs mt-2'>Ir a presupuestos</Text>
