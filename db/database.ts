@@ -23,6 +23,16 @@ const ensureTransactionsColumns = async (db: SQLite.SQLiteDatabase) => {
   );
 };
 
+const ensureBudgetsColumns = async (db: SQLite.SQLiteDatabase) => {
+  type TableInfoRow = { name: string };
+  const tableInfo = await db.getAllAsync<TableInfoRow>("PRAGMA table_info(budgets)");
+  const columnNames = new Set(tableInfo.map((column) => column.name));
+
+  if (!columnNames.has("user_id")) {
+    await db.execAsync("ALTER TABLE budgets ADD COLUMN user_id TEXT");
+  }
+};
+
 /**
  * Initialize the local database and create tables if they don't exist.
  * This is the foundation for the Offline-First architecture.
@@ -116,6 +126,7 @@ export const initDatabase = async () => {
     `);
 
     await ensureTransactionsColumns(db);
+    await ensureBudgetsColumns(db);
 
     dbInstance = db;
     return db;

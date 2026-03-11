@@ -10,8 +10,8 @@ export const useBudgets = () => {
 
   const budgetsQuery = useQuery({
     queryKey: ['budgets', userId],
-    queryFn: () => BudgetService.getAll(),
-    enabled: !!userId && isOnline,
+    queryFn: () => BudgetService.getCachedOrRemote(isOnline),
+    enabled: !!userId,
     staleTime: 1000 * 60,
   });
 

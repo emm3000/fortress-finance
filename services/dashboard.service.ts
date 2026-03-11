@@ -1,4 +1,7 @@
 import { supabase } from './supabase.client';
+import { CategoryRepository } from "@/db/category.repository";
+import { TransactionRepository } from "@/db/transaction.repository";
+import { useAuthStore } from "@/store/auth.store";
 
 export interface MonthlyDashboardResponse {
   period: {
@@ -114,5 +117,66 @@ export const DashboardService = {
     }
 
     return normalizeMonthlyDashboard(data, year, month);
+  },
+
+  async getMonthlyCachedOrRemote(year: number, month: number, isOnline: boolean): Promise<MonthlyDashboardResponse> {
+    if (!isOnline) {
+      return this.getMonthlyLocal(year, month);
+    }
+
+    try {
+      return await this.getMonthly(year, month);
+    } catch {
+      return this.getMonthlyLocal(year, month);
+    }
+  },
+
+  async getMonthlyLocal(year: number, month: number): Promise<MonthlyDashboardResponse> {
+    const userId = useAuthStore.getState().user?.id;
+    if (!userId) {
+      return normalizeMonthlyDashboard(null, year, month);
+    }
+
+    const [totals, expenseByCategory, categories] = await Promise.all([
+      TransactionRepository.getMonthlyTotals(userId, year, month),
+      TransactionRepository.getMonthlyExpenseByCategory(userId, year, month),
+      CategoryRepository.getAll(),
+    ]);
+
+    const categoriesById = new Map(categories.map((category) => [category.id, category]));
+    const topExpenseCategories = expenseByCategory
+      .map((item) => {
+        const category = categoriesById.get(item.categoryId);
+        return {
+          categoryId: item.categoryId,
+          categoryName: category?.name ?? "Categoria",
+          categoryIcon: category?.icon ?? "",
+          totalSpent: item.totalSpent,
+          txCount: 0,
+        };
+      })
+      .sort((a, b) => b.totalSpent - a.totalSpent)
+      .slice(0, 5);
+
+    return normalizeMonthlyDashboard(
+      {
+        period: {
+          year,
+          month,
+        },
+        totals: {
+          income: totals.income,
+          expense: totals.expense,
+          balance: totals.income - totals.expense,
+        },
+        txCount: {
+          income: totals.incomeTxCount,
+          expense: totals.expenseTxCount,
+        },
+        topExpenseCategories,
+      },
+      year,
+      month
+    );
   },
 };

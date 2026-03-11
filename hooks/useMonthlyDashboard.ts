@@ -14,8 +14,8 @@ export const useMonthlyDashboard = () => {
 
   return useQuery({
     queryKey: ['dashboard', 'monthly', userId, year, month],
-    queryFn: () => DashboardService.getMonthly(year, month),
-    enabled: !!userId && isOnline,
+    queryFn: () => DashboardService.getMonthlyCachedOrRemote(year, month, isOnline),
+    enabled: !!userId,
     staleTime: 1000 * 60 * 5,
   });
 };

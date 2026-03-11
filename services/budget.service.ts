@@ -1,4 +1,5 @@
 import { supabase } from './supabase.client';
+import { BudgetRepository } from "@/db/budget.repository";
 
 export interface Budget {
   id: string;
@@ -83,7 +84,36 @@ export const BudgetService = {
       throw error;
     }
 
-    return (data ?? []).map((row) => normalizeBudget(row as BudgetApiResponse));
+    const budgets = (data ?? []).map((row) => normalizeBudget(row as BudgetApiResponse));
+    await BudgetRepository.replaceAllForUser(
+      userId,
+      budgets.map((budget) => ({
+        id: budget.id,
+        categoryId: budget.categoryId,
+        limitAmount: budget.limitAmount,
+        period: budget.period,
+      }))
+    );
+
+    return budgets;
+  },
+
+  async getCachedOrRemote(isOnline: boolean): Promise<Budget[]> {
+    const userId = await requireAuthUserId();
+
+    if (!isOnline) {
+      return BudgetRepository.getAll(userId);
+    }
+
+    try {
+      return await this.getAll();
+    } catch (error) {
+      const localBudgets = await BudgetRepository.getAll(userId);
+      if (localBudgets.length > 0) {
+        return localBudgets;
+      }
+      throw error;
+    }
   },
 
   async upsert(input: { categoryId: string; limitAmount: number; period?: 'MONTHLY' }): Promise<Budget> {
@@ -107,6 +137,15 @@ export const BudgetService = {
       throw error;
     }
 
-    return normalizeBudget(data as BudgetApiResponse);
+    const budget = normalizeBudget(data as BudgetApiResponse);
+    await BudgetRepository.upsert({
+      id: budget.id,
+      userId,
+      categoryId: budget.categoryId,
+      limitAmount: budget.limitAmount,
+      period: budget.period,
+    });
+
+    return budget;
   },
 };

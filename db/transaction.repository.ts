@@ -33,6 +33,13 @@ interface MonthlyCategorySpend {
   totalSpent: number;
 }
 
+interface MonthlyTotals {
+  income: number;
+  expense: number;
+  incomeTxCount: number;
+  expenseTxCount: number;
+}
+
 /**
  * Repository for Transaction operations in SQLite.
  * Follows the Offline-First pattern.
@@ -254,6 +261,44 @@ export const TransactionRepository = {
       categoryId: row.categoryId,
       totalSpent: Number(row.totalSpent ?? 0),
     }));
+  },
+
+  async getMonthlyTotals(
+    userId: string,
+    year: number,
+    month: number
+  ): Promise<MonthlyTotals> {
+    const db = await getDatabase();
+    const start = new Date(Date.UTC(year, month - 1, 1)).toISOString();
+    const end = new Date(Date.UTC(year, month, 1)).toISOString();
+
+    const row = await db.getFirstAsync<{
+      income: number | null;
+      expense: number | null;
+      incomeTxCount: number | null;
+      expenseTxCount: number | null;
+    }>(
+      `SELECT
+         SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END) AS income,
+         SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END) AS expense,
+         SUM(CASE WHEN type = 'INCOME' THEN 1 ELSE 0 END) AS incomeTxCount,
+         SUM(CASE WHEN type = 'EXPENSE' THEN 1 ELSE 0 END) AS expenseTxCount
+       FROM transactions
+       WHERE user_id = ?
+         AND deleted_at IS NULL
+         AND date >= ?
+         AND date < ?`,
+      userId,
+      start,
+      end
+    );
+
+    return {
+      income: Number(row?.income ?? 0),
+      expense: Number(row?.expense ?? 0),
+      incomeTxCount: Number(row?.incomeTxCount ?? 0),
+      expenseTxCount: Number(row?.expenseTxCount ?? 0),
+    };
   },
 
   /**
