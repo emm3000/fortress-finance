@@ -23,47 +23,52 @@ Estado:
 
 ### Auth
 
-- [ ] `PENDING` Signup en dispositivo fisico.
-- [ ] `PENDING` Login en dispositivo fisico.
-- [ ] `PENDING` Logout en dispositivo fisico.
-- [ ] `PENDING` Signup/Login/Logout en simulador.
+- [x] `DONE` Signup en dispositivo fisico.
+- [x] `DONE` Login en dispositivo fisico.
+- [x] `DONE` Logout en dispositivo fisico.
+- [x] `DONE` Signup/Login/Logout en simulador.
 
 ### Onboarding
 
-- [ ] `PENDING` Usuario nuevo completa onboarding y persiste preferencias.
-- [ ] `PENDING` Reingreso no rompe estado inicial (profile/castle/wallet ya creados).
+- [x] `DONE` Usuario nuevo completa onboarding y persiste preferencias.
+- [x] `DONE` Reingreso no rompe estado inicial (profile/castle/wallet ya creados).
 
 ### Sync offline-first
 
-- [ ] `PENDING` Crear transaccion offline.
-- [ ] `PENDING` Editar transaccion offline.
-- [ ] `PENDING` Eliminar transaccion offline (soft delete).
-- [ ] `PENDING` Reconectar y confirmar vaciado de cola de sync.
-- [ ] `PENDING` Conflicto por timestamp viejo (cliente pierde).
-- [ ] `PENDING` Empate por timestamp igual (definir comportamiento esperado y validar).
+- [x] `DONE` Crear transaccion offline.
+- [x] `DONE` Editar transaccion offline.
+- [x] `DONE` Eliminar transaccion offline (soft delete).
+- [x] `DONE` Reconectar y confirmar vaciado de cola de sync.
+- [x] `DONE` Conflicto por timestamp viejo (cliente pierde).
+- [x] `DONE` Empate por timestamp igual (definir comportamiento esperado y validar).
 
 ### Budgets + Dashboard
 
-- [ ] `PENDING` Crear/editar budget para categoria de gasto.
-- [ ] `PENDING` Confirmar invalidacion de dashboard tras guardar budget.
-- [ ] `PENDING` Ver dashboard con datos del mes.
-- [ ] `PENDING` Ver dashboard sin datos del mes (estado vacio correcto).
+- [x] `DONE` Crear/editar budget para categoria de gasto.
+- [x] `DONE` Confirmar invalidacion de dashboard tras guardar budget.
+- [x] `DONE` Ver dashboard con datos del mes.
+- [x] `DONE` Ver dashboard sin datos del mes (estado vacio correcto).
 
 ### Home (castle/wallet)
 
-- [ ] `PENDING` Home renderiza castle y wallet para usuario nuevo.
-- [ ] `PENDING` Home renderiza estado estable tras sync.
+- [x] `DONE` Home renderiza castle y wallet para usuario nuevo.
+- [x] `DONE` Home renderiza estado estable tras sync.
 
 ### Notificaciones v1
 
-- [ ] `PENDING` Alertas abre sin error con lista vacia.
-- [ ] `PENDING` Registro/desregistro de push token en `user_push_tokens`.
+- [x] `DONE` Alertas abre sin error con lista vacia.
+- [x] `DONE` Registro/desregistro de push token en `user_push_tokens`.
 
 ## 3. Evidencia automatica registrada en esta iteracion
 
 - `frontend` typecheck: OK
 - `frontend` lint: OK
 - barrido de endpoints legacy en runtime frontend: OK (sin coincidencias)
+- smoke manual A-F: OK (todos los casos en `DONE`)
+- validacion de migraciones en Supabase: OK
+  - RLS activo en tablas criticas
+  - RPCs disponibles: `complete_onboarding`, `get_monthly_dashboard`, `sync_client_state`
+  - seed base de categorias: `8` filas
 
 ## 4. Plan de cutover
 
@@ -74,7 +79,13 @@ Estado:
 5. Habilitar release de frontend.
 6. Monitorear errores de auth, sync y dashboard durante ventana inicial.
 
-## 5. Rollback simple
+## 5. Estado final
+
+- Cutover v1 a Supabase completado.
+- Frontend sin dependencia activa de backend Express para runtime.
+- Checklist de validacion manual y tecnica cerrado.
+
+## 6. Rollback simple
 
 Condicion de rollback:
 - fallo critico en auth, sync de transacciones o dashboard que bloquee flujo principal.

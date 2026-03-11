@@ -240,7 +240,7 @@ Mover el dashboard agregado a una funcion SQL/RPC que conserve el contrato actua
   Commit sugerido: `refactor(db): align dashboard rpc response`
 - [x] Migrar `DashboardService` para consumir el RPC.
   Commit sugerido: `feat(frontend): migrate dashboard service`
-- [ ] Verificar la home con datos y sin datos del mes.
+- [x] Verificar la home con datos y sin datos del mes.
   Commit sugerido: `test(frontend): validate monthly dashboard states`
 
 ### Criterios de aceptacion
@@ -272,7 +272,7 @@ Preservar el modelo offline-first sin backend Express.
   Commit sugerido: `feat(frontend): migrate sync service`
 - [x] Mantener cola local y backoff sin cambios de UX.
   Commit sugerido: `refactor(frontend): preserve sync queue behavior`
-- [ ] Verificar conflicto por timestamp viejo y empate por timestamp igual.
+- [x] Verificar conflicto por timestamp viejo y empate por timestamp igual.
   Commit sugerido: `test(sync): validate timestamp conflict rules`
 
 ### Criterios de aceptacion
@@ -337,15 +337,15 @@ Tener un checklist de validacion antes de declarar cerrada la migracion de v1.
 
 ### Subtareas atomicas
 
-- [ ] Validar signup/login/logout en dispositivo y simulador.
+- [x] Validar signup/login/logout en dispositivo y simulador.
   Commit sugerido: `test: add auth migration smoke results`
-- [ ] Validar onboarding completo de usuario nuevo.
+- [x] Validar onboarding completo de usuario nuevo.
   Commit sugerido: `test: add onboarding smoke results`
-- [ ] Validar flujo offline -> online de transacciones.
+- [x] Validar flujo offline -> online de transacciones.
   Commit sugerido: `test: add sync smoke results`
-- [ ] Validar budgets y dashboard con usuario real de prueba.
+- [x] Validar budgets y dashboard con usuario real de prueba.
   Commit sugerido: `test: add finance smoke results`
-- [ ] Validar home con castillo/wallet sin fase 2 activa.
+- [x] Validar home con castillo/wallet sin fase 2 activa.
   Commit sugerido: `test: add home state smoke results`
 - [x] Documentar checklist de corte y rollback simple.
   Commit sugerido: `docs: add migration cutover checklist`
