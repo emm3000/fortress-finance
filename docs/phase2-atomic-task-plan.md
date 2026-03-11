@@ -15,16 +15,19 @@ One task should map to one commit whenever possible.
 ### task-01: Define Daily Liquidation Contract
 
 - Deliverable: spec document with exact rules (HP, gold, streak, caps, timezone, idempotency).
+  - File: `docs/phase2-daily-liquidation-contract.md`
 - Suggested commit: `docs(phase2): define daily liquidation contract`
 
 ### task-02: Add Game Event Schema
 
 - Deliverable: SQL migration for liquidation events table, indexes, and unique dedupe key per period.
+  - File: `supabase/migrations/20260311_h13_game_liquidation_events.sql`
 - Suggested commit: `feat(db): add game liquidation events table`
 
 ### task-03: Implement Idempotent Daily Liquidation RPC
 
 - Deliverable: transactional SQL RPC updating `castle_states`, `user_wallets`, and event rows atomically.
+  - File: `supabase/migrations/20260311_h13_daily_liquidation_rpc.sql`
 - Suggested commit: `feat(db): add daily liquidation rpc`
 
 ### task-04: Validate Core SQL Rules
