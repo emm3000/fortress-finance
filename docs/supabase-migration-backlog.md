@@ -56,23 +56,23 @@ Crear la base de datos remota que reemplaza las tablas activas de la v1 del back
 
 ### Subtareas atomicas
 
-- [ ] Crear migracion SQL para tabla `profiles`.
+- [x] Crear migracion SQL para tabla `profiles`.
   Commit sugerido: `feat(db): add profiles table`
-- [ ] Crear migracion SQL para tabla `categories`.
+- [x] Crear migracion SQL para tabla `categories`.
   Commit sugerido: `feat(db): add categories table`
-- [ ] Crear migracion SQL para tabla `transactions`.
+- [x] Crear migracion SQL para tabla `transactions`.
   Commit sugerido: `feat(db): add transactions table`
-- [ ] Crear migracion SQL para tabla `budgets`.
+- [x] Crear migracion SQL para tabla `budgets`.
   Commit sugerido: `feat(db): add budgets table`
-- [ ] Crear migracion SQL para tablas `castle_states` y `user_wallets`.
+- [x] Crear migracion SQL para tablas `castle_states` y `user_wallets`.
   Commit sugerido: `feat(db): add castle and wallet tables`
-- [ ] Crear migracion SQL para tablas `user_preferences` y `user_initial_categories`.
+- [x] Crear migracion SQL para tablas `user_preferences` y `user_initial_categories`.
   Commit sugerido: `feat(db): add onboarding tables`
-- [ ] Crear migracion SQL para tablas `notification_logs` y `user_push_tokens`.
+- [x] Crear migracion SQL para tablas `notification_logs` y `user_push_tokens`.
   Commit sugerido: `feat(db): add notification tables`
-- [ ] Agregar indices para sync, filtros por usuario y dashboard.
+- [x] Agregar indices para sync, filtros por usuario y dashboard.
   Commit sugerido: `feat(db): add performance indexes`
-- [ ] Agregar script o seed idempotente de categorias base.
+- [x] Agregar script o seed idempotente de categorias base.
   Commit sugerido: `feat(db): seed default categories`
 
 ### Criterios de aceptacion
