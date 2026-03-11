@@ -19,6 +19,9 @@ This folder is organized into two sections:
 4. `guia-app-jaa.md`
 - Product-facing guide in Spanish: app value proposition, features, user journey, and engine explanation in marketing language.
 
+5. `release-checklist.md`
+- Production release checklist: secrets, build validation, smoke manual, monitoring, scheduler checks, and rollback criteria.
+
 ## Archive
 
 Historical documents were moved to `docs/archive/` to reduce active-document noise:
