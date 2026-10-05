@@ -10,7 +10,7 @@
     "web": "expo start --web",
     "lint": "eslint app components constants db hooks services store utils __tests__ jest.setup.ts jest.d.ts --ext .ts,.tsx",
     "typecheck": "tsc --noEmit",
-    "test": "jest --runInBand",
+    "test": "TZ=America/Lima jest --runInBand",
     "check": "npm run typecheck && npm run lint && npm run test"
   },
   "dependencies": {
