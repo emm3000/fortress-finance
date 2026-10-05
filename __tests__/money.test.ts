@@ -44,6 +44,7 @@ describe("money", () => {
         maximumFractionDigits: 2,
       }).format(12.34);
       expect(formatAmount(1234, currency)).toBe(expected);
+      expect(formatAmount(1234, currency)).toContain("12.34");
     }
     const clp = new Intl.NumberFormat("es-PE", {
       style: "currency",
@@ -52,5 +53,8 @@ describe("money", () => {
       maximumFractionDigits: 0,
     }).format(1500);
     expect(formatAmount(1500, "CLP")).toBe(clp);
+    expect(formatAmount(1500, "CLP")).toContain("1,500");
+    expect(formatAmount(1500, "CLP")).not.toMatch(/[.,]\d{2}$/);
+    expect(formatAmount(1234, "PEN", "es-AR")).toContain("12,34");
   });
 });

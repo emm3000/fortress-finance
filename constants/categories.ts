@@ -1,12 +1,6 @@
 export type CategoryType = "EXPENSE" | "INCOME";
 
-export type Category = {
-  readonly slug: string;
-  readonly type: CategoryType;
-  readonly name: string;
-};
-
-export const CATEGORIES: readonly Category[] = [
+export const CATEGORIES = [
   { slug: "food", type: "EXPENSE", name: "Comida" },
   { slug: "groceries", type: "EXPENSE", name: "Mercado" },
   { slug: "transport", type: "EXPENSE", name: "Transporte" },
@@ -21,8 +15,11 @@ export const CATEGORIES: readonly Category[] = [
   { slug: "side_income", type: "INCOME", name: "Ingresos extra" },
   { slug: "gifts", type: "INCOME", name: "Regalos" },
   { slug: "other_income", type: "INCOME", name: "Otros ingresos" },
-];
+] as const;
 
-export function getCategory(slug: string): Category | undefined {
-  return CATEGORIES.find((category) => category.slug === slug);
+export type Category = (typeof CATEGORIES)[number];
+export type CategorySlug = Category["slug"];
+
+export function getCategory(slug: CategorySlug): Category {
+  return CATEGORIES.find((category) => category.slug === slug) as Category;
 }

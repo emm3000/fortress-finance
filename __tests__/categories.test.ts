@@ -23,8 +23,8 @@ describe("categories", () => {
     ]);
   });
 
-  it("looks a category up by slug and returns undefined for an unknown slug", () => {
-    expect(getCategory("food")?.name).toBe("Comida");
-    expect(getCategory("nope")).toBeUndefined();
+  it("looks a category up by slug", () => {
+    expect(getCategory("food").name).toBe("Comida");
+    expect(getCategory("other_income").type).toBe("INCOME");
   });
 });

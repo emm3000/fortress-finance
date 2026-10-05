@@ -25,11 +25,9 @@ export function parseAmount(input: string, currency: CurrencyCode): number | nul
   const fraction = match[2] ?? "";
   if (fraction.length > exponent) return null;
 
-  const minor = Number(whole + fraction.padEnd(exponent, "0"));
-  if (!Number.isSafeInteger(minor) || minor <= 0 || minor > MAX_AMOUNT_MINOR) {
-    return null;
-  }
-  return minor;
+  const minor = BigInt(whole + fraction.padEnd(exponent, "0"));
+  if (minor <= BigInt(0) || minor > BigInt(MAX_AMOUNT_MINOR)) return null;
+  return Number(minor);
 }
 
 export function formatAmount(
