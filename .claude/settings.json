@@ -34,6 +34,13 @@
       "Bash(git remote -v)",
       "Bash(git stash list)",
       "Bash(git stash list *)",
+      "Bash(git worktree list)",
+      "Bash(git worktree list *)",
+      "Bash(git worktree add *)",
+      "Bash(git worktree remove *)",
+      "Bash(git worktree prune)",
+      "Bash(scripts/jaa-wave *)",
+      "Bash(scripts/jaa-session *)",
       "Bash(gh issue view *)",
       "Bash(gh issue list)",
       "Bash(gh issue list *)",
@@ -129,6 +136,7 @@
       }
     ]
   },
+  "enabledMcpjsonServers": ["engram"],
   "enabledPlugins": {
     "mattpocock-skills@claude-plugins-official": true,
     "expo@expo-plugins": true
