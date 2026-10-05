@@ -1,5 +1,5 @@
 begin;
-select plan(41);
+select plan(43);
 
 -- Tables of the v1 schema.
 select has_table('public', 'profiles', 'profiles table exists');
@@ -93,6 +93,16 @@ select throws_ok(
   $$update public.profiles set timezone = 'UTC-5' where id = '00000000-0000-4000-8000-0000000000a1'$$,
   '22023', null,
   'a profile timezone must be an IANA name, not a POSIX offset'
+);
+select throws_ok(
+  $$update public.profiles set timezone = 'Etc/GMT+5' where id = '00000000-0000-4000-8000-0000000000a1'$$,
+  '22023', null,
+  'a profile timezone must not be a fixed Etc/GMT offset'
+);
+select throws_ok(
+  $$update public.profiles set timezone = 'posix/America/Lima' where id = '00000000-0000-4000-8000-0000000000a1'$$,
+  '22023', null,
+  'a profile timezone must not use the posix/ tree'
 );
 select throws_ok(
   $$update public.profiles set currency = 'USD' where id = '00000000-0000-4000-8000-0000000000a1'$$,
