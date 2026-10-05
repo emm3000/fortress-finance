@@ -19,3 +19,4 @@ Last 20 PRs, oldest first. Model:effort is what actually ran, which may differ f
 
 | PR | Issue | Row | Model:effort | First review | Cause |
 |---|---|---|---|---|---|
+| #3 | #2 | 1 | sonnet:low | MERGE (pilot; orchestrator reviewed inline, no pr-reviewer) | |
