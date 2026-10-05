@@ -9,6 +9,8 @@ This folder is organized into two sections:
 
 Start with `../CONTEXT.md` (domain glossary) and `adr/` (architecture decisions; they supersede `architecture.md` where they disagree).
 
+Running agent sessions? `agents/` holds the multi-session workflow (`agents/multi-session.md`) and issue conventions (`agents/issue-tracker.md`).
+
 1. `architecture.md`
 - System architecture and runtime boundaries (Expo app + Supabase backend).
 
