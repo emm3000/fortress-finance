@@ -13,6 +13,7 @@ Decision record: `docs/adr/0002-supabase-rpc-backend.md`.
 - Enable Row Level Security on every new table with owner-only policies (`auth.uid() = user_id`), matching the existing tables.
 - Write RPCs as `security invoker`. Use `security definer` only with an explicit `auth.uid()` check inside the function and a pinned `search_path`.
 - Restrict batch and service jobs to `service_role` grants.
+- New functions start closed: the v1 baseline revokes the global default EXECUTE from PUBLIC for objects `postgres` creates. Every migration that adds a function grants EXECUTE explicitly to the roles that call it (`authenticated`, `service_role`), in any schema.
 - When an RPC's arguments or result shape change, update the hand-written types in the calling service in the same change.
 - Edge functions in `supabase/functions/` run on Deno: import with `npm:` or URL specifiers and read secrets from `Deno.env`.
 - Client code reaches Supabase through `services/`; the client instance lives in `services/supabase.client.ts`.

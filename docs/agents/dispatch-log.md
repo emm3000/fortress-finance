@@ -23,3 +23,4 @@ Last 20 PRs, oldest first. Model:effort is what actually ran, which may differ f
 | #29 | #19 | 2 | sonnet:medium | MERGE (6 minor fixed before merge) | |
 | #30 | #20 | 2 | sonnet:medium | MERGE (4 minor fixed before merge) | |
 | #31 | #18 | 3 | opus:medium | FIX FIRST (CI pending; 4 minor fixed) | spec |
+| #32 | #21 | 4 | opus:high | FIX FIRST (existing users not backfilled; 9 fixes) | judgment |
