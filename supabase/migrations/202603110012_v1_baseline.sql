@@ -116,11 +116,10 @@ create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text,
   name text not null default '',
-  -- ISO 4217 code chosen in onboarding; null until then.
+  -- ISO 4217 code chosen in onboarding; null until then, fixed after.
   currency char(3) check (currency ~ '^[A-Z]{3}$'),
   -- IANA zone reported by the device at app start; Days are local to it.
-  timezone text not null default 'UTC'
-    check (('2000-01-01 00:00:00+00'::timestamptz at time zone timezone) is not null),
+  timezone text not null default 'UTC',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -128,6 +127,30 @@ create table public.profiles (
 create trigger trg_profiles_updated_at
 before update on public.profiles
 for each row execute function public.set_updated_at();
+
+-- Accepts IANA zone names only (no POSIX offsets such as 'UTC-5') and keeps
+-- the currency fixed once set (read-only in v1).
+create function public.validate_profile()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if not exists (select 1 from pg_catalog.pg_timezone_names where name = new.timezone) then
+    raise exception 'Unknown IANA timezone: %', new.timezone using errcode = '22023';
+  end if;
+
+  if tg_op = 'UPDATE' and old.currency is not null and new.currency is distinct from old.currency then
+    raise exception 'Currency cannot change once set' using errcode = '23514';
+  end if;
+
+  return new;
+end;
+$$;
+
+create trigger trg_profiles_validate
+before insert or update on public.profiles
+for each row execute function public.validate_profile();
 
 -- Categories -----------------------------------------------------------------
 
@@ -217,7 +240,7 @@ for each row execute function public.set_updated_at();
 create table public.budget_plans (
   user_id uuid not null references auth.users(id) on delete cascade,
   -- First day of the first Period the plan applies from.
-  effective_month date not null check (effective_month = date_trunc('month', effective_month)::date),
+  effective_month date not null check (extract(day from effective_month) = 1),
   total_budget bigint not null check (total_budget > 0 and total_budget <= 100000000000),
   version bigint not null default 1 check (version > 0),
   change_seq bigint not null check (change_seq > 0),
@@ -267,6 +290,21 @@ before update on public.day_checkins
 for each row execute function public.set_updated_at();
 
 -- Game state (written by the server only, ADR 0006) -------------------------
+
+-- Late-entry Streak repair (ADR 0006, R15): the sync RPC records a Day that
+-- did not count and received records within 48 h of its Liquidation; the next
+-- batch re-evaluates it and sets processed_at.
+create table public.streak_repair_requests (
+  user_id uuid not null references auth.users(id) on delete cascade,
+  day date not null,
+  requested_at timestamptz not null default now(),
+  processed_at timestamptz,
+  primary key (user_id, day)
+);
+
+create index idx_streak_repair_requests_pending
+  on public.streak_repair_requests (requested_at)
+  where processed_at is null;
 
 create table public.castle_states (
   user_id uuid primary key references auth.users(id) on delete cascade,
@@ -407,6 +445,33 @@ create trigger on_auth_user_created
 after insert on auth.users
 for each row execute function public.handle_new_user();
 
+-- Recreates the rows the drop above removed for users who signed up before
+-- this baseline; the signup trigger only covers new users.
+create function public.backfill_user_rows()
+returns void
+language sql
+set search_path = ''
+as $$
+  insert into public.profiles (id, email, name)
+  select u.id, u.email, coalesce(u.raw_user_meta_data ->> 'name', '')
+  from auth.users u
+  on conflict (id) do nothing;
+
+  insert into public.castle_states (user_id)
+  select u.id from auth.users u
+  on conflict (user_id) do nothing;
+
+  insert into public.user_wallets (user_id)
+  select u.id from auth.users u
+  on conflict (user_id) do nothing;
+
+  insert into public.user_change_counters (user_id)
+  select u.id from auth.users u
+  on conflict (user_id) do nothing;
+$$;
+
+select public.backfill_user_rows();
+
 -- Registers the device's push token for the caller. A token another user holds
 -- moves to the caller, so a logout that never reached the server cannot leak
 -- one user's pushes to the next user of the device.
@@ -452,6 +517,7 @@ alter table public.day_checkins enable row level security;
 alter table public.castle_states enable row level security;
 alter table public.user_wallets enable row level security;
 alter table public.user_upgrades enable row level security;
+alter table public.streak_repair_requests enable row level security;
 alter table public.game_liquidation_events enable row level security;
 alter table public.user_push_tokens enable row level security;
 alter table public.notification_dispatch_queue enable row level security;
@@ -492,6 +558,9 @@ for select to authenticated using ((select auth.uid()) = user_id);
 create policy user_wallets_select_owner on public.user_wallets
 for select to authenticated using ((select auth.uid()) = user_id);
 
+create policy streak_repair_requests_select_owner on public.streak_repair_requests
+for select to authenticated using ((select auth.uid()) = user_id);
+
 create policy user_upgrades_select_owner on public.user_upgrades
 for select to authenticated using ((select auth.uid()) = user_id);
 
@@ -518,6 +587,17 @@ for select to authenticated using ((select auth.uid()) = user_id);
 revoke all on all tables in schema public from public, anon, authenticated;
 revoke execute on all functions in schema public from public, anon, authenticated;
 
+-- Keep objects created by later migrations closed until granted explicitly.
+-- EXECUTE for PUBLIC is a global default, so it is revoked without a schema.
+alter default privileges for role postgres in schema public
+  revoke all on tables from anon, authenticated;
+alter default privileges for role postgres in schema public
+  revoke all on sequences from anon, authenticated;
+alter default privileges for role postgres in schema public
+  revoke all on functions from anon, authenticated;
+alter default privileges for role postgres
+  revoke execute on functions from public;
+
 grant select on
   public.categories,
   public.user_change_counters,
@@ -529,6 +609,7 @@ grant select on
   public.castle_states,
   public.user_wallets,
   public.user_upgrades,
+  public.streak_repair_requests,
   public.game_liquidation_events,
   public.notification_dispatch_queue,
   public.notification_logs

@@ -1,5 +1,5 @@
 begin;
-select plan(2);
+select plan(3);
 
 -- Functions anon or authenticated may call. Liquidation lands in phase 3 as
 -- service_role only, so it never joins this list.
@@ -25,6 +25,16 @@ select is_empty(
       and p.oid::regprocedure::text not in (select signature from allowed_functions)$$,
   'no public function is executable by anon or authenticated outside the allow-list in the test: authenticated'
 );
+
+-- Functions a later migration creates start closed to anon and authenticated.
+create function public.probe_future_function() returns int language sql as 'select 1';
+select is(
+  (select array_agg(r) from unnest(array['anon', 'authenticated']) r
+    where has_function_privilege(r, 'public.probe_future_function()', 'EXECUTE')),
+  null,
+  'a function created by a later migration is not executable by anon or authenticated'
+);
+drop function public.probe_future_function();
 
 select * from finish();
 rollback;

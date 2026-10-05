@@ -1,5 +1,5 @@
 begin;
-select plan(37);
+select plan(41);
 
 -- Tables of the v1 schema.
 select has_table('public', 'profiles', 'profiles table exists');
@@ -17,6 +17,7 @@ select has_table('public', 'notification_dispatch_queue', 'notification dispatch
 select has_table('public', 'notification_logs', 'notification logs table exists');
 select has_table('public', 'user_change_counters', 'per-user change counter table exists');
 select has_table('public', 'sync_applied_operations', 'applied operations table exists');
+select has_table('public', 'streak_repair_requests', 'streak repair requests table exists');
 
 -- Columns the current client reads.
 select columns_are(
@@ -87,6 +88,20 @@ select throws_ok(
 select lives_ok(
   $$update public.profiles set timezone = 'America/Lima', currency = 'PEN' where id = '00000000-0000-4000-8000-0000000000a1'$$,
   'a profile accepts an IANA timezone and an ISO 4217 currency'
+);
+select throws_ok(
+  $$update public.profiles set timezone = 'UTC-5' where id = '00000000-0000-4000-8000-0000000000a1'$$,
+  '22023', null,
+  'a profile timezone must be an IANA name, not a POSIX offset'
+);
+select throws_ok(
+  $$update public.profiles set currency = 'USD' where id = '00000000-0000-4000-8000-0000000000a1'$$,
+  '23514', null,
+  'a profile currency cannot change once set'
+);
+select lives_ok(
+  $$update public.profiles set currency = 'PEN', name = 'Ana' where id = '00000000-0000-4000-8000-0000000000a1'$$,
+  'a profile edit that keeps the currency is accepted'
 );
 
 -- Categories hold exactly the PRD slugs.

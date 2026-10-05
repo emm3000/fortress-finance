@@ -1,5 +1,5 @@
 begin;
-select plan(32);
+select plan(36);
 
 -- Every public table has RLS; every policy outside categories is owner-only
 -- for authenticated; categories has one read-only policy.
@@ -60,6 +60,18 @@ select table_privs_are('public', 'user_change_counters', 'authenticated', array[
   'authenticated can only read the change counter');
 select table_privs_are('public', 'sync_applied_operations', 'authenticated', array['SELECT'],
   'authenticated can only read applied operations');
+select table_privs_are('public', 'streak_repair_requests', 'authenticated', array['SELECT'],
+  'authenticated can only read streak repair requests');
+
+-- Objects a later migration creates start closed to anon and authenticated.
+create table public.probe_future_table (id int);
+select is(
+  (select array_agg(r) from unnest(array['anon', 'authenticated']) r
+    where has_table_privilege(r, 'public.probe_future_table', 'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER')),
+  null,
+  'a table created by a later migration grants nothing to anon or authenticated'
+);
+drop table public.probe_future_table;
 
 -- Two users with one row in every owned table, written as the server.
 insert into auth.users (id, email, aud, role)
@@ -77,6 +89,8 @@ insert into public.day_checkins (user_id, day, change_seq)
 values ('00000000-0000-4000-8000-0000000000a1', '2026-10-04', 3);
 insert into public.sync_applied_operations (user_id, operation_id, entity_type, entity_key, result)
 values ('00000000-0000-4000-8000-0000000000a1', gen_random_uuid(), 'day_checkin', '2026-10-04', '{}');
+insert into public.streak_repair_requests (user_id, day)
+values ('00000000-0000-4000-8000-0000000000a1', '2026-10-04');
 insert into public.user_upgrades (user_id, line, tier)
 values ('00000000-0000-4000-8000-0000000000a1', 'WALLS', 1);
 insert into public.game_liquidation_events (user_id, day, counted, streak_before, streak_after, gold_earned, hp, castle_status, rules_version)
@@ -102,6 +116,7 @@ select is_empty(
     union all select 'sync_applied_operations' from public.sync_applied_operations where user_id = '00000000-0000-4000-8000-0000000000a1'
     union all select 'castle_states' from public.castle_states where user_id = '00000000-0000-4000-8000-0000000000a1'
     union all select 'user_wallets' from public.user_wallets where user_id = '00000000-0000-4000-8000-0000000000a1'
+    union all select 'streak_repair_requests' from public.streak_repair_requests where user_id = '00000000-0000-4000-8000-0000000000a1'
     union all select 'user_upgrades' from public.user_upgrades where user_id = '00000000-0000-4000-8000-0000000000a1'
     union all select 'game_liquidation_events' from public.game_liquidation_events where user_id = '00000000-0000-4000-8000-0000000000a1'
     union all select 'user_push_tokens' from public.user_push_tokens where user_id = '00000000-0000-4000-8000-0000000000a1'
@@ -179,6 +194,16 @@ select throws_ok(
   'an authenticated user cannot insert, update or delete castle state, wallet, Mejoras owned, the liquidation ledger, notification logs or the dispatch queue: notification logs insert'
 );
 select throws_ok(
+  $$insert into public.streak_repair_requests (user_id, day) values ('00000000-0000-4000-8000-0000000000b2', '2026-10-01')$$,
+  '42501', null,
+  'an authenticated user cannot request a streak repair directly'
+);
+select throws_ok(
+  $$update public.streak_repair_requests set processed_at = now()$$,
+  '42501', null,
+  'an authenticated user cannot mark a streak repair processed'
+);
+select throws_ok(
   $$update public.notification_dispatch_queue set status = 'SENT'$$,
   '42501', null,
   'an authenticated user cannot insert, update or delete castle state, wallet, Mejoras owned, the liquidation ledger, notification logs or the dispatch queue: dispatch queue update'
@@ -187,7 +212,7 @@ select throws_ok(
 reset role;
 
 select results_eq(
-  $$select id, timezone from public.profiles order by email$$,
+  $$select id, timezone from public.profiles where id in ('00000000-0000-4000-8000-0000000000a1', '00000000-0000-4000-8000-0000000000b2') order by email$$,
   $$values
     ('00000000-0000-4000-8000-0000000000a1'::uuid, 'UTC'::text),
     ('00000000-0000-4000-8000-0000000000b2'::uuid, 'America/Bogota'::text)$$,
