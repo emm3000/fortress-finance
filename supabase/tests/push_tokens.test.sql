@@ -1,5 +1,5 @@
 begin;
-select plan(4);
+select plan(6);
 
 insert into auth.users (id, email, aud, role)
 values
@@ -28,6 +28,22 @@ select results_eq(
   $$values ('00000000-0000-4000-8000-0000000000b2'::uuid)$$,
   'user B registering user A''s token leaves exactly one row for that token, owned by B, and A has no row for it'
 );
+
+set local role authenticated;
+set local request.jwt.claims = '{"role": "authenticated"}';
+select throws_ok(
+  $$select public.register_push_token('ExponentPushToken[no-sub]', null)$$,
+  '42501', null,
+  'a caller without a user cannot register a push token'
+);
+
+set local request.jwt.claims = '{"sub": "00000000-0000-4000-8000-0000000000a1", "role": "authenticated"}';
+select throws_ok(
+  $$select public.register_push_token('   ', null)$$,
+  '22023', null,
+  'a blank push token is rejected'
+);
+reset role;
 
 set local role anon;
 select throws_ok(
