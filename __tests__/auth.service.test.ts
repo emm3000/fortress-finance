@@ -93,12 +93,12 @@ describe("AuthService Supabase failures", () => {
   it("throws the Spanish message when register fails", async () => {
     jest.mocked(supabase.auth.signUp).mockResolvedValue({
       data: { user: null, session: null },
-      error: authError,
+      error: fakeAuthError("User already registered", 422, "user_already_exists"),
     } as Awaited<ReturnType<typeof supabase.auth.signUp>>);
 
     await expect(
       AuthService.register({ name: "Ana", email: "a@b.co", password: "x" })
-    ).rejects.toThrow("Correo o contraseña incorrectos.");
+    ).rejects.toThrow("Ya existe una cuenta con ese correo.");
   });
 
   it("throws the Spanish message when login fails", async () => {

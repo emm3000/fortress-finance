@@ -2,7 +2,9 @@ export const AUTH_ERROR_FALLBACK = "No pudimos completar la operación. Inténta
 
 const NETWORK_MESSAGE =
   "No pudimos conectar con el servidor. Revisa tu conexión e inténtalo de nuevo.";
-const RATE_LIMIT_MESSAGE = "Enviamos demasiados correos. Espera unos minutos e inténtalo de nuevo.";
+const EMAIL_RATE_LIMIT_MESSAGE =
+  "Enviamos demasiados correos. Espera unos minutos e inténtalo de nuevo.";
+const RATE_LIMIT_MESSAGE = "Demasiados intentos. Espera unos minutos e inténtalo de nuevo.";
 
 const MESSAGE_BY_CODE: Record<string, string> = {
   invalid_credentials: "Correo o contraseña incorrectos.",
@@ -10,7 +12,7 @@ const MESSAGE_BY_CODE: Record<string, string> = {
   user_already_exists: "Ya existe una cuenta con ese correo.",
   email_exists: "Ya existe una cuenta con ese correo.",
   weak_password: "La contraseña es demasiado débil. Usa una más larga y variada.",
-  over_email_send_rate_limit: RATE_LIMIT_MESSAGE,
+  over_email_send_rate_limit: EMAIL_RATE_LIMIT_MESSAGE,
   over_request_rate_limit: RATE_LIMIT_MESSAGE,
   otp_expired: "El código expiró o no es válido. Solicita uno nuevo.",
 };
@@ -40,11 +42,11 @@ export const getAuthErrorMessage = (error: unknown): string => {
     return NETWORK_MESSAGE;
   }
 
-  if (typeof code === "string" && code in MESSAGE_BY_CODE) {
+  if (typeof code === "string" && Object.hasOwn(MESSAGE_BY_CODE, code)) {
     return MESSAGE_BY_CODE[code];
   }
 
-  if (typeof status === "number" && status in MESSAGE_BY_STATUS) {
+  if (typeof status === "number" && Object.hasOwn(MESSAGE_BY_STATUS, status)) {
     return MESSAGE_BY_STATUS[status];
   }
 
