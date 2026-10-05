@@ -1,6 +1,6 @@
 # 0001 - Offline-first local writes for transactions
 
-- Status: Accepted
+- Status: Superseded by 0005 (still describes the running code until phase 1 of `docs/prd/v1.md` ships)
 - Date: 2026-10-05
 
 ## Context

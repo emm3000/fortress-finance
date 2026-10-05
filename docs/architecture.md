@@ -1,5 +1,7 @@
 # System Architecture
 
+> Superseded for v1 by `docs/prd/v1.md` and ADRs 0005-0008; this describes the pre-v1 code.
+
 ## Overview
 
 The current repository is frontend-first and root-based:

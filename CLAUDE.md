@@ -12,7 +12,7 @@ Gamified personal-finance app (Expo SDK 55 + React Native, Supabase backend): us
 - `last_sync_timestamp` comes from the server, never from the device clock.
 - Budgets and notifications are online-only writes; they never enter the sync queue.
 
-Details and known gaps: `.claude/rules/sync.md`.
+Details and known gaps: `.claude/rules/sync.md`. These describe sync v1, which v1 phase 1 replaces with ADR 0005; the v1 plan is `docs/prd/v1.md`.
 
 ## Layers as they are today
 

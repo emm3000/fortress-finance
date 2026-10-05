@@ -7,7 +7,7 @@ This folder is organized into two sections:
 
 ## Active
 
-Start with `../CONTEXT.md` (domain glossary) and `adr/` (architecture decisions; they supersede `architecture.md` where they disagree).
+Start with `../CONTEXT.md` (domain glossary), `prd/v1.md` (the v1 rebuild plan) and `adr/` (architecture decisions; they supersede `architecture.md` where they disagree).
 
 Running agent sessions? `agents/` holds the multi-session workflow (`agents/multi-session.md`) and issue conventions (`agents/issue-tracker.md`).
 

@@ -1,6 +1,6 @@
 # 0002 - Supabase with RPC-first backend
 
-- Status: Accepted
+- Status: Accepted; Liquidation callers and scheduler cadence amended by 0006
 - Date: 2026-10-05
 
 ## Context
