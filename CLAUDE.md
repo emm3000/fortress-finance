@@ -48,7 +48,11 @@ Known inconsistencies (some hooks read repositories directly, some screens call 
 | Environments, scheduler, incident response | `docs/operations.md` |
 | System overview (partly superseded by ADRs; ADRs win) | `docs/architecture.md` |
 
+## Workflow
+
+The board is `gh issue list --label ready-for-agent`; work runs in waves of parallel peer sessions, one ticket and one worktree each, merged rebase-only into `main` (ADR 0004). Before dispatching a ticket or booting peers with `/wave`, read `docs/agents/multi-session.md`. Tickets come from the `ticket-writer` agent; labels and `gh` usage are in `docs/agents/`.
+
 ## Skill routing
 
-- `mattpocock-skills`: `tdd` for features and bug fixes, `diagnosing-bugs` for failures, `domain-modeling` when editing `CONTEXT.md` or an ADR, `grilling` to stress-test a plan, `code-review` for branch reviews (or the `pr-reviewer` agent).
+- `mattpocock-skills`: `tdd` for features and bug fixes, `diagnosing-bugs` for failures, `domain-modeling` when editing `CONTEXT.md` or an ADR, `grilling` to stress-test a plan, `code-review` for branch reviews (or the `pr-reviewer` agent), `research` for reading legwork against primary sources, `writing-for-agents` when editing a skill, rule, agent or this file. The owner runs `/mattpocock-skills:to-tickets` to split a grilled plan into tickets.
 - `expo` plugin: Expo SDK, expo-router, EAS build and upgrade work.

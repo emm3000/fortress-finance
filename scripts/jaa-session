@@ -1,0 +1,69 @@
+#!/usr/bin/env zsh
+set -euo pipefail
+
+usage="usage: scripts/jaa-session <name> <model> <effort> <metro-port>"
+
+if (( $# != 4 )); then
+  echo "$usage" >&2
+  exit 64
+fi
+
+name="$1"
+model="$2"
+effort="$3"
+port="$4"
+
+if [[ ! "$name" =~ ^[a-z]+$ ]]; then
+  echo "bad name: $name (one lowercase word, no digits)" >&2
+  exit 64
+fi
+if [[ ! "$effort" =~ ^(low|medium|high)$ ]]; then
+  echo "bad effort: $effort (expected low, medium or high)" >&2
+  exit 64
+fi
+if [[ ! "$port" =~ ^[0-9]+$ ]] || (( port <= 8081 || port > 65535 )); then
+  echo "bad metro port: $port (expected a number above 8081; 8081 is the owner's)" >&2
+  exit 64
+fi
+
+for tool in git npm claude; do
+  if ! command -v "$tool" > /dev/null; then
+    echo "missing on PATH: $tool" >&2
+    exit 69
+  fi
+done
+
+repo="${0:A:h:h}"
+common_dir="$(git -C "$repo" rev-parse --path-format=absolute --git-common-dir)"
+main_repo="${common_dir:h}"
+worktree="${main_repo:h}/${main_repo:t}-$name"
+
+git -C "$main_repo" worktree prune
+if [[ -d "$worktree" ]]; then
+  if [[ "$(git -C "$worktree" rev-parse --path-format=absolute --git-common-dir 2> /dev/null)" != "$common_dir" ]]; then
+    echo "$worktree exists but is not a worktree of $main_repo: move it away or pick another name" >&2
+    exit 73
+  fi
+  echo "reusing worktree $worktree"
+else
+  git -C "$main_repo" fetch -q origin
+  git -C "$main_repo" worktree add --detach "$worktree" origin/main
+fi
+
+setopt null_glob
+for env_file in "$main_repo"/.env "$main_repo"/.env.*; do
+  [[ -f "$env_file" && "${env_file:t}" != .env.example ]] || continue
+  [[ -e "$worktree/${env_file:t}" ]] || cp "$env_file" "$worktree/${env_file:t}"
+done
+
+cd "$worktree"
+if [[ ! -d node_modules ]]; then
+  npm ci --prefer-offline --no-audit --no-fund --loglevel=error
+fi
+
+if command -v lsof > /dev/null && lsof -nP -iTCP:"$port" -sTCP:LISTEN > /dev/null 2>&1; then
+  echo "warning: port $port already has a listener; Metro for @$name will fail to bind it" >&2
+fi
+
+export RCT_METRO_PORT="$port"
+exec claude -n "$name" --model "$model" --effort "$effort" --permission-mode bypassPermissions
