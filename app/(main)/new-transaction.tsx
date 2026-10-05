@@ -62,7 +62,7 @@ type TransactionFormData = z.infer<typeof transactionSchema>;
 
 export default function NewTransactionScreen() {
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const { data: categories = [], isLoading: isCategoriesLoading } = useCategories();
+  const categories = useCategories();
   const { createTransaction } = useCreateTransaction();
   const { updateTransaction } = useUpdateTransaction();
   const insets = useSafeAreaInsets();
@@ -246,26 +246,22 @@ export default function NewTransactionScreen() {
               name="categoryId"
               render={({ field: { value } }) => (
                 <View className="flex-row flex-wrap gap-2">
-                  {isCategoriesLoading ? (
-                    <ActivityIndicator color="#FFD700" />
-                  ) : (
-                    categoriesForType.map((cat) => (
-                        <Pressable
-                          key={cat.id}
-                          onPress={() => setValue("categoryId", cat.id)}
-                          disabled={isSubmitting}
-                          className={`px-4 py-2 rounded-full border ${
-                            value === cat.id
-                              ? "bg-primary/20 border-primary"
-                              : "bg-surface border-border"
-                          }`}
-                        >
-                          <Text className={value === cat.id ? "text-primary font-bold" : "text-text-muted"}>
-                            {cat.name}
-                          </Text>
-                        </Pressable>
-                      ))
-                  )}
+                  {categoriesForType.map((cat) => (
+                    <Pressable
+                      key={cat.slug}
+                      onPress={() => setValue("categoryId", cat.slug)}
+                      disabled={isSubmitting}
+                      className={`px-4 py-2 rounded-full border ${
+                        value === cat.slug
+                          ? "bg-primary/20 border-primary"
+                          : "bg-surface border-border"
+                      }`}
+                    >
+                      <Text className={value === cat.slug ? "text-primary font-bold" : "text-text-muted"}>
+                        {cat.name}
+                      </Text>
+                    </Pressable>
+                  ))}
                 </View>
               )}
             />
