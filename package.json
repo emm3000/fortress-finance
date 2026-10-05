@@ -8,9 +8,10 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "eslint app components constants db hooks services store __tests__ jest.setup.ts jest.d.ts --ext .ts,.tsx",
+    "lint": "eslint app components constants db hooks services store utils __tests__ jest.setup.ts jest.d.ts --ext .ts,.tsx",
     "typecheck": "tsc --noEmit",
-    "test": "jest --runInBand"
+    "test": "jest --runInBand",
+    "check": "npm run typecheck && npm run lint && npm run test"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

@@ -50,10 +50,8 @@ app-example
 /android
 
 # local AI/editor metadata
-.agent/
-.claude/
-# Keep project skills versioned under .agents/skills
-skills-lock.json
+.claude/settings.local.json
+CLAUDE.local.md
 
 # Supabase (keep migrations/config in repo, ignore local runtime artifacts)
 supabase/.temp/
