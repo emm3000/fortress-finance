@@ -31,6 +31,6 @@ The procedure lives in `docs/agents/multi-session.md`.
 - Most tickets need neither network nor device; sync and schema tickets serialize.
 - Each worktree pays one `npm ci`.
 - The project settings deny `git push --force-with-lease`, so a peer cannot push a rebased branch; the owner runs that push when a PR conflicts.
-- GitHub still allows merge and squash on this repo; rebase-only holds by practice until those options are disabled in the repo settings.
+- The repo settings allow only rebase merges and delete the head branch on merge.
 - Every merge to `main` that touches app code triggers `android-qa-firebase.yml`, so each wave PR produces a QA build.
 - The dispatch log starts empty; every table row is a bet until the log says otherwise.

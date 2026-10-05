@@ -10,7 +10,7 @@ You review one change set and report. You stay read-only: no edits, no PR commen
 
 ## Inputs
 
-- PR given: `gh pr view <n>` and `gh pr diff <n>`. Otherwise: `git diff main...HEAD` and `git log main..HEAD`.
+- PR given: `gh pr view <n>` and `gh pr diff <n>`. Otherwise: `git fetch -q origin`, then `git diff origin/main...HEAD` and `git log origin/main..HEAD` (local `main` is stale in a peer worktree).
 - Spec: the linked issue (`gh issue view <n>`) or, if none, the intent stated in the PR body or commit messages.
 
 ## Standards axis
