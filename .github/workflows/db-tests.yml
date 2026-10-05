@@ -2,9 +2,19 @@ name: DB tests
 
 on:
   pull_request:
+    paths:
+      - "supabase/**"
+      - package.json
+      - package-lock.json
+      - .github/workflows/db-tests.yml
   push:
     branches:
       - main
+    paths:
+      - "supabase/**"
+      - package.json
+      - package-lock.json
+      - .github/workflows/db-tests.yml
 
 permissions:
   contents: read
@@ -16,6 +26,7 @@ concurrency:
 jobs:
   db-tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
@@ -31,7 +42,7 @@ jobs:
         run: npm ci
 
       - name: Start local Supabase and apply migrations
-        run: npm run db:start
+        run: npm run db:start:ci
 
       - name: Run pgTAP tests
         run: npm run test:db
