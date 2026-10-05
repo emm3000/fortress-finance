@@ -16,7 +16,7 @@ export default function BudgetsScreen() {
   const [amount, setAmount] = useState('');
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const { data: categories = [] } = useCategories();
+  const categories = useCategories();
   const { categoryName } = useLocalSearchParams<{ categoryName?: string | string[] }>();
   const {
     data: budgets = [],
@@ -40,7 +40,7 @@ export default function BudgetsScreen() {
       (category) => category.name.trim().toLowerCase() === categoryNameParam,
     );
     if (matchedCategory) {
-      setCategoryId(matchedCategory.id);
+      setCategoryId(matchedCategory.slug);
     }
   }, [categoryName, expenseCategories]);
 

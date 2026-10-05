@@ -2,11 +2,11 @@ import { ActivityIndicator, Pressable, Text, TextInput, View } from "react-nativ
 import { Coins } from "lucide-react-native";
 
 import { InlineError } from "@/components/feedback/inline-error";
-import type { Category } from "@/db/category.repository";
+import type { Category } from "@/constants/categories";
 
 type BudgetEditorCardProps = {
   amount: string;
-  categories: Category[];
+  categories: readonly Category[];
   categoryId: string;
   isSavingBudget: boolean;
   onAmountChange: (value: string) => void;
@@ -36,15 +36,15 @@ export function BudgetEditorCard({
       <View className="flex-row flex-wrap gap-2">
         {categories.map((category) => (
           <Pressable
-            key={category.id}
-            onPress={() => onCategoryChange(category.id)}
+            key={category.slug}
+            onPress={() => onCategoryChange(category.slug)}
             className={`px-3 py-2 rounded-full border ${
-              categoryId === category.id
+              categoryId === category.slug
                 ? "bg-primary/20 border-primary"
                 : "bg-background border-border"
             }`}
           >
-            <Text className={categoryId === category.id ? "text-primary font-semibold" : "text-text"}>
+            <Text className={categoryId === category.slug ? "text-primary font-semibold" : "text-text"}>
               {category.name}
             </Text>
           </Pressable>

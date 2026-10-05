@@ -15,7 +15,7 @@ import { useDeleteTransaction } from "@/hooks/useTransactionCommands";
 import { useSync } from "@/hooks/useSync";
 import { useCategories } from "@/hooks/useCategories";
 import { Transaction } from "@/db/transaction.repository";
-import { Category } from "@/db/category.repository";
+import type { Category } from "@/constants/categories";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { LoadingState } from "@/components/feedback/loading-state";
 import { ScreenHeader } from "@/components/ui/screen-header";
@@ -126,12 +126,12 @@ export default function HistoryScreen() {
   } = useTransactions();
   const { performSync, isSyncing } = useSync();
   const { deleteTransaction } = useDeleteTransaction();
-  const { data: categories = [] } = useCategories();
+  const categories = useCategories();
 
   const categoriesById = useMemo(() => {
     const map: Record<string, Category> = {};
     for (const cat of categories) {
-      map[cat.id] = cat;
+      map[cat.slug] = cat;
     }
     return map;
   }, [categories]);

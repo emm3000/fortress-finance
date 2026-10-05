@@ -19,13 +19,10 @@ jest.mock("@tanstack/react-query", () => ({
 }));
 
 jest.mock("@/hooks/useCategories", () => ({
-  useCategories: jest.fn(() => ({
-    data: [
-      { id: "cat-expense", name: "Comida", type: "EXPENSE" },
-      { id: "cat-income", name: "Salario", type: "INCOME" },
-    ],
-    isLoading: false,
-  })),
+  useCategories: jest.fn(() => [
+    { slug: "cat-expense", name: "Comida", type: "EXPENSE" },
+    { slug: "cat-income", name: "Salario", type: "INCOME" },
+  ]),
 }));
 
 jest.mock("@/hooks/useSync", () => ({
