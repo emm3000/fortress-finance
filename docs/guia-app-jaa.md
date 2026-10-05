@@ -1,5 +1,7 @@
 # JAA: Guia de Producto, Features y Engine
 
+> Describes the pre-v1 app. v1 product and game rules: `docs/prd/v1.md` and ADRs 0005-0008.
+
 Documento basado en el estado actual del repositorio al 11 de marzo de 2026.
 
 ## 1. Que es JAA

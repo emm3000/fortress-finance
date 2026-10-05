@@ -20,6 +20,28 @@ Issues live in `emm3000/fortress-finance` on GitHub. Use the `gh` CLI; it infers
 
 Create an issue with the layout in `.claude/agents/ticket-writer.md`: title `<Area>: <slice>`, at most 3 lines of context, a `Touches:` line, pointers, a `Done when` checklist, label `ready-for-agent` (plus `wave-of-one` when it applies).
 
+## Asset requests for Codex
+
+Image assets (Castle layers, category icons, illustrations, app icon) are issues labelled `ready-for-codex` only, never `ready-for-agent`; the owner feeds them to Codex and `/wave` refuses them (ADR 0008). Layout:
+
+```md
+Title: Asset: <name>
+
+Prompt: <what to draw, in English>
+Style reference: <JAA Design System artifact link>; matches <existing asset path>
+Size: <canvas px, e.g. 1024x1024; PNG also @2x and @3x>
+Format: PNG | SVG
+Background: transparent
+Destination: assets/images/<group>/<file>
+Variants: none | light + dark (<file>-light.png, <file>-dark.png)
+
+Done when
+- [ ] Every file listed exists at its destination with the stated size (`sips -g pixelWidth -g pixelHeight <file>`)
+- [ ] Background is transparent; Castle layers share the base canvas and anchor
+```
+
+A screen ticket that uses an asset is blocked by its asset issue.
+
 ## When a skill says "fetch the relevant ticket"
 
 Run `gh issue view <n> --comments`.

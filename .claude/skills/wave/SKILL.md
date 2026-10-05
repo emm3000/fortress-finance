@@ -16,6 +16,7 @@ Run when the owner invokes `/wave` with one or more issue numbers, or when the o
 - One explicit model and one explicit effort per ticket, stated to the owner before booting.
 - Peers work only in the worktree `scripts/jaa-session` creates; the owner's checkout stays untouched.
 - Tickets in one wave touch disjoint files (compare their `Touches:` lines). A ticket labelled `wave-of-one` runs alone.
+- Dispatch only `ready-for-agent` issues. Refuse any issue labelled `ready-for-codex` (an image asset request the owner hands to Codex) and name it in the report.
 - Each peer gets the Metro port `scripts/jaa-wave` prints for it, never `8081`.
 
 ## Model table
@@ -35,7 +36,7 @@ The rows are this repo's starting bets, with no inherited history. When a row sh
 
 ## Execution steps
 
-1. For each issue run `gh issue view <n> --json title,labels,body,comments`. Confirm the `ready-for-agent` label, note `wave-of-one`, read the `Touches:` line, and derive a short pane name from the title (one lowercase word, no digits).
+1. For each issue run `gh issue view <n> --json title,labels,body,comments`. Confirm the `ready-for-agent` label and the absence of `ready-for-codex`, note `wave-of-one`, read the `Touches:` line, and derive a short pane name from the title (one lowercase word, no digits).
 2. Classify each ticket with the table. Deviate only with a one-line reason in the plan. Tell the owner one line per ticket, `@<name> #<n> <model>:<effort>`, before booting.
 3. Run `scripts/jaa-wave <name>:<model>:<effort> ...` once with every ticket. It opens panes in the orchestrator's terminal (`TERM_PROGRAM`: herdr or Warp) and prints `@<name> metro <port>` per peer. When the owner names a terminal ("con warp", "con herdr"), pass `--terminal warp|herdr` first for the rest of the session. On `manual` it prints one `scripts/jaa-session` line per peer: hand them to the owner, then poll.
 4. Poll `ListAgents` until every pane name is listed, at most 60 seconds.

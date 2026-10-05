@@ -9,7 +9,7 @@ paths:
 
 # Sync invariants
 
-Decision record: `docs/adr/0001-offline-first-local-writes.md`.
+Decision record for the running code: `docs/adr/0001-offline-first-local-writes.md` (superseded). Target: `docs/adr/0005-sync-v2.md`. The rules below bind code that still runs on sync v1; a sync v2 feature follows 0005 instead, and its ticket names the v1 rules it retires.
 
 - Generate Transaction ids on the client with `Crypto.randomUUID()`; the same id is the server primary key.
 - Set `updatedAt` as ISO-8601 UTC on every local write; `sync_client_state` resolves conflicts by last-write-wins on it.
@@ -24,7 +24,10 @@ Decision record: `docs/adr/0001-offline-first-local-writes.md`.
 
 ## Known gaps
 
+True of sync v1 until it is rebuilt; each is resolved by ADR 0005.
+
 - Pull overwrites local rows that still have pending operations.
 - Server `BEFORE UPDATE` trigger `set_updated_at` replaces the client `updatedAt` on update.
 - `last_sync_timestamp` is global, not per user, and logout does not clear SQLite.
-- Creating a Transaction writes the row and the queue entry outside one SQLite transaction.
+- Creating, editing or deleting a Transaction writes the row and the queue entry outside one SQLite transaction.
+- An ack deletes the queue row by `operationId` even when a newer write replaced its payload after the push; the newer write is lost.
