@@ -18,8 +18,4 @@ The skills speak in five canonical triage roles. This file maps them to the labe
 
 When a skill names a role (for example "apply the AFK-ready triage label"), use the label string from this table.
 
-Every label above exists on GitHub except `ready-for-codex`. Create it once:
-
-```sh
-gh label create ready-for-codex --description "Image asset request for Codex; never dispatched by /wave"
-```
+Every label above exists on GitHub.
