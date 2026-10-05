@@ -17,7 +17,13 @@ export const initDatabase = async () => {
 
   initPromise = (async () => {
     const db = await SQLite.openDatabaseAsync(DATABASE_NAME);
-    await runMigrations(db, MIGRATIONS);
+    try {
+      await runMigrations(db, MIGRATIONS);
+    } catch (error) {
+      // Release the handle so a retry opens a fresh one; keep the original error.
+      await db.closeAsync().catch(() => undefined);
+      throw error;
+    }
 
     dbInstance = db;
     return db;

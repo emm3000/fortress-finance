@@ -1,7 +1,21 @@
+import { CATEGORIES, type CategoryType } from "@/constants/categories";
 import { MAX_AMOUNT_MINOR } from "@/utils/money";
 import type { Migration, MigrationDatabase } from "./runner";
 
-const DAY = "'[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'";
+/** A real `YYYY-MM-DD` date; `IS` because a NULL from date() would pass a CHECK. */
+const calendarDay = (column: string): string => `date(${column}) IS ${column}`;
+
+/** The (category_slug, type) pairs of the shipped Categories. */
+const categoryOfType = (): string =>
+  (["EXPENSE", "INCOME"] as const satisfies readonly CategoryType[])
+    .map((type) => {
+      const slugs = CATEGORIES.filter((category) => category.type === type)
+        .map((category) => `'${category.slug}'`)
+        .join(", ");
+      return `(type = '${type}' AND category_slug IN (${slugs}))`;
+    })
+    .join(" OR ");
+
 const minorUnits = (column: string): string =>
   `typeof(${column}) = 'integer' AND ${column} > 0 AND ${column} <= ${MAX_AMOUNT_MINOR}`;
 
@@ -38,8 +52,9 @@ export const v1Baseline: Migration = {
         type TEXT NOT NULL CHECK (type IN ('INCOME', 'EXPENSE')),
         amount INTEGER NOT NULL CHECK (${minorUnits("amount")}),
         category_slug TEXT NOT NULL,
-        day TEXT NOT NULL CHECK (day GLOB ${DAY}), -- local calendar Day
-        note TEXT,${SERVER_ORDERING_COLUMNS}
+        day TEXT NOT NULL CHECK (${calendarDay("day")}), -- local calendar Day
+        note TEXT,${SERVER_ORDERING_COLUMNS},
+        CHECK (${categoryOfType()})
       );
 
       CREATE INDEX idx_transactions_user_day
@@ -50,7 +65,7 @@ export const v1Baseline: Migration = {
       CREATE TABLE budget_plans (
         user_id TEXT NOT NULL,
         effective_month TEXT NOT NULL
-          CHECK (effective_month GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-01'),
+          CHECK (${calendarDay("effective_month")} AND substr(effective_month, 9) = '01'),
         total_budget INTEGER NOT NULL CHECK (${minorUnits("total_budget")}),
         -- Category limits as a JSON object of category slug to minor units.
         category_limits TEXT NOT NULL DEFAULT '{}'
@@ -61,7 +76,7 @@ export const v1Baseline: Migration = {
       -- "Hoy sin gastos": one per user and Day.
       CREATE TABLE day_checkins (
         user_id TEXT NOT NULL,
-        day TEXT NOT NULL CHECK (day GLOB ${DAY}),${SERVER_ORDERING_COLUMNS},
+        day TEXT NOT NULL CHECK (${calendarDay("day")}),${SERVER_ORDERING_COLUMNS},
         PRIMARY KEY (user_id, day)
       );
 

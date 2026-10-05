@@ -7,6 +7,7 @@ type MemoryDatabase = MigrationDatabase & {
   raw: DatabaseSync;
   transactionCount: () => number;
   isInTransaction: () => boolean;
+  closeAsync: jest.Mock;
 };
 
 const mockOpenDatabaseAsync = jest.fn();
@@ -25,6 +26,9 @@ const openMemoryDatabase = (): MemoryDatabase => {
     raw,
     transactionCount: () => transactions,
     isInTransaction: () => inTransaction,
+    closeAsync: jest.fn(async () => {
+      raw.close();
+    }),
     execAsync: async (source) => {
       raw.exec(source);
     },
@@ -157,6 +161,19 @@ describe("runMigrations", () => {
     expect(userVersion(db)).toBe(2);
     expect(tableNames(db)).toEqual(["m2"]);
   });
+
+  it("throws when user_version is above the newest known migration", async () => {
+    const db = openMemoryDatabase();
+    db.raw.exec("PRAGMA user_version = 4");
+    const calls: number[] = [];
+
+    await expect(
+      runMigrations(db, [createTableMigration(1, calls, db), createTableMigration(2, calls, db)]),
+    ).rejects.toThrow("user_version 4 is newer than the newest known migration 2");
+
+    expect(calls).toEqual([]);
+    expect(userVersion(db)).toBe(4);
+  });
 });
 
 describe("migration 1", () => {
@@ -183,13 +200,22 @@ describe("migration 1", () => {
     ]);
 
     const insert = db.raw.prepare(
-      "INSERT INTO transactions (id, user_id, type, amount, category_slug, day) VALUES (?, 'user-1', 'EXPENSE', ?, 'food', ?)",
+      "INSERT INTO transactions (id, user_id, type, amount, category_slug, day) VALUES (?, 'user-1', ?, ?, ?, ?)",
     );
-    insert.run("tx-1", 1250, "2026-10-05");
-    expect(() => insert.run("tx-2", 12.5, "2026-10-05")).toThrow(/CHECK/);
-    expect(() => insert.run("tx-3", 0, "2026-10-05")).toThrow(/CHECK/);
-    expect(() => insert.run("tx-4", 100_000_000_001, "2026-10-05")).toThrow(/CHECK/);
-    expect(() => insert.run("tx-5", 1250, "2026-10-05T10:00:00Z")).toThrow(/CHECK/);
+    insert.run("tx-1", "EXPENSE", 1250, "food", "2026-10-05");
+    insert.run("tx-2", "INCOME", 1250, "salary", "2026-02-28");
+    expect(() => insert.run("tx-3", "EXPENSE", 12.5, "food", "2026-10-05")).toThrow(/CHECK/);
+    expect(() => insert.run("tx-4", "EXPENSE", 0, "food", "2026-10-05")).toThrow(/CHECK/);
+    expect(() => insert.run("tx-5", "EXPENSE", 100_000_000_001, "food", "2026-10-05")).toThrow(
+      /CHECK/,
+    );
+    expect(() => insert.run("tx-6", "EXPENSE", 1250, "food", "2026-10-05T10:00:00Z")).toThrow(
+      /CHECK/,
+    );
+    expect(() => insert.run("tx-7", "EXPENSE", 1250, "food", "2026-02-30")).toThrow(/CHECK/);
+    expect(() => insert.run("tx-8", "EXPENSE", 1250, "food", "2026-13-01")).toThrow(/CHECK/);
+    expect(() => insert.run("tx-9", "EXPENSE", 1250, "pizza", "2026-10-05")).toThrow(/CHECK/);
+    expect(() => insert.run("tx-10", "EXPENSE", 1250, "salary", "2026-10-05")).toThrow(/CHECK/);
   });
 
   it("keys budget plans by user and Effective month and stores the Monthly budget total with its Category limits", async () => {
@@ -211,6 +237,8 @@ describe("migration 1", () => {
     insert.run("2026-10-01", '{"food":120000}');
     expect(() => insert.run("2026-10-01", "{}")).toThrow(/UNIQUE/);
     expect(() => insert.run("2026-11-15", "{}")).toThrow(/CHECK/);
+    expect(() => insert.run("2026-13-01", "{}")).toThrow(/CHECK/);
+    expect(() => insert.run("2026-00-01", "{}")).toThrow(/CHECK/);
     expect(() => insert.run("2026-12-01", "not json")).toThrow(/CHECK/);
   });
 
@@ -225,10 +253,12 @@ describe("migration 1", () => {
       "deleted_at",
     ]);
 
-    const insert = db.raw.prepare("INSERT INTO day_checkins (user_id, day) VALUES (?, '2026-10-05')");
-    insert.run("user-1");
-    insert.run("user-2");
-    expect(() => insert.run("user-1")).toThrow(/UNIQUE/);
+    const insert = db.raw.prepare("INSERT INTO day_checkins (user_id, day) VALUES (?, ?)");
+    insert.run("user-1", "2026-10-05");
+    insert.run("user-2", "2026-10-05");
+    expect(() => insert.run("user-1", "2026-10-05")).toThrow(/UNIQUE/);
+    expect(() => insert.run("user-1", "2026-02-30")).toThrow(/CHECK/);
+    expect(() => insert.run("user-1", "2026-13-01")).toThrow(/CHECK/);
   });
 
   it("keeps one sync queue row per user and entity, with a rejected status that requires a reason", async () => {
@@ -255,13 +285,18 @@ describe("migration 1", () => {
 });
 
 describe("initDatabase", () => {
-  it("opens fortaleza.db and migrates it to user_version 1", async () => {
-    const db = openMemoryDatabase();
-    mockOpenDatabaseAsync.mockResolvedValue(db);
+  it("closes the database when migrating fails and opens fortaleza.db again on the next call", async () => {
+    const tooNew = openMemoryDatabase();
+    tooNew.raw.exec("PRAGMA user_version = 99");
+    const fresh = openMemoryDatabase();
+    mockOpenDatabaseAsync.mockResolvedValueOnce(tooNew).mockResolvedValueOnce(fresh);
 
-    await expect(initDatabase()).resolves.toBe(db);
+    await expect(initDatabase()).rejects.toThrow("user_version 99");
+    expect(tooNew.closeAsync).toHaveBeenCalledTimes(1);
 
-    expect(mockOpenDatabaseAsync).toHaveBeenCalledWith("fortaleza.db");
-    expect(userVersion(db)).toBe(1);
+    await expect(initDatabase()).resolves.toBe(fresh);
+    expect(mockOpenDatabaseAsync).toHaveBeenNthCalledWith(2, "fortaleza.db");
+    expect(fresh.closeAsync).not.toHaveBeenCalled();
+    expect(userVersion(fresh)).toBe(1);
   });
 });

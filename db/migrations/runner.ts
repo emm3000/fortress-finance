@@ -27,6 +27,13 @@ export const runMigrations = async (
   migrations: readonly Migration[],
 ): Promise<void> => {
   const current = await readUserVersion(db);
+  const newest = Math.max(0, ...migrations.map((migration) => migration.version));
+  if (current > newest) {
+    throw new Error(
+      `Database user_version ${current} is newer than the newest known migration ${newest}`,
+    );
+  }
+
   const pending = migrations
     .filter((migration) => migration.version > current)
     .sort((a, b) => a.version - b.version);
