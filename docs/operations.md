@@ -116,6 +116,7 @@ Before declaring stable operation:
 2. Mark the deleted versions as reverted so the CLI stops expecting their files:
    `supabase migration repair --linked --status reverted 202603110001 202603110002 202603110003 202603110004 202603110005 202603110006 202603110007 202603110008 202603110009 202603110010 202603110011`
 3. Check that only the baseline is pending: `supabase migration list --linked`.
-4. Apply it: `supabase db push --linked`.
+4. Back up the public data: `supabase db dump --linked --data-only -f pre-v1.sql`.
+5. Apply it: `supabase db push --linked`.
 
 The baseline drops every table, view, function and type in `public`, so all public data is wiped (transactions, budgets, wallets, ledger, push tokens, notifications). `auth.users` is kept: the migration backfills each existing user's profile, castle state, wallet and change counter. It also unschedules the `pg_cron` job `daily-liquidation-batch` when `pg_cron` is installed. Clients built before v1 fail against the new schema until they are replaced (ADR 0007).

@@ -128,15 +128,18 @@ create trigger trg_profiles_updated_at
 before update on public.profiles
 for each row execute function public.set_updated_at();
 
--- Accepts IANA zone names only (no POSIX offsets such as 'UTC-5') and keeps
--- the currency fixed once set (read-only in v1).
+-- Accepts IANA zone names only: no POSIX offsets such as 'UTC-5', no fixed
+-- 'Etc/GMT' offsets and no 'posix/' copies. Keeps the currency fixed once set
+-- (read-only in v1).
 create function public.validate_profile()
 returns trigger
 language plpgsql
 set search_path = ''
 as $$
 begin
-  if not exists (select 1 from pg_catalog.pg_timezone_names where name = new.timezone) then
+  if new.timezone like 'posix/%'
+    or new.timezone like 'Etc/GMT%'
+    or not exists (select 1 from pg_catalog.pg_timezone_names where name = new.timezone) then
     raise exception 'Unknown IANA timezone: %', new.timezone using errcode = '22023';
   end if;
 
@@ -589,6 +592,10 @@ revoke execute on all functions in schema public from public, anon, authenticate
 
 -- Keep objects created by later migrations closed until granted explicitly.
 -- EXECUTE for PUBLIC is a global default, so it is revoked without a schema.
+-- As a result, a function a later migration creates outside public, in a
+-- schema with no default privileges of its own, is executable only by
+-- postgres (service_role included in the denial); that migration must grant
+-- execute explicitly.
 alter default privileges for role postgres in schema public
   revoke all on tables from anon, authenticated;
 alter default privileges for role postgres in schema public
