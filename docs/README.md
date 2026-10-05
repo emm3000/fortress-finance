@@ -7,6 +7,8 @@ This folder is organized into two sections:
 
 ## Active
 
+Start with `../CONTEXT.md` (domain glossary) and `adr/` (architecture decisions; they supersede `architecture.md` where they disagree).
+
 1. `architecture.md`
 - System architecture and runtime boundaries (Expo app + Supabase backend).
 
