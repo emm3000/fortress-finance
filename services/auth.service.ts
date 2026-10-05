@@ -3,6 +3,7 @@ import { OnboardingService } from "./onboarding.service";
 import { useNetworkStore } from "@/store/network.store";
 import { NotificationService } from "./notification.service";
 import { supabase } from "./supabase.client";
+import { getAuthErrorMessage } from "@/utils/auth-error";
 
 interface RegisterInput {
   name: string;
@@ -48,7 +49,7 @@ export const AuthService = {
     });
 
     if (error) {
-      throw error;
+      throw new Error(getAuthErrorMessage(error));
     }
 
     await useAuthStore.getState().hydrateFromSession(authData.session ?? null);
@@ -78,7 +79,7 @@ export const AuthService = {
     });
 
     if (error) {
-      throw error;
+      throw new Error(getAuthErrorMessage(error));
     }
 
     await useAuthStore.getState().hydrateFromSession(authData.session);
@@ -111,7 +112,7 @@ export const AuthService = {
     assertOnline();
     const { error } = await supabase.auth.resetPasswordForEmail(data.email);
     if (error) {
-      throw error;
+      throw new Error(getAuthErrorMessage(error));
     }
 
     return {
@@ -128,14 +129,14 @@ export const AuthService = {
       type: "recovery",
     });
     if (verifyError) {
-      throw verifyError;
+      throw new Error(getAuthErrorMessage(verifyError));
     }
 
     const { error: updateError } = await supabase.auth.updateUser({
       password: data.newPassword,
     });
     if (updateError) {
-      throw updateError;
+      throw new Error(getAuthErrorMessage(updateError));
     }
 
     await supabase.auth.signOut();
