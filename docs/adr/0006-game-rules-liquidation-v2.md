@@ -12,8 +12,8 @@ Liquidation v1 never raises a Streak from 0 (`202603110007_h13_daily_liquidation
 
 **Rules.** Numbers live only in `docs/prd/v1.md` (Game rules) and the domain constants; they are tunable without a new ADR.
 - Streak: consecutive local days that count. A day counts with at least one non-deleted Transaction (expense or income) dated that day, or a "Hoy sin gastos" check-in for it.
-- Castle HP is a pure function of the month's total budget and month-to-date expenses (remaining-budget share vs remaining-month share). It is recomputed from all data, never accumulated from deltas, so it is 100 on day 1 and a late expense moves it at once.
-- Category Límites only drive alerts (80% / 100%).
+- Castle HP is a pure function of the month's total budget and month-to-date expenses (remaining-budget share vs remaining-month share). It is recomputed from all data, never accumulated from deltas, so it is 100 at month start before any spending and a late expense moves it at once.
+- Alerts (80% / 100%) fire for the total budget and for each category Límite; Límites never affect HP.
 - Damage is visual: HP selects the Castle state; Mejoras bought with Gold are permanent and never lost.
 - Gold is credited only by Liquidation, for a day that counts and is within budget. Income never changes HP or Gold.
 - An Escudo is consumed automatically for a day that does not count while Streak > 0, holding the Streak.
@@ -24,7 +24,7 @@ Liquidation v1 never raises a Streak from 0 (`202603110007_h13_daily_liquidation
 
 **Ledger.** `game_liquidation_events` keeps one row per `(user_id, day)`: counted, Streak before/after, Escudo used, Gold earned, HP and state at close, `rules_version`. A second run for the same day is a no-op. The ledger row is the Parte de batalla.
 
-**Late entries.** When a Transaction or check-in syncs for a day whose Liquidation ran less than 48 h earlier and the day did not count, the sync RPC records a repair request; the next batch re-evaluates that day only in the user's favor: the day counts, the Streak is recomputed forward, a consumed Escudo is returned. Gold of a closed day never changes. Records older than the window still count for HP and history.
+**Late entries.** When a Transaction or check-in syncs for a day whose Liquidation ran less than 48 h earlier and the day did not count, the sync RPC records a repair request; the next batch re-evaluates that day only in the user's favor: the day counts, the Streak is recomputed forward, a consumed Escudo is returned. Gold of a closed day never changes, including its +5 Streak bonus; a repair changes the Streak only going forward. Records older than the window still count for HP and history.
 
 **Permissions.**
 - `process_daily_liquidation` and the batch are executable only by `service_role`.

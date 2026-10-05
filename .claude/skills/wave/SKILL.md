@@ -7,7 +7,7 @@ allowed-tools: Bash(gh issue view:*) Bash(scripts/jaa-wave:*) Bash(git worktree 
 
 ## Activation contract
 
-Run when the owner invokes `/wave` with one or more issue numbers, or when the orchestrator starts the next wave after the previous one is fully merged. Each number becomes one peer session and one dispatch. Stop and report if any number is not an open `ready-for-agent` issue.
+Run when the owner invokes `/wave` with one or more issue numbers, or when the orchestrator starts the next wave after the previous one is fully merged. Each number becomes one peer session and one dispatch. If any requested number is not an open `ready-for-agent` issue (including any `ready-for-codex` issue), the whole wave stops and reports before anything boots.
 
 ## Hard rules
 
@@ -16,7 +16,7 @@ Run when the owner invokes `/wave` with one or more issue numbers, or when the o
 - One explicit model and one explicit effort per ticket, stated to the owner before booting.
 - Peers work only in the worktree `scripts/jaa-session` creates; the owner's checkout stays untouched.
 - Tickets in one wave touch disjoint files (compare their `Touches:` lines). A ticket labelled `wave-of-one` runs alone.
-- Dispatch only `ready-for-agent` issues. Refuse any issue labelled `ready-for-codex` (an image asset request the owner hands to Codex) and name it in the report.
+- Dispatch only `ready-for-agent` issues. An issue labelled `ready-for-codex` (an image asset request the owner hands to Codex) fails the check above: name it in the report and boot nothing.
 - Each peer gets the Metro port `scripts/jaa-wave` prints for it, never `8081`.
 
 ## Model table
